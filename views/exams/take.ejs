@@ -12,7 +12,7 @@
         <p class="eyebrow">Sesion de evaluacion</p>
         <h1>Examen en linea</h1>
         <p class="lead">
-          Responde todas las preguntas. Puedes usar teclado, mouse o comandos escritos.
+          Responde todas las preguntas. Puedes usar teclado, mouse o comandos por voz.
         </p>
       </header>
 
@@ -27,24 +27,41 @@
       </section>
 
       <section class="panel command-panel" aria-labelledby="comandos-titulo">
-        <h2 id="comandos-titulo">Comandos de apoyo (opcional)</h2>
-        <p>Comandos disponibles: <code>enviar</code>, <code>inicio</code>, <code>limpiar</code>.</p>
+        <h2 id="comandos-titulo">Asistencia por voz</h2>
+        <p>
+          Comandos de voz disponibles: <code>enviar</code>, <code>inicio</code>, <code>limpiar</code>.
+          La lectura automatica se activa al moverte por preguntas y opciones.
+        </p>
         <div class="command-row">
-          <label for="commandInput">Ingresar comando</label>
-          <input id="commandInput" name="commandInput" type="text" autocomplete="off" />
           <div class="command-actions">
-            <button class="btn btn-secondary" type="button" id="runCommandBtn" aria-label="Ejecutar comando escrito">
-              Ejecutar
-            </button>
             <button class="btn btn-secondary" type="button" id="readPageBtn" aria-label="Escuchar lectura de la pantalla actual">
               Leer pantalla
             </button>
             <button class="btn btn-secondary" type="button" id="voiceCommandBtn" aria-label="Iniciar reconocimiento de voz para comandos">
               Comando por voz
             </button>
+            <button class="btn btn-secondary" type="button" id="micTestBtn" aria-label="Probar si el microfono detecta audio">
+              Probar microfono
+            </button>
+            <button class="btn btn-secondary" type="button" id="toggleAutoReadBtn" aria-label="Activar o desactivar lectura automatica al navegar por preguntas y opciones">
+              Lectura auto: ON
+            </button>
           </div>
         </div>
         <p id="commandStatus" class="assistive-status" role="status" aria-live="polite"></p>
+        <details class="voice-debug" id="voiceDebugPanel">
+          <summary>Diagnostico de voz</summary>
+          <ul>
+            <li>Contexto seguro: <strong id="diagSecureContext">-</strong></li>
+            <li>SpeechRecognition disponible: <strong id="diagRecognition">-</strong></li>
+            <li>SpeechSynthesis disponible: <strong id="diagSynthesis">-</strong></li>
+            <li>Microfono (permiso): <strong id="diagMicPermission">-</strong></li>
+            <li>Estado de escucha: <strong id="diagListeningState">-</strong></li>
+            <li>Nivel de microfono: <strong id="diagMicLevel">-</strong></li>
+            <li>Ultimo error tecnico: <strong id="diagLastError">ninguno</strong></li>
+            <li>Ultimo texto reconocido: <strong id="diagLastTranscript">-</strong></li>
+          </ul>
+        </details>
       </section>
 
       <% if (errors.length > 0) { %>

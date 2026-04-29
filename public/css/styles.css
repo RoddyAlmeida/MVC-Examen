@@ -186,19 +186,28 @@ input[type="radio"] {
   gap: 0.5rem;
 }
 
-.command-row input {
-  width: 100%;
-  max-width: 360px;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid #b8c5da;
-  border-radius: 8px;
-  font-size: 0.95rem;
-}
-
 .assistive-status {
   min-height: 1.2rem;
   margin: 0.55rem 0 0;
   color: #1f4b93;
+}
+
+.voice-debug {
+  margin-top: 0.6rem;
+  border-top: 1px dashed #c8d5ed;
+  padding-top: 0.45rem;
+  font-size: 0.9rem;
+}
+
+.voice-debug summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #294777;
+}
+
+.voice-debug ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1rem;
 }
 
 .option-tag {
