@@ -7,7 +7,48 @@ Proyecto base para la practica de usabilidad y accesibilidad en una arquitectura
 - EJS (capa de vista)
 - Sequelize + SQLite (capa de modelo)
 
-## Ejecucion
+## Ejecucion con Docker (Recomendado)
+
+Esta opcion evita problemas de compatibilidad entre sistemas operativos (Mac/Windows/Linux) con modulos nativos como `sqlite3`.
+
+### Requisitos
+- Docker Desktop instalado
+
+### Pasos
+1. Clonar el proyecto:
+   ```bash
+   git clone <repo-url>
+   cd MVC-Examen
+   ```
+
+2. Levantar el contenedor:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. Cargar datos de ejemplo (primera vez):
+   ```bash
+   docker-compose exec app node scripts/seed.js
+   ```
+
+4. Abrir en navegador:
+   - `http://localhost:3000`
+
+### Comandos utiles
+```bash
+docker-compose down              # Detener contenedor
+docker-compose up -d --build     # Reconstruir cambios
+docker-compose logs -f           # Ver logs en tiempo real
+docker-compose exec app sh       # Entrar al contenedor
+```
+
+### Base de datos
+La base de datos SQLite se persiste en `./data/exam.sqlite` fuera del contenedor mediante un volumen.
+
+---
+
+## Ejecucion local (Alternativa)
+
 1. Version de Node recomendada: **20.x o 22.x LTS** (ver bloque siguiente si usas una version muy nueva, p. ej. 25.x).
 2. Instalar dependencias:
    - `npm install`
@@ -30,9 +71,6 @@ Opciones (elige una):
   En macOS necesitas Xcode Command Line Tools (`xcode-select --install`).
 
 Este proyecto declara soporte estable en `package.json` bajo `"engines"` (Node 18-22).
-
-### Produccion sin Node en el equipo
-Ejecutar igualmente en servidor o contenedor con imagen oficial `node:22-alpine`, instalar deps y lanzar (`npm ci`, `npm run seed`, `npm run dev`).
 
 ## Estructura MVC
 - `models/`: entidades `Exam` y `Question`
