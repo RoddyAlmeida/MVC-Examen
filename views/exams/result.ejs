@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <main class="container app-shell">
+      <header class="page-header">
+        <p class="eyebrow">Resumen final</p>
+        <h1>Resultado del examen</h1>
+      </header>
+
+      <section class="panel result-hero">
+        <p class="score" role="status" aria-live="polite">
+          Obtuviste <strong><%= score %></strong> de <strong><%= total %></strong> respuestas correctas.
+        </p>
+
+        <p>
+          Este resultado se presenta con texto y estructura semantica para no depender unicamente
+          del color.
+        </p>
+      </section>
+
+      <section class="stats-grid" aria-label="Detalle de resultado">
+        <article class="stat-card">
+          <p class="stat-label">Correctas</p>
+          <p class="stat-value"><%= score %></p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Total</p>
+          <p class="stat-value"><%= total %></p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Porcentaje</p>
+          <p class="stat-value"><%= Math.round((score / total) * 100) %>%</p>
+        </article>
+      </section>
+
+      <a class="btn btn-secondary" href="/exam/start" aria-label="Volver al inicio del examen">
+        <span aria-hidden="true">↩</span> Volver al inicio
+      </a>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <main class="container app-shell">
+      <header class="page-header">
+        <p class="eyebrow">Sistema de Examen en Linea</p>
+        <h1><%= exam.title %></h1>
+        <p class="lead"><%= exam.instructions %></p>
+      </header>
+
+      <section class="stats-grid" aria-label="Resumen del examen">
+        <article class="stat-card">
+          <p class="stat-label">Preguntas por pantalla</p>
+          <p class="stat-value"><%= maxItems %></p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Modo accesible</p>
+          <p class="stat-value">Activo</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Interaccion</p>
+          <p class="stat-value">Teclado + mouse</p>
+        </article>
+      </section>
+
+      <section class="panel" aria-labelledby="accesibilidad-titulo">
+        <h2 id="accesibilidad-titulo">Medidas de usabilidad y accesibilidad</h2>
+        <ul class="feature-list">
+          <li><strong>Capacidad cognitiva:</strong> maximo de <%= maxItems %> preguntas por pantalla.</li>
+          <li><strong>Mensajes inclusivos:</strong> texto + iconos + semantica accesible.</li>
+          <li><strong>Entrada flexible:</strong> teclado, mouse y comandos simples.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2>Antes de comenzar</h2>
+        <ol class="step-list">
+          <li>Lee cada pregunta completa.</li>
+          <li>Selecciona una opcion por cada pregunta.</li>
+          <li>Envia el formulario para ver tu puntaje.</li>
+        </ol>
+      </section>
+
+      <a class="btn btn-primary" href="/exam/take" aria-label="Comenzar el examen en linea">
+        <span aria-hidden="true">📝</span>
+        <span>Comenzar examen</span>
+      </a>
+    </main>
+  </body>
+</html>
