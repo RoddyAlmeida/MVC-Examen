@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <main class="container app-shell">
+    <main class="container app-shell" data-page-read="Examen finalizado. Revisa tu puntaje y, si lo deseas, vuelve al inicio para repetir la evaluacion.">
       <header class="page-header">
         <p class="eyebrow">Resumen final</p>
         <h1>Resultado del examen</h1>
@@ -39,9 +39,10 @@
         </article>
       </section>
 
-      <a class="btn btn-secondary" href="/exam/start" aria-label="Volver al inicio del examen">
+      <a class="btn btn-secondary" href="/exam/start" aria-label="Volver al inicio del examen" data-speak="Volver al inicio del examen.">
         <span aria-hidden="true">↩</span> Volver al inicio
       </a>
     </main>
+    <script src="/js/pageNarration.js"></script>
   </body>
 </html>

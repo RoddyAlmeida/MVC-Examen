@@ -28,6 +28,9 @@ Proyecto base para la practica de usabilidad y accesibilidad en una arquitectura
 - Mensajes de error con texto + icono (no solo color)
 - Controles navegables por teclado y foco visible
 - Etiquetas claras para lector de pantalla (`aria-label`, `role`, `aria-live`)
+- Lectura guiada en espanol para preguntas/opciones, enfocada en navegacion por teclado
+- La lectura se detiene al enviar el examen o cambiar de pagina
+- Atajos de productividad: `Alt+L` (limpiar), `Alt+I` (inicio), `Ctrl+Enter` (enviar)
 
 ## Documentacion para entrega
 - `docs/uml.md`

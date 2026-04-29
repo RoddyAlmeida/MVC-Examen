@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <main class="container app-shell">
+    <main class="container app-shell" data-page-read="Bienvenido al sistema de examen en linea. Revisa las indicaciones y presiona Comenzar examen para continuar.">
       <header class="page-header">
         <p class="eyebrow">Sistema de Examen en Linea</p>
         <h1><%= exam.title %></h1>
@@ -47,10 +47,12 @@
         </ol>
       </section>
 
-      <a class="btn btn-primary" href="/exam/take" aria-label="Comenzar el examen en linea">
-        <span aria-hidden="true">📝</span>
-        <span>Comenzar examen</span>
-      </a>
+       <a class="btn btn-primary" href="/exam/take" aria-label="Comenzar el examen en linea" data-speak="Comenzar examen. Abriendo preguntas.">
+         <span aria-hidden="true">📝</span>
+         <span>Comenzar examen</span>
+       </a>
+       <!-- Ejemplo de imagen con alt: <img src="/img/logo.png" alt="Logo del sistema de examen en linea" /> -->
     </main>
+    <script src="/js/pageNarration.js"></script>
   </body>
 </html>

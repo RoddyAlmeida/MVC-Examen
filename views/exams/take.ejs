@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <main class="container app-shell">
+    <main class="container app-shell" data-page-read="Has iniciado el examen. Usa tabulacion para recorrer preguntas y espacio para seleccionar opciones.">
       <header class="page-header">
         <p class="eyebrow">Sesion de evaluacion</p>
         <h1>Examen en linea</h1>
         <p class="lead">
-          Responde todas las preguntas. Puedes usar teclado, mouse o comandos por voz.
+          Responde todas las preguntas. Puedes usar teclado o mouse con soporte para lector de pantalla.
         </p>
       </header>
 
@@ -27,41 +27,25 @@
       </section>
 
       <section class="panel command-panel" aria-labelledby="comandos-titulo">
-        <h2 id="comandos-titulo">Asistencia por voz</h2>
+        <h2 id="comandos-titulo">Controles y accesibilidad</h2>
         <p>
-          Comandos de voz disponibles: <code>enviar</code>, <code>inicio</code>, <code>limpiar</code>.
-          La lectura automatica se activa al moverte por preguntas y opciones.
+          Puedes operar el examen con mouse o teclado. Atajos: <code>Alt+L</code> limpiar,
+          <code>Alt+I</code> inicio, <code>Ctrl+Enter</code> enviar. Activa lectura guiada para escuchar preguntas y opciones.
         </p>
         <div class="command-row">
           <div class="command-actions">
-            <button class="btn btn-secondary" type="button" id="readPageBtn" aria-label="Escuchar lectura de la pantalla actual">
-              Leer pantalla
+            <button class="btn btn-secondary" type="button" id="toggleReadBtn" aria-label="Activar o desactivar lectura guiada en espanol" data-speak="Activar o desactivar lectura guiada.">
+              Lectura guiada: ON
             </button>
-            <button class="btn btn-secondary" type="button" id="voiceCommandBtn" aria-label="Iniciar reconocimiento de voz para comandos">
-              Comando por voz
+            <button class="btn btn-secondary" type="button" id="clearAnswersBtn" aria-label="Limpiar respuestas seleccionadas del examen" data-speak="Limpiar respuestas seleccionadas.">
+              Limpiar respuestas
             </button>
-            <button class="btn btn-secondary" type="button" id="micTestBtn" aria-label="Probar si el microfono detecta audio">
-              Probar microfono
-            </button>
-            <button class="btn btn-secondary" type="button" id="toggleAutoReadBtn" aria-label="Activar o desactivar lectura automatica al navegar por preguntas y opciones">
-              Lectura auto: ON
+            <button class="btn btn-secondary" type="button" id="goHomeBtn" aria-label="Volver al inicio del examen" data-speak="Volver al inicio del examen.">
+              Ir al inicio
             </button>
           </div>
         </div>
         <p id="commandStatus" class="assistive-status" role="status" aria-live="polite"></p>
-        <details class="voice-debug" id="voiceDebugPanel">
-          <summary>Diagnostico de voz</summary>
-          <ul>
-            <li>Contexto seguro: <strong id="diagSecureContext">-</strong></li>
-            <li>SpeechRecognition disponible: <strong id="diagRecognition">-</strong></li>
-            <li>SpeechSynthesis disponible: <strong id="diagSynthesis">-</strong></li>
-            <li>Microfono (permiso): <strong id="diagMicPermission">-</strong></li>
-            <li>Estado de escucha: <strong id="diagListeningState">-</strong></li>
-            <li>Nivel de microfono: <strong id="diagMicLevel">-</strong></li>
-            <li>Ultimo error tecnico: <strong id="diagLastError">ninguno</strong></li>
-            <li>Ultimo texto reconocido: <strong id="diagLastTranscript">-</strong></li>
-          </ul>
-        </details>
       </section>
 
       <% if (errors.length > 0) { %>
@@ -88,6 +72,7 @@
               type="radio"
               name="question_<%= question.id %>"
               value="A"
+              aria-label="Pregunta <%= index + 1 %> opcion A <%= question.optionA %>"
               <%= oldAnswers[`question_${question.id}`] === "A" ? "checked" : "" %>
             />
             <span class="option-tag" aria-hidden="true">A</span> <%= question.optionA %>
@@ -98,6 +83,7 @@
               type="radio"
               name="question_<%= question.id %>"
               value="B"
+              aria-label="Pregunta <%= index + 1 %> opcion B <%= question.optionB %>"
               <%= oldAnswers[`question_${question.id}`] === "B" ? "checked" : "" %>
             />
             <span class="option-tag" aria-hidden="true">B</span> <%= question.optionB %>
@@ -108,6 +94,7 @@
               type="radio"
               name="question_<%= question.id %>"
               value="C"
+              aria-label="Pregunta <%= index + 1 %> opcion C <%= question.optionC %>"
               <%= oldAnswers[`question_${question.id}`] === "C" ? "checked" : "" %>
             />
             <span class="option-tag" aria-hidden="true">C</span> <%= question.optionC %>
@@ -115,11 +102,12 @@
         </fieldset>
         <% }) %>
 
-        <button class="btn btn-primary" type="submit" aria-label="Enviar respuestas del examen">
+        <button class="btn btn-primary" type="submit" aria-label="Enviar respuestas del examen" data-speak="Enviar respuestas del examen.">
           <span aria-hidden="true">✅</span> Enviar respuestas
         </button>
       </form>
     </main>
+    <script src="/js/pageNarration.js"></script>
     <script src="/js/accessibility.js"></script>
   </body>
 </html>
