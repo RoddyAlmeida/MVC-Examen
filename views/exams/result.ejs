@@ -4,45 +4,61 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <main class="container app-shell" data-page-read="Examen finalizado. Revisa tu puntaje y, si lo deseas, vuelve al inicio para repetir la evaluacion.">
-      <header class="page-header">
-        <p class="eyebrow">Resumen final</p>
+    <main class="container app-shell" data-page-read="Examen finalizado. Revisa tu puntaje y, si lo deseas, vuelve al inicio para repetir la evaluación.">
+      <div class="theme-toggle-wrapper">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+          <i class="ti ti-moon" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <header class="page-header text-center" style="text-align: center;">
+        <p class="eyebrow"><i class="ti ti-award" aria-hidden="true"></i> Resumen final</p>
         <h1>Resultado del examen</h1>
       </header>
 
       <section class="panel result-hero">
-        <p class="score" role="status" aria-live="polite">
+        <div class="score-display">
+          <span class="score-value"><%= score %></span>
+          <span class="score-total">/ <%= total %></span>
+        </div>
+        <p class="result-message" role="status" aria-live="polite">
           Obtuviste <strong><%= score %></strong> de <strong><%= total %></strong> respuestas correctas.
         </p>
-
-        <p>
-          Este resultado se presenta con texto y estructura semantica para no depender unicamente
-          del color.
+        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+          <i class="ti ti-eye-check" aria-hidden="true"></i> Presentado de forma semántica y visualmente clara, independiente del color.
         </p>
       </section>
 
       <section class="stats-grid" aria-label="Detalle de resultado">
         <article class="stat-card">
+          <i class="ti ti-check stat-icon" aria-hidden="true"></i>
           <p class="stat-label">Correctas</p>
           <p class="stat-value"><%= score %></p>
         </article>
         <article class="stat-card">
+          <i class="ti ti-list-numbers stat-icon" aria-hidden="true"></i>
           <p class="stat-label">Total</p>
           <p class="stat-value"><%= total %></p>
         </article>
         <article class="stat-card">
+          <i class="ti ti-percentage stat-icon" aria-hidden="true"></i>
           <p class="stat-label">Porcentaje</p>
           <p class="stat-value"><%= Math.round((score / total) * 100) %>%</p>
         </article>
       </section>
 
-      <a class="btn btn-secondary" href="/exam/start" aria-label="Volver al inicio del examen" data-speak="Volver al inicio del examen.">
-        <span aria-hidden="true">↩</span> Volver al inicio
-      </a>
+      <div style="display: flex; justify-content: center; margin-top: 2rem;">
+        <a class="btn btn-secondary" href="/exam/start" aria-label="Volver al inicio del examen" data-speak="Volver al inicio del examen.">
+          <i class="ti ti-arrow-back-up" aria-hidden="true"></i> Volver al inicio
+        </a>
+      </div>
     </main>
+    <script src="/js/themeToggle.js"></script>
     <script src="/js/pageNarration.js"></script>
   </body>
 </html>

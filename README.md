@@ -1,94 +1,103 @@
-# Sistema de Examen en Linea MVC (Node.js)
+# 🎓 Sistema de Examen en Línea MVC - UX & Accessibility Edition
 
-Proyecto base para la practica de usabilidad y accesibilidad en una arquitectura MVC.
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 
-## Stack
-- Node.js + Express
-- EJS (capa de vista)
-- Sequelize + SQLite (capa de modelo)
-
-## Ejecucion con Docker (Recomendado)
-
-Esta opcion evita problemas de compatibilidad entre sistemas operativos (Mac/Windows/Linux) con modulos nativos como `sqlite3`.
-
-### Requisitos
-- Docker Desktop instalado
-
-### Pasos
-1. Clonar el proyecto:
-   ```bash
-   git clone <repo-url>
-   cd MVC-Examen
-   ```
-
-2. Levantar el contenedor:
-   ```bash
-   docker-compose up -d
-   ```
-
-3. Cargar datos de ejemplo (primera vez):
-   ```bash
-   docker-compose exec app node scripts/seed.js
-   ```
-
-4. Abrir en navegador:
-   - `http://localhost:3000`
-
-### Comandos utiles
-```bash
-docker-compose down              # Detener contenedor
-docker-compose up -d --build     # Reconstruir cambios
-docker-compose logs -f           # Ver logs en tiempo real
-docker-compose exec app sh       # Entrar al contenedor
-```
-
-### Base de datos
-La base de datos SQLite se persiste en `./data/exam.sqlite` fuera del contenedor mediante un volumen.
+Este proyecto es una plataforma de evaluación educativa desarrollada bajo el patrón **Modelo-Vista-Controlador (MVC)**, diseñada específicamente para demostrar las mejores prácticas en **Usabilidad (UX)**, **Accesibilidad (A11y)** y **Ergonomía Cognitiva**.
 
 ---
 
-## Ejecucion local (Alternativa)
+## 🌟 Características Principales
 
-1. Version de Node recomendada: **20.x o 22.x LTS** (ver bloque siguiente si usas una version muy nueva, p. ej. 25.x).
-2. Instalar dependencias:
-   - `npm install`
-3. Cargar datos de ejemplo:
-   - `npm run seed`
-4. Iniciar aplicacion:
-   - `npm run dev`
-5. Abrir:
-   - `http://localhost:3000`
+### 🧠 Ergonomía Cognitiva & UX
+- **Regla de Miller ($5 \pm 2$):** Interfaz diseñada para no saturar la memoria de trabajo, limitando los elementos interactivos por pantalla.
+- **Diseño Premium:** Estética moderna con *Glassmorphism*, tipografía *Inter* y micro-animaciones fluidas.
+- **Modo Oscuro Dinámico:** Soporte nativo para temas claro y oscuro con persistencia en `localStorage`.
+- **Carga Mental Reducida:** Navegación intuitiva y lenguaje claro para evitar la fatiga del estudiante.
 
-### SQLite y errores tipo "Could not locate the bindings file"
-No hace falta `.env`: la base SQLite es un archivo en `data/exam.sqlite` (solo se crea al ejecutar `npm run seed`).
+### ♿ Accesibilidad (A11y)
+- **Independencia del Color:** Uso de **Tabler Icons** y etiquetas de texto para comunicar estados (errores, éxitos) sin depender únicamente del color.
+- **Navegación por Teclado:** Foco visual de alto contraste y soporte completo para navegación secuencial.
+- **Soporte de Voz:** Implementación exhaustiva de etiquetas `aria-label` y roles semánticos para lectores de pantalla.
+- **Lectura Guiada:** Script de narración integrado para asistir a usuarios con discapacidad visual.
 
-Si al correr `npm run seed` aparece ese error sobre `sqlite3`/bindings, suele ser porque **`sqlite3` es binario nativo** y tu version de Node no tiene binario precompilado compatible.
+---
 
-Opciones (elige una):
-- **Mas simple:** usar **Node 20 LTS o 22 LTS** (`nvm install 22` y `nvm use 22`), luego borrar `node_modules`, `npm install`, `npm run seed`.
-- **Recompilar desde codigo fuente:** en la carpeta del proyecto, despues de `npm install`:
-  - `npm rebuild sqlite3 --build-from-source`
-  En macOS necesitas Xcode Command Line Tools (`xcode-select --install`).
+## 🛠️ Stack Tecnológico
 
-Este proyecto declara soporte estable en `package.json` bajo `"engines"` (Node 18-22).
+- **Backend:** Node.js + Express
+- **Frontend:** EJS (Embedded JavaScript templates) + CSS3 (Variables, HSL, Glassmorphism)
+- **ORM:** Sequelize
+- **Base de Datos:** SQLite (Persistente mediante volúmenes)
 
-## Estructura MVC
-- `models/`: entidades `Exam` y `Question`
-- `controllers/`: logica del flujo del examen
-- `routes/`: endpoints del modulo de examen
-- `views/`: interfaz accesible con EJS
+---
 
-## Criterios de usabilidad y accesibilidad implementados
-- Maximo 5 preguntas por pantalla (ergonomia cognitiva)
-- Mensajes de error con texto + icono (no solo color)
-- Controles navegables por teclado y foco visible
-- Etiquetas claras para lector de pantalla (`aria-label`, `role`, `aria-live`)
-- Lectura guiada en espanol para preguntas/opciones, enfocada en navegacion por teclado
-- La lectura se detiene al enviar el examen o cambiar de pagina
-- Atajos de productividad: `Alt+L` (limpiar), `Alt+I` (inicio), `Ctrl+Enter` (enviar)
+## 🚀 Despliegue con Docker (Recomendado)
 
-## Documentacion para entrega
-- `docs/uml.md`
-- `docs/informe-ux.md`
-- `docs/evaluacion-heuristica.md`
-- `docs/think-aloud.md`
+La forma más rápida y segura de ejecutar el proyecto, evitando problemas de dependencias nativas como `sqlite3`.
+
+### 1. Clonar el Repositorio
+```bash
+git clone https://github.com/RoddyAlmeida/MVC-Examen.git
+cd MVC-Examen
+```
+
+### 2. Levantar el Entorno
+Este comando construirá la imagen y levantará el contenedor en segundo plano:
+```bash
+docker-compose up -d --build
+```
+
+### 3. Inicializar Datos (Solo la primera vez)
+Ejecuta el script de *seeding* para poblar la base de datos con preguntas de ejemplo:
+```bash
+docker-compose exec app npm run seed
+```
+
+### 4. Acceder a la Aplicación
+Abre tu navegador en: [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 💻 Desarrollo Local
+
+Si prefieres ejecutarlo sin Docker, asegúrate de tener **Node.js 20+**.
+
+1. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
+2. **Poblar base de datos:**
+   ```bash
+   npm run seed
+   ```
+3. **Iniciar en modo desarrollo:**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 📂 Estructura del Proyecto
+
+```text
+├── config/         # Configuración de DB y Sequelize
+├── controllers/    # Lógica de negocio y flujo del examen
+├── models/         # Definición de modelos (Exam, Question)
+├── public/         # Recursos estáticos (CSS, JS, Imágenes)
+│   ├── css/        # Estilos premium y variables de tema
+│   └── js/         # Lógica de accesibilidad y toggle de tema
+├── routes/         # Definición de rutas del sistema
+├── views/          # Plantillas EJS (Estructura semántica)
+├── scripts/        # Scripts de utilidad (seeding)
+└── data/           # Base de datos SQLite persistente
+```
+
+---
+
+## ⌨️ Atajos de Teclado (Accesibilidad)
+
+- `Alt + L`: Limpiar respuestas seleccionadas.
+- `Alt + I`: Volver a la pantalla de inicio.
+- `Ctrl + Enter`: Enviar examen actual.

@@ -4,55 +4,66 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <main class="container app-shell" data-page-read="Bienvenido al sistema de examen en linea. Revisa las indicaciones y presiona Comenzar examen para continuar.">
+    <main class="container app-shell" data-page-read="Bienvenido al sistema de examen en línea. Revisa las indicaciones y presiona Comenzar examen para continuar.">
+      <div class="theme-toggle-wrapper">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+          <i class="ti ti-moon" aria-hidden="true"></i>
+        </button>
+      </div>
+
       <header class="page-header">
-        <p class="eyebrow">Sistema de Examen en Linea</p>
+        <p class="eyebrow"><i class="ti ti-school" aria-hidden="true"></i> Sistema de Examen en Línea</p>
         <h1><%= exam.title %></h1>
         <p class="lead"><%= exam.instructions %></p>
       </header>
 
       <section class="stats-grid" aria-label="Resumen del examen">
         <article class="stat-card">
+          <i class="ti ti-copy stat-icon" aria-hidden="true"></i>
           <p class="stat-label">Preguntas por pantalla</p>
           <p class="stat-value"><%= maxItems %></p>
         </article>
         <article class="stat-card">
+          <i class="ti ti-accessible stat-icon" aria-hidden="true"></i>
           <p class="stat-label">Modo accesible</p>
           <p class="stat-value">Activo</p>
         </article>
         <article class="stat-card">
-          <p class="stat-label">Interaccion</p>
+          <i class="ti ti-keyboard stat-icon" aria-hidden="true"></i>
+          <p class="stat-label">Interacción</p>
           <p class="stat-value">Teclado + mouse</p>
         </article>
       </section>
 
       <section class="panel" aria-labelledby="accesibilidad-titulo">
-        <h2 id="accesibilidad-titulo">Medidas de usabilidad y accesibilidad</h2>
+        <h2 id="accesibilidad-titulo"><i class="ti ti-brain" aria-hidden="true"></i> Medidas de usabilidad</h2>
         <ul class="feature-list">
-          <li><strong>Capacidad cognitiva:</strong> maximo de <%= maxItems %> preguntas por pantalla.</li>
-          <li><strong>Mensajes inclusivos:</strong> texto + iconos + semantica accesible.</li>
-          <li><strong>Entrada flexible:</strong> teclado, mouse y comandos simples.</li>
+          <li><strong>Capacidad cognitiva:</strong> Máximo de <%= maxItems %> preguntas por pantalla.</li>
+          <li><strong>Mensajes inclusivos:</strong> Texto + íconos + semántica accesible.</li>
+          <li><strong>Entrada flexible:</strong> Teclado, mouse y comandos simples.</li>
         </ul>
       </section>
 
       <section class="panel">
-        <h2>Antes de comenzar</h2>
+        <h2><i class="ti ti-info-circle" aria-hidden="true"></i> Antes de comenzar</h2>
         <ol class="step-list">
           <li>Lee cada pregunta completa.</li>
-          <li>Selecciona una opcion por cada pregunta.</li>
-          <li>Envia el formulario para ver tu puntaje.</li>
+          <li>Selecciona una opción por cada pregunta.</li>
+          <li>Envía el formulario para ver tu puntaje.</li>
         </ol>
       </section>
 
-       <a class="btn btn-primary" href="/exam/take" aria-label="Comenzar el examen en linea" data-speak="Comenzar examen. Abriendo preguntas.">
-         <span aria-hidden="true">📝</span>
-         <span>Comenzar examen</span>
-       </a>
-       <!-- Ejemplo de imagen con alt: <img src="/img/logo.png" alt="Logo del sistema de examen en linea" /> -->
+      <a class="btn btn-primary" href="/exam/take" aria-label="Comenzar el examen en línea" data-speak="Comenzar examen. Abriendo preguntas.">
+        <i class="ti ti-pencil" aria-hidden="true"></i>
+        <span>Comenzar examen</span>
+      </a>
     </main>
+    <script src="/js/themeToggle.js"></script>
     <script src="/js/pageNarration.js"></script>
   </body>
 </html>

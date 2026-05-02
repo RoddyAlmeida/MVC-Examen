@@ -4,44 +4,54 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <main class="container app-shell" data-page-read="Has iniciado el examen. Usa tabulacion para recorrer preguntas y espacio para seleccionar opciones.">
+    <main class="container app-shell" data-page-read="Has iniciado el examen. Usa tabulación para recorrer preguntas y espacio para seleccionar opciones.">
+      <div class="theme-toggle-wrapper">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+          <i class="ti ti-moon" aria-hidden="true"></i>
+        </button>
+      </div>
+
       <header class="page-header">
-        <p class="eyebrow">Sesion de evaluacion</p>
-        <h1>Examen en linea</h1>
+        <p class="eyebrow"><i class="ti ti-clock" aria-hidden="true"></i> Sesión de evaluación</p>
+        <h1>Examen en línea</h1>
         <p class="lead">
           Responde todas las preguntas. Puedes usar teclado o mouse con soporte para lector de pantalla.
         </p>
       </header>
 
       <section class="panel progress-panel" aria-labelledby="progreso-titulo">
-        <h2 id="progreso-titulo">Progreso de respuestas</h2>
-        <p class="progress-copy">
-          Completadas: <strong><span id="answeredCount">0</span> de <%= questions.length %></strong>
-        </p>
+        <div class="progress-info">
+          <h2 id="progreso-titulo"><i class="ti ti-chart-bar" aria-hidden="true"></i> Progreso</h2>
+          <p class="progress-copy">
+            <span id="answeredCount">0</span> de <%= questions.length %> respondidas
+          </p>
+        </div>
         <div class="progress-track" aria-hidden="true">
           <div class="progress-fill" id="progressFill"></div>
         </div>
       </section>
 
       <section class="panel command-panel" aria-labelledby="comandos-titulo">
-        <h2 id="comandos-titulo">Controles y accesibilidad</h2>
+        <h2 id="comandos-titulo"><i class="ti ti-device-keyboard" aria-hidden="true"></i> Controles</h2>
         <p>
-          Puedes operar el examen con mouse o teclado. Atajos: <code>Alt+L</code> limpiar,
-          <code>Alt+I</code> inicio, <code>Ctrl+Enter</code> enviar. Activa lectura guiada para escuchar preguntas y opciones.
+          Operable con mouse o teclado. <code>Alt+L</code> limpiar,
+          <code>Alt+I</code> inicio, <code>Ctrl+Enter</code> enviar. 
         </p>
         <div class="command-row">
           <div class="command-actions">
-            <button class="btn btn-secondary" type="button" id="toggleReadBtn" aria-label="Activar o desactivar lectura guiada en espanol" data-speak="Activar o desactivar lectura guiada.">
-              Lectura guiada: ON
+            <button class="btn btn-secondary" type="button" id="toggleReadBtn" aria-label="Activar o desactivar lectura guiada en español" data-speak="Activar o desactivar lectura guiada.">
+              <i class="ti ti-volume" aria-hidden="true"></i> Lectura: ON
             </button>
             <button class="btn btn-secondary" type="button" id="clearAnswersBtn" aria-label="Limpiar respuestas seleccionadas del examen" data-speak="Limpiar respuestas seleccionadas.">
-              Limpiar respuestas
+              <i class="ti ti-eraser" aria-hidden="true"></i> Limpiar
             </button>
             <button class="btn btn-secondary" type="button" id="goHomeBtn" aria-label="Volver al inicio del examen" data-speak="Volver al inicio del examen.">
-              Ir al inicio
+              <i class="ti ti-home" aria-hidden="true"></i> Inicio
             </button>
           </div>
         </div>
@@ -50,51 +60,54 @@
 
       <% if (errors.length > 0) { %>
       <div class="alert alert-error" role="alert" aria-live="assertive">
-        <p><strong>⚠ Revisa tu envio:</strong></p>
-        <ul>
-          <% errors.forEach((error) => { %>
-          <li><%= error.msg %></li>
-          <% }) %>
-        </ul>
+        <i class="ti ti-alert-circle alert-icon" aria-hidden="true" style="font-size: 1.5rem"></i>
+        <div class="alert-content">
+          <p>Revisa tu envío:</p>
+          <ul>
+            <% errors.forEach((error) => { %>
+            <li><%= error.msg %></li>
+            <% }) %>
+          </ul>
+        </div>
       </div>
       <% } %>
 
       <form action="/exam/take" method="POST" id="examForm">
         <% questions.forEach((question, index) => { %>
-        <fieldset class="question question-card" data-question-card>
+        <fieldset class="question-card" data-question-card>
           <legend>
-            <span class="question-badge">Pregunta <%= index + 1 %></span>
+            <span class="question-badge"><i class="ti ti-help-circle" aria-hidden="true"></i> Pregunta <%= index + 1 %></span>
             <span class="question-text"><%= question.prompt %></span>
           </legend>
 
-          <label>
+          <label class="option-label">
             <input
               type="radio"
               name="question_<%= question.id %>"
               value="A"
-              aria-label="Pregunta <%= index + 1 %> opcion A <%= question.optionA %>"
+              aria-label="Pregunta <%= index + 1 %> opción A <%= question.optionA %>"
               <%= oldAnswers[`question_${question.id}`] === "A" ? "checked" : "" %>
             />
             <span class="option-tag" aria-hidden="true">A</span> <%= question.optionA %>
           </label>
 
-          <label>
+          <label class="option-label">
             <input
               type="radio"
               name="question_<%= question.id %>"
               value="B"
-              aria-label="Pregunta <%= index + 1 %> opcion B <%= question.optionB %>"
+              aria-label="Pregunta <%= index + 1 %> opción B <%= question.optionB %>"
               <%= oldAnswers[`question_${question.id}`] === "B" ? "checked" : "" %>
             />
             <span class="option-tag" aria-hidden="true">B</span> <%= question.optionB %>
           </label>
 
-          <label>
+          <label class="option-label">
             <input
               type="radio"
               name="question_<%= question.id %>"
               value="C"
-              aria-label="Pregunta <%= index + 1 %> opcion C <%= question.optionC %>"
+              aria-label="Pregunta <%= index + 1 %> opción C <%= question.optionC %>"
               <%= oldAnswers[`question_${question.id}`] === "C" ? "checked" : "" %>
             />
             <span class="option-tag" aria-hidden="true">C</span> <%= question.optionC %>
@@ -102,11 +115,12 @@
         </fieldset>
         <% }) %>
 
-        <button class="btn btn-primary" type="submit" aria-label="Enviar respuestas del examen" data-speak="Enviar respuestas del examen.">
-          <span aria-hidden="true">✅</span> Enviar respuestas
+        <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem" type="submit" aria-label="Enviar respuestas del examen" data-speak="Enviar respuestas del examen.">
+          <i class="ti ti-send" aria-hidden="true"></i> Enviar respuestas
         </button>
       </form>
     </main>
+    <script src="/js/themeToggle.js"></script>
     <script src="/js/pageNarration.js"></script>
     <script src="/js/accessibility.js"></script>
   </body>
