@@ -24,14 +24,18 @@ app.use((req, res) => {
   });
 });
 
-async function bootstrap() {
+async function startServer(port = PORT) {
   await sequelize.sync();
-  app.listen(PORT, () => {
-    console.log(`Servidor activo en http://localhost:${PORT}`);
+  return app.listen(port, () => {
+    console.log(`Servidor activo en http://localhost:${port}`);
   });
 }
 
-bootstrap().catch((error) => {
-  console.error("No se pudo iniciar la aplicacion:", error);
-  process.exit(1);
-});
+if (require.main === module) {
+  startServer().catch((error) => {
+    console.error("No se pudo iniciar la aplicacion:", error);
+    process.exit(1);
+  });
+}
+
+module.exports = { app, startServer };

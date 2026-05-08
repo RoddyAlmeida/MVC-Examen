@@ -507,6 +507,96 @@ h2 {
   margin: 0 auto;
 }
 
+.security-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.2rem;
+  background: #7a1a1a;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  animation: slideDown 300ms ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.security-warning-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.security-warning-text strong {
+  font-size: 1.3rem;
+  color: #ffb000;
+}
+
+.security-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 10, 0.94);
+  animation: fadeIn 200ms ease-out;
+}
+
+.security-overlay-content {
+  text-align: center;
+  color: #fff;
+  padding: 2rem;
+  max-width: 500px;
+}
+
+.security-overlay-title {
+  font-size: 2.2rem;
+  margin: 0 0 1rem;
+  color: #ff6b6b;
+}
+
+.security-overlay-desc {
+  font-size: 1.1rem;
+  margin: 0 0 1.2rem;
+  line-height: 1.5;
+  color: #d0d0d0;
+}
+
+.security-overlay-score {
+  font-size: 1.4rem;
+  margin: 0 0 0.8rem;
+  color: #fff;
+}
+
+.security-overlay-score strong {
+  color: #ff6b6b;
+  font-size: 1.6rem;
+}
+
+.security-overlay-note {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+}
+
+.security-overlay-autoclose {
+  font-size: 1rem;
+  color: #ccc;
+  margin: 1.2rem 0 0;
+}
+
+.security-overlay-autoclose strong {
+  font-size: 1.3rem;
+  color: #ffb000;
+}
+
 /* Animations */
 @keyframes slideUpFade {
   0% {
@@ -516,6 +606,26 @@ h2 {
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
