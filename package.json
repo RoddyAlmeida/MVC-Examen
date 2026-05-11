@@ -34,12 +34,12 @@
     "@libsql/sqlite3": "0.3.1",
     "dotenv": "17.4.2",
     "ejs": "5.0.2",
-    "electron-builder": "26.8.1",
     "express": "5.2.1",
     "express-validator": "7.3.2",
     "sequelize": "6.37.8"
   },
   "devDependencies": {
-    "electron": "42.0.1"
+    "electron": "42.0.1",
+    "electron-builder": "26.8.1"
   }
 }
