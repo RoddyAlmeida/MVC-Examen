@@ -25,16 +25,16 @@
       "!dist"
     ],
     "win": {
-      "target": [
-        "msi"
-      ],
+      "target": "msi",
       "icon": "build/icons/icon.png"
     },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "build/icons/icon.png"
     },
     "linux": {
-      "target": "flatpak"
+      "target": "flatpak",
+      "icon": "build/icons/icon.png"
     }
   },
   "dependencies": {
