@@ -6,7 +6,29 @@
     "dev": "node app.js",
     "start": "node app.js",
     "electron": "electron .",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.examen.mvc",
+    "productName": "MVC Examen",
+    "files": [
+      "**/*",
+      "!.env",
+      "!node_modules/electron",
+      "!node_modules/electron-builder"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   },
   "keywords": [],
   "author": "",

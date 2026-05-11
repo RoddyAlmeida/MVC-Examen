@@ -126,10 +126,15 @@ function createMainWindow() {
 
   ipcMain.on("enter-fullscreen", () => {
     if (mainWindow) {
+      mainWindow.setFullScreen(true);
       mainWindow.setKiosk(true);
       // Forzar por encima de todo, incluso de la barra de tareas
+      // El nivel 'screen-saver' es el más alto en macOS/Windows
       mainWindow.setAlwaysOnTop(true, "screen-saver");
       mainWindow.setSkipTaskbar(true);
+      
+      // Asegurar que recupere el foco
+      mainWindow.focus();
     }
   });
 
