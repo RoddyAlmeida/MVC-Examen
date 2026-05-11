@@ -49,8 +49,8 @@ function createMainWindow() {
     height: 800,
     show: false,
     autoHideMenuBar: true,
-    fullscreen: true,
-    kiosk: true,
+    fullscreen: false,
+    kiosk: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
@@ -90,7 +90,7 @@ function createMainWindow() {
   });
 
   mainWindow.on("leave-full-screen", () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isKiosk()) {
       mainWindow.setFullScreen(true);
     }
   });
@@ -117,6 +117,19 @@ function createMainWindow() {
 
   ipcMain.on("close-exam-app", () => {
     app.exit(0);
+  });
+
+  ipcMain.on("enter-fullscreen", () => {
+    if (mainWindow) {
+      mainWindow.setKiosk(true);
+    }
+  });
+
+  ipcMain.on("exit-fullscreen", () => {
+    if (mainWindow) {
+      mainWindow.setKiosk(false);
+      mainWindow.setFullScreen(false);
+    }
   });
 
   mainWindow.loadURL(EXAM_URL);

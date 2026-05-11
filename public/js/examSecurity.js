@@ -1,6 +1,11 @@
 (function () {
   if (!window.examSecurity) return;
 
+  // Entrar en pantalla completa bloqueada (kiosk) al iniciar el examen
+  if (window.location.pathname === "/exam/take") {
+    window.examSecurity.enterFullscreen();
+  }
+
   var overlayEl = null;
   var warningEl = null;
   var countdownInterval = null;
@@ -14,6 +19,21 @@
       failExam();
     }
   });
+
+  // Salir de pantalla completa al enviar el formulario o volver al inicio
+  var examForm = document.getElementById("examForm");
+  if (examForm) {
+    examForm.addEventListener("submit", function() {
+      window.examSecurity.exitFullscreen();
+    });
+  }
+
+  var goHomeBtn = document.getElementById("goHomeBtn");
+  if (goHomeBtn) {
+    goHomeBtn.addEventListener("click", function() {
+      window.examSecurity.exitFullscreen();
+    });
+  }
 
   function showCountdown() {
     if (overlayEl) return;

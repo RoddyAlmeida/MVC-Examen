@@ -9,4 +9,10 @@ contextBridge.exposeInMainWorld("examSecurity", {
   closeApp() {
     ipcRenderer.send("close-exam-app");
   },
+  enterFullscreen() {
+    ipcRenderer.send("enter-fullscreen");
+  },
+  exitFullscreen() {
+    ipcRenderer.send("exit-fullscreen");
+  },
 });
