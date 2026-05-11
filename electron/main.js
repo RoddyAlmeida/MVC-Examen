@@ -97,6 +97,11 @@ function createMainWindow() {
 
   mainWindow.on("blur", () => {
     if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+      // Intentar forzar el foco si estamos en modo kiosk para dificultar el Alt+Tab
+      if (mainWindow.isKiosk()) {
+        mainWindow.focus();
+      }
+
       mainWindow.webContents.send("security-event", { type: "left" });
       if (examLeaveTimer === null) {
         examLeaveTimer = setTimeout(function () {
@@ -122,12 +127,17 @@ function createMainWindow() {
   ipcMain.on("enter-fullscreen", () => {
     if (mainWindow) {
       mainWindow.setKiosk(true);
+      // Forzar por encima de todo, incluso de la barra de tareas
+      mainWindow.setAlwaysOnTop(true, "screen-saver");
+      mainWindow.setSkipTaskbar(true);
     }
   });
 
   ipcMain.on("exit-fullscreen", () => {
     if (mainWindow) {
       mainWindow.setKiosk(false);
+      mainWindow.setAlwaysOnTop(false);
+      mainWindow.setSkipTaskbar(false);
       mainWindow.setFullScreen(false);
     }
   });
