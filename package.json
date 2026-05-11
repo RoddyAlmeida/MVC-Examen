@@ -6,8 +6,7 @@
     "dev": "node app.js",
     "start": "node app.js",
     "electron": "electron .",
-    "seed": "node scripts/seed.js",
-    "test": "echo \"No automated tests configured yet\""
+    "seed": "node scripts/seed.js"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +20,7 @@
     "sqlite3": "^6.0.1"
   },
   "devDependencies": {
-    "electron": "^37.10.3"
+    "electron": "^42.0.1"
   },
   "engines": {
     "node": ">=18 <26",
