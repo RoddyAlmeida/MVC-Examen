@@ -161,11 +161,11 @@ async function bootstrapElectron() {
 
 bootstrapElectron().catch((error) => {
   console.error("No se pudo iniciar Electron:", error);
-  app.quit();
+  app.exit(1);
 });
 
 app.on("will-quit", () => {
-  globalShortcut.unregisterAll();
+  try { globalShortcut.unregisterAll(); } catch (_) {}
   if (powerSaveBlocker.isStarted(powerSaveId)) {
     powerSaveBlocker.stop(powerSaveId);
   }

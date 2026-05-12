@@ -1,4 +1,9 @@
-require("dotenv").config();
+const path = require("path");
+const envPath = process.resourcesPath
+  ? path.join(process.resourcesPath, ".env")
+  : path.join(__dirname, "..", ".env");
+require("dotenv").config({ path: envPath });
+
 const { Sequelize } = require("sequelize");
 const libsql = require("@libsql/sqlite3");
 
