@@ -19,7 +19,6 @@
     "productName": "MVC Examen",
     "files": [
       "**/*",
-      "!.env",
       "!node_modules/electron",
       "!node_modules/electron-builder",
       "!dist"

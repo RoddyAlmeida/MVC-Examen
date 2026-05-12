@@ -39,7 +39,7 @@ function registerBlockedShortcuts() {
   ];
 
   shortcuts.forEach((shortcut) => {
-    globalShortcut.register(shortcut, () => {});
+    globalShortcut.register(shortcut, () => { });
   });
 }
 
@@ -132,7 +132,7 @@ function createMainWindow() {
       // El nivel 'screen-saver' es el más alto en macOS/Windows
       mainWindow.setAlwaysOnTop(true, "screen-saver");
       mainWindow.setSkipTaskbar(true);
-      
+
       // Asegurar que recupere el foco
       mainWindow.focus();
     }
@@ -151,8 +151,8 @@ function createMainWindow() {
 }
 
 async function bootstrapElectron() {
-  httpServer = await startServer(EXAM_PORT);
   await app.whenReady();
+  httpServer = await startServer(EXAM_PORT);
 
   powerSaveId = powerSaveBlocker.start("prevent-display-sleep");
   registerBlockedShortcuts();

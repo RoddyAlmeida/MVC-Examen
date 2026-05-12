@@ -1,4 +1,6 @@
-require("dotenv").config();
+require("dotenv").config({
+  path: require("path").join(__dirname, "..", ".env"),
+});
 const { Sequelize } = require("sequelize");
 const libsql = require("@libsql/sqlite3");
 
@@ -9,7 +11,7 @@ const customLibsql = {
   Database: class extends libsql.Database {
     constructor(storage, mode, callback) {
       const url = `${process.env.TURSO_DATABASE_URL}?authToken=${process.env.TURSO_AUTH_TOKEN}`;
-      if (typeof mode === 'function') {
+      if (typeof mode === "function") {
         super(url, mode);
       } else {
         super(url, mode, callback);
