@@ -28,13 +28,6 @@
     });
   }
 
-  var goHomeBtn = document.getElementById("goHomeBtn");
-  if (goHomeBtn) {
-    goHomeBtn.addEventListener("click", function() {
-      window.examSecurity.exitFullscreen();
-    });
-  }
-
   function showCountdown() {
     if (overlayEl) return;
     if (warningEl) return;

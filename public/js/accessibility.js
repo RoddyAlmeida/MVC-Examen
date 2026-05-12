@@ -1,6 +1,5 @@
 const toggleReadBtn = document.getElementById("toggleReadBtn");
 const clearAnswersBtn = document.getElementById("clearAnswersBtn");
-const goHomeBtn = document.getElementById("goHomeBtn");
 const commandStatus = document.getElementById("commandStatus");
 const examForm = document.getElementById("examForm");
 const answeredCount = document.getElementById("answeredCount");
@@ -160,23 +159,11 @@ if (commandStatus && examForm) {
     });
   }
 
-  if (goHomeBtn) {
-    goHomeBtn.addEventListener("click", () => {
-      if (speech) speech.stop();
-      window.location.href = "/exam/start";
-    });
-  }
-
   document.addEventListener("keydown", (event) => {
     if (event.altKey && event.key.toLowerCase() === "l") {
       event.preventDefault();
       clearAnswers();
       setStatus("Respuestas limpiadas por atajo Alt+L.");
-      return;
-    }
-    if (event.altKey && event.key.toLowerCase() === "i") {
-      event.preventDefault();
-      window.location.href = "/exam/start";
       return;
     }
     if (event.ctrlKey && event.key === "Enter") {
