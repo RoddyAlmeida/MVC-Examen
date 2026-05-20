@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="centered-page">
+    <div class="theme-toggle-wrapper">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+        <i class="ti ti-moon" aria-hidden="true"></i>
+      </button>
+    </div>
+    <main class="container app-shell" style="max-width: 440px; margin: 0;">
+      <header class="page-header" style="text-align: center;">
+        <p class="eyebrow"><i class="ti ti-school" aria-hidden="true"></i> Sistema de Examen</p>
+        <h1>Crear cuenta</h1>
+        <p class="lead" style="font-size: 0.95rem;">Regístrate para rendir exámenes y ver tus resultados</p>
+      </header>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error" role="alert">
+        <i class="ti ti-alert-circle alert-icon" aria-hidden="true"></i>
+        <div class="alert-content"><p><%= error %></p></div>
+      </div>
+      <% } %>
+
+      <form method="POST" action="/register">
+        <div class="form-group">
+          <label for="name" class="form-label">Nombre (opcional)</label>
+          <input type="text" id="name" name="name" class="form-input" placeholder="Tu nombre" />
+        </div>
+        <div class="form-group">
+          <label for="email" class="form-label">Correo electrónico</label>
+          <input type="email" id="email" name="email" class="form-input" placeholder="correo@ejemplo.com" required />
+        </div>
+        <div class="form-group">
+          <label for="password" class="form-label">Contraseña</label>
+          <input type="password" id="password" name="password" class="form-input" placeholder="Mínimo 4 caracteres" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <i class="ti ti-user-plus" aria-hidden="true"></i> Crear cuenta
+        </button>
+      </form>
+
+      <p style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+        ¿Ya tienes cuenta?
+        <a href="/login" style="color: var(--primary); font-weight: 600;">Inicia sesión</a>
+      </p>
+    </main>
+    <script src="/js/themeToggle.js"></script>
+  </body>
+</html>

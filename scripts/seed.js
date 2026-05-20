@@ -1,4 +1,5 @@
-const { sequelize, Exam, Question } = require("../models");
+const bcrypt = require("bcryptjs");
+const { sequelize, Exam, Question, User } = require("../models");
 
 async function seed() {
   await sequelize.sync({ force: true });
@@ -51,6 +52,14 @@ async function seed() {
       correctOption: "A",
     },
   ]);
+
+  const hashed = await bcrypt.hash("profesor123", 10);
+  await User.create({
+    email: "profesor@pucese.edu.ec",
+    password: hashed,
+    role: "profesor",
+    name: "Profesor",
+  });
 
   console.log("Datos iniciales cargados.");
   await sequelize.close();

@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+app.disable("view cache");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -36,8 +37,16 @@ app.get("/", (req, res) => {
 });
 
 app.get("/login", authController.renderLogin);
-app.get("/login/:role", authController.loginAs);
+app.post("/login", authController.login);
+app.get("/register", authController.renderRegister);
+app.post("/register", authController.register);
 app.get("/logout", authController.logout);
+
+// Make session available to all views
+app.use((req, res, next) => {
+  res.locals.req = req;
+  next();
+});
 
 app.use("/professor", requireRole("profesor"), professorRoutes);
 app.use("/student", requireRole("estudiante"), studentRoutes);

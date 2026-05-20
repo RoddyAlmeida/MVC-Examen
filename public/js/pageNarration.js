@@ -2,7 +2,7 @@ const pageRoot = document.querySelector("[data-page-read]");
 
 if (!window.guidedSpeech) {
   window.guidedSpeech = (() => {
-    let enabled = localStorage.getItem("guidedReadEnabled") !== "false";
+    let enabled = localStorage.getItem("guidedReadEnabled") === "true";
     let lastText = "";
     let lastAt = 0;
 

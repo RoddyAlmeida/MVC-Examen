@@ -82,9 +82,15 @@ body {
 
 /* Theme Toggle Button */
 .theme-toggle-wrapper {
-  position: absolute;
+  position: fixed;
   top: 1.5rem;
   right: 1.5rem;
+  z-index: 1000;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .theme-toggle {
@@ -728,10 +734,47 @@ h2 {
   margin: 0;
 }
 
+.exam-card-taken {
+  opacity: 0.85;
+}
+
+.exam-result-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-color);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.exam-result-inline .ti-lock {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.exam-result-inline .result-text strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
 .exam-card-actions {
   display: flex;
   gap: 0.5rem;
   flex-shrink: 0;
+}
+
+/* Pagination */
+.pagination-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
 }
 
 /* Form Styles */
@@ -772,9 +815,11 @@ h2 {
 
 .header-actions {
   display: flex;
-  gap: 0.5rem;
-  margin-right: 2.75rem;
+  align-items: center;
+  gap: 1rem;
 }
+
+
 
 .form-row {
   display: flex;
@@ -788,6 +833,14 @@ h2 {
 }
 
 .hidden { display: none !important; }
+
+.centered-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
 
 .question-card-editable {
   cursor: pointer;

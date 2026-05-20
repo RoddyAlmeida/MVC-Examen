@@ -7,7 +7,7 @@ const progressFill = document.getElementById("progressFill");
 
 if (commandStatus && examForm) {
   const speech = window.guidedSpeech;
-  let guidedReadEnabled = speech ? speech.isEnabled() : localStorage.getItem("guidedReadEnabled") !== "false";
+  let guidedReadEnabled = speech ? speech.isEnabled() : localStorage.getItem("guidedReadEnabled") === "true";
   let keyboardNavigationMode = true;
   const speak = (text) => {
     if (!speech) return;

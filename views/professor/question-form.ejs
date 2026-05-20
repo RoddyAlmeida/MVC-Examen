@@ -38,10 +38,15 @@
 
       <section class="panel toggle-section">
         <div class="toggle-header" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.toggle-icon').classList.toggle('ti-chevron-down'); this.querySelector('.toggle-icon').classList.toggle('ti-chevron-up')">
-          <h2 style="margin: 0; flex: 1;"><i class="ti ti-plus" aria-hidden="true"></i> Agregar pregunta</h2>
+          <h2 style="margin: 0; flex: 1;"><i class="ti ti-plus" aria-hidden="true"></i> Agregar pregunta <span style="font-size:0.85rem;color:var(--text-secondary);font-weight:400;">(<%= questions.length %>/10)</span></h2>
           <span style="font-size: 0.85rem; color: var(--text-secondary); margin-right: 0.5rem;">click para expandir</span>
           <i class="ti ti-chevron-down toggle-icon" style="font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease;"></i>
         </div>
+        <% if (questions.length >= 10) { %>
+        <div class="panel" style="text-align:center;color:var(--text-secondary);">
+          <i class="ti ti-lock" aria-hidden="true"></i> Límite de 10 preguntas alcanzado.
+        </div>
+        <% } else { %>
         <form method="POST" action="/professor/exams/<%= exam.id %>/questions/create" class="hidden">
           <div class="form-group">
             <label for="prompt" class="form-label">Enunciado</label>
@@ -74,6 +79,7 @@
             <i class="ti ti-plus" aria-hidden="true"></i> Agregar pregunta
           </button>
         </form>
+        <% } %>
       </section>
 
       <% if (questions.length > 0) { %>

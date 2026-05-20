@@ -15,9 +15,9 @@
         </button>
       </div>
 
-      <header class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <header class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; padding-right: 3rem; padding-top: 1.5rem;">
         <div>
-          <p class="eyebrow"><i class="ti ti-users" aria-hidden="true"></i> Estudiante</p>
+          <p class="eyebrow"><i class="ti ti-users" aria-hidden="true"></i> <%= typeof userName !== 'undefined' ? userName : 'Estudiante' %></p>
           <h1>Exámenes disponibles</h1>
           <p class="lead">Selecciona un examen para comenzar</p>
         </div>
@@ -36,17 +36,30 @@
       <% } else { %>
       <div class="exam-list">
         <% exams.forEach((exam) => { %>
-        <article class="exam-card">
+        <% const taken = resultsMap && resultsMap[exam.id] %>
+        <article class="exam-card<%= taken ? ' exam-card-taken' : '' %>">
           <div class="exam-card-body">
             <h2 class="exam-card-title"><%= exam.title %></h2>
             <p class="exam-card-desc"><%= exam.instructions %></p>
             <p class="exam-card-meta">
               <i class="ti ti-calendar" aria-hidden="true"></i> Publicado: <%= exam.createdAt.toLocaleDateString() %>
             </p>
+            <% if (taken) { %>
+            <div class="exam-result-inline">
+              <i class="ti ti-lock" aria-hidden="true"></i>
+              <span class="result-text">Rendido — <strong><%= taken.score %></strong>/<%= taken.total %></span>
+            </div>
+            <% } %>
           </div>
+          <% if (taken) { %>
+          <span class="btn btn-secondary" style="pointer-events: none; opacity: 0.6;">
+            <i class="ti ti-lock" aria-hidden="true"></i> No disponible
+          </span>
+          <% } else { %>
           <a href="/student/exams/<%= exam.id %>/start" class="btn btn-primary">
             <i class="ti ti-arrow-right" aria-hidden="true"></i> Comenzar
           </a>
+          <% } %>
         </article>
         <% }) %>
       </div>

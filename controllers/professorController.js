@@ -1,4 +1,4 @@
-const { Exam, Question } = require("../models");
+const { Exam, Question, User, Result } = require("../models");
 
 async function dashboard(req, res) {
   const exams = await Exam.findAll({ order: [["createdAt", "DESC"]] });
@@ -59,6 +59,13 @@ async function manageQuestions(req, res) {
 async function createQuestion(req, res) {
   const exam = await Exam.findByPk(req.params.id);
   if (!exam) return res.redirect("/professor/dashboard");
+
+  const questionCount = await Question.count({ where: { examId: exam.id } });
+  if (questionCount >= 10) {
+    const questions = await Question.findAll({ where: { examId: exam.id } });
+    return res.status(400).render("professor/question-form", { title: "Preguntas", exam, questions, errors: [{ msg: "Límite alcanzado: máximo 10 preguntas por examen." }] });
+  }
+
   const { prompt, optionA, optionB, optionC, correctOption } = req.body;
   const errors = [];
   if (!prompt || !prompt.trim()) errors.push({ msg: "El enunciado es obligatorio." });
@@ -103,4 +110,86 @@ async function deleteQuestion(req, res) {
   }
 }
 
-module.exports = { dashboard, renderCreateExam, createExam, renderEditExam, editExam, deleteExam, manageQuestions, createQuestion, editQuestion, deleteQuestion };
+async function listStudents(req, res) {
+  const students = await User.findAll({
+    where: { role: "estudiante" },
+    order: [["createdAt", "DESC"]],
+  });
+  res.render("professor/students", { title: "Estudiantes", students });
+}
+
+async function viewStudent(req, res) {
+  try {
+    const student = await User.findByPk(req.params.id);
+    if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
+
+    const results = await Result.findAll({
+      where: { userId: student.id },
+      include: [{ model: Exam, as: "exam" }],
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.render("professor/student-detail", { title: student.name || student.email, student, results });
+  } catch (e) {
+    console.error("viewStudent error:", e);
+    res.status(500).send("Error al cargar datos del estudiante");
+  }
+}
+
+async function viewStudentExam(req, res) {
+  try {
+    const student = await User.findByPk(req.params.id);
+    if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
+
+    const result = await Result.findOne({
+      where: { userId: student.id, examId: req.params.eid },
+      include: [{ model: Exam, as: "exam", include: [{ model: Question, as: "questions" }] }],
+    });
+    if (!result) return res.redirect("/professor/students/" + student.id);
+
+    const answers = result.answers ? JSON.parse(result.answers) : {};
+    const questions = result.exam.questions.sort((a, b) => a.id - b.id);
+
+    res.render("professor/student-exam-detail", {
+      title: "Detalle del examen",
+      student,
+      result,
+      questions,
+      answers,
+    });
+  } catch (e) {
+    console.error("viewStudentExam error:", e.message, e.stack);
+    res.status(500).send("Error al cargar detalle del examen: " + e.message);
+  }
+}
+
+async function editStudent(req, res) {
+  const student = await User.findByPk(req.params.id);
+  if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
+  const { name, email } = req.body;
+  if (email && email !== student.email) {
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.redirect("/professor/students/" + student.id + "?error=El correo ya está en uso.");
+    }
+  }
+  await student.update({ name: name || null, email: email || student.email });
+  res.redirect("/professor/students/" + student.id);
+}
+
+async function resetStudentExam(req, res) {
+  const student = await User.findByPk(req.params.id);
+  if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
+  await Result.destroy({ where: { userId: student.id, examId: req.params.eid } });
+  res.redirect("/professor/students/" + student.id);
+}
+
+async function deleteStudent(req, res) {
+  const student = await User.findByPk(req.params.id);
+  if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
+  await Result.destroy({ where: { userId: student.id } });
+  await student.destroy();
+  res.redirect("/professor/students");
+}
+
+module.exports = { dashboard, renderCreateExam, createExam, renderEditExam, editExam, deleteExam, manageQuestions, createQuestion, editQuestion, deleteQuestion, listStudents, viewStudent, viewStudentExam, editStudent, resetStudentExam, deleteStudent };

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <main class="container app-shell" style="max-width: 800px;">
+      <div class="theme-toggle-wrapper">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+          <i class="ti ti-moon" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <header class="page-header" style="padding-right: 3rem; padding-top: 1.5rem;">
+        <a href="/professor/students/<%= student.id %>" class="btn btn-secondary" style="margin-bottom: 1rem; width: fit-content;">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i> Volver
+        </a>
+        <p class="eyebrow"><i class="ti ti-user" aria-hidden="true"></i> <%= student.name || student.email %></p>
+        <h1><%= result.exam ? result.exam.title : 'Examen' %></h1>
+        <p style="color: var(--text-secondary);">
+          Puntaje: <strong><%= result.score %></strong>/<%= result.total %> — <%= Math.round((result.score / result.total) * 100) %>%
+        </p>
+      </header>
+
+      <div class="question-list">
+        <% questions.forEach((q, i) => { %>
+        <% const studentAns = answers[q.id]; %>
+        <% const isCorrect = studentAns === q.correctOption; %>
+        <article class="question-card" style="<%= isCorrect ? 'border-color: var(--success);' : 'border-color: var(--danger);' %>">
+          <div class="question-badge" style="margin-bottom: 0.75rem;">
+            <i class="ti ti-<%= isCorrect ? 'check' : 'x' %>" aria-hidden="true"></i>
+            Pregunta <%= i + 1 %>
+          </div>
+          <p style="font-weight: 600; margin-bottom: 1rem;"><%= q.prompt %></p>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="option-label" style="<%= q.correctOption === 'A' ? 'border-color: var(--success); background: var(--success-bg);' : (studentAns === 'A' && !isCorrect ? 'border-color: var(--danger); background: var(--danger-bg);' : '') %>">
+              <span class="option-tag" aria-hidden="true">A</span> <%= q.optionA %>
+              <% if (q.correctOption === 'A') { %><i class="ti ti-circle-check" style="color: var(--success); margin-left: auto;"></i><% } %>
+              <% if (studentAns === 'A' && !isCorrect) { %><i class="ti ti-circle-x" style="color: var(--danger); margin-left: auto;"></i><% } %>
+            </div>
+            <div class="option-label" style="<%= q.correctOption === 'B' ? 'border-color: var(--success); background: var(--success-bg);' : (studentAns === 'B' && !isCorrect ? 'border-color: var(--danger); background: var(--danger-bg);' : '') %>">
+              <span class="option-tag" aria-hidden="true">B</span> <%= q.optionB %>
+              <% if (q.correctOption === 'B') { %><i class="ti ti-circle-check" style="color: var(--success); margin-left: auto;"></i><% } %>
+              <% if (studentAns === 'B' && !isCorrect) { %><i class="ti ti-circle-x" style="color: var(--danger); margin-left: auto;"></i><% } %>
+            </div>
+            <div class="option-label" style="<%= q.correctOption === 'C' ? 'border-color: var(--success); background: var(--success-bg);' : (studentAns === 'C' && !isCorrect ? 'border-color: var(--danger); background: var(--danger-bg);' : '') %>">
+              <span class="option-tag" aria-hidden="true">C</span> <%= q.optionC %>
+              <% if (q.correctOption === 'C') { %><i class="ti ti-circle-check" style="color: var(--success); margin-left: auto;"></i><% } %>
+              <% if (studentAns === 'C' && !isCorrect) { %><i class="ti ti-circle-x" style="color: var(--danger); margin-left: auto;"></i><% } %>
+            </div>
+          </div>
+          <p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--<%= isCorrect ? 'success' : 'danger' %>); font-weight: 600;">
+            <i class="ti ti-<%= isCorrect ? 'check' : 'x' %>" aria-hidden="true"></i>
+            <%= isCorrect ? 'Correcta' : 'Incorrecta — Respuesta del estudiante: ' + (studentAns || 'sin responder') + ', Correcta: ' + q.correctOption %>
+          </p>
+        </article>
+        <% }) %>
+      </div>
+    </main>
+    <script src="/js/themeToggle.js"></script>
+  </body>
+</html>
