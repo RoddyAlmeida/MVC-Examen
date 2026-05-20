@@ -69,7 +69,7 @@
       </div>
       <% } %>
 
-      <form action="/exam/take" method="POST" id="examForm">
+      <form action="/student/exams/<%= exam.id %>/take" method="POST" id="examForm">
         <% questions.forEach((question, index) => { %>
         <fieldset class="question-card" data-question-card>
           <legend>

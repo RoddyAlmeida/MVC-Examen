@@ -8,7 +8,6 @@ const progressFill = document.getElementById("progressFill");
 if (commandStatus && examForm) {
   const speech = window.guidedSpeech;
   let guidedReadEnabled = speech ? speech.isEnabled() : localStorage.getItem("guidedReadEnabled") !== "false";
-  let lastQuestionAnnounced = "";
   let keyboardNavigationMode = true;
   const speak = (text) => {
     if (!speech) return;
@@ -114,17 +113,9 @@ if (commandStatus && examForm) {
     if (!(target instanceof HTMLInputElement) || target.type !== "radio") {
       return;
     }
-    const questionCard = target.closest("[data-question-card]");
-    const questionId = target.name;
-    const questionTitle = questionCard?.querySelector(".question-text")?.textContent?.trim() || "";
     const optionLabel = target.closest("label")?.textContent?.trim() || "";
-    const shouldReadQuestion = lastQuestionAnnounced !== questionId;
-    lastQuestionAnnounced = questionId;
-    const speechText = shouldReadQuestion
-      ? `${questionTitle}. Opcion: ${optionLabel}`
-      : `Opcion: ${optionLabel}`;
-    speak(speechText);
-    setStatus(`${questionTitle}. Opcion enfocada: ${optionLabel}`);
+    speak(`Opción: ${optionLabel}`);
+    setStatus(`Opción enfocada: ${optionLabel}`);
   });
 
   if (toggleReadBtn) {

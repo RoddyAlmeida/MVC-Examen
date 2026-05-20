@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inicio - Sistema de Examen</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <main class="container app-shell" style="max-width: 700px;">
+      <div class="theme-toggle-wrapper">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+          <i class="ti ti-moon" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <header class="page-header" style="text-align: center;">
+        <p class="eyebrow"><i class="ti ti-school" aria-hidden="true"></i> Sistema de Examen</p>
+        <h1>Selecciona tu rol</h1>
+        <p class="lead">Elige cómo deseas ingresar al sistema</p>
+      </header>
+
+      <div class="role-grid">
+        <a href="/login/profesor" class="role-card">
+          <i class="ti ti-user-plus role-icon"></i>
+          <h2 class="role-title">Profesor</h2>
+          <p class="role-desc">Crear y gestionar exámenes, agregar preguntas y revisar resultados</p>
+          <span class="btn btn-primary" style="width: 100%; justify-content: center;">
+            <i class="ti ti-arrow-right" aria-hidden="true"></i> Ingresar
+          </span>
+        </a>
+
+        <a href="/login/estudiante" class="role-card">
+          <i class="ti ti-users role-icon"></i>
+          <h2 class="role-title">Estudiante</h2>
+          <p class="role-desc">Resolver exámenes disponibles y consultar tus resultados</p>
+          <span class="btn btn-primary" style="width: 100%; justify-content: center;">
+            <i class="ti ti-arrow-right" aria-hidden="true"></i> Ingresar
+          </span>
+        </a>
+      </div>
+    </main>
+    <script src="/js/themeToggle.js"></script>
+  </body>
+</html>

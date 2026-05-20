@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <main class="container app-shell" style="max-width: 800px;">
+      <div class="theme-toggle-wrapper">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+          <i class="ti ti-moon" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <header class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <p class="eyebrow"><i class="ti ti-users" aria-hidden="true"></i> Estudiante</p>
+          <h1>Exámenes disponibles</h1>
+          <p class="lead">Selecciona un examen para comenzar</p>
+        </div>
+        <div class="header-actions">
+          <a href="/logout" class="btn btn-secondary">
+            <i class="ti ti-logout" aria-hidden="true"></i> Salir
+          </a>
+        </div>
+      </header>
+
+      <% if (exams.length === 0) { %>
+      <section class="panel" style="text-align: center; padding: 3rem;">
+        <i class="ti ti-file-off" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
+        <p style="color: var(--text-secondary);">No hay exámenes disponibles en este momento.</p>
+      </section>
+      <% } else { %>
+      <div class="exam-list">
+        <% exams.forEach((exam) => { %>
+        <article class="exam-card">
+          <div class="exam-card-body">
+            <h2 class="exam-card-title"><%= exam.title %></h2>
+            <p class="exam-card-desc"><%= exam.instructions %></p>
+            <p class="exam-card-meta">
+              <i class="ti ti-calendar" aria-hidden="true"></i> Publicado: <%= exam.createdAt.toLocaleDateString() %>
+            </p>
+          </div>
+          <a href="/student/exams/<%= exam.id %>/start" class="btn btn-primary">
+            <i class="ti ti-arrow-right" aria-hidden="true"></i> Comenzar
+          </a>
+        </article>
+        <% }) %>
+      </div>
+      <% } %>
+    </main>
+    <script src="/js/themeToggle.js"></script>
+  </body>
+</html>

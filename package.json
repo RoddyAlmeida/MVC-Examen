@@ -45,11 +45,12 @@
   "dependencies": {
     "@libsql/sqlite3": "0.3.1",
     "dotenv": "17.4.2",
+    "ee-first": "1.1.1",
     "ejs": "5.0.2",
     "express": "5.2.1",
+    "express-session": "^1.19.0",
     "express-validator": "7.3.2",
-    "sequelize": "6.37.8",
-    "ee-first": "1.1.1"
+    "sequelize": "6.37.8"
   },
   "devDependencies": {
     "electron": "42.0.1",

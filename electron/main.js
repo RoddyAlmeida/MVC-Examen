@@ -3,7 +3,7 @@ const path = require("path");
 const { startServer } = require("../app");
 
 const EXAM_PORT = Number(process.env.PORT) || 3000;
-const EXAM_URL = `http://localhost:${EXAM_PORT}/exam/start`;
+const EXAM_URL = `http://localhost:${EXAM_PORT}/login`;
 let mainWindow;
 let httpServer;
 let powerSaveId;

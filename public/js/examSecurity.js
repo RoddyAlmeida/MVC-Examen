@@ -2,7 +2,7 @@
   if (!window.examSecurity) return;
 
   // Entrar en pantalla completa bloqueada (kiosk) al iniciar el examen
-  if (window.location.pathname === "/exam/take") {
+  if (window.location.pathname.includes("/take")) {
     window.examSecurity.enterFullscreen();
   }
 
