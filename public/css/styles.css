@@ -70,6 +70,10 @@ a:visited {
   color: var(--primary);
   opacity: 0.8;
 }
+.btn:visited {
+  color: inherit;
+  opacity: 1;
+}
 a:hover {
   text-decoration: underline;
 }
@@ -269,8 +273,10 @@ h2 {
   box-shadow: 0 4px 14px 0 var(--focus-ring);
 }
 
+.btn-primary:visited,
 .btn-primary:hover {
   background-color: var(--primary-hover);
+  color: var(--card-bg);
   transform: translateY(-1px);
   box-shadow: 0 6px 20px var(--focus-ring);
 }
