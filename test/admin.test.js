@@ -485,6 +485,7 @@ test("course HTTP workflow migrates legacy exams and preserves assignments on re
     context.mock.method(sequelize.connectionManager.lib, "Database", function (storage, mode, callback) {
         return new (require("sqlite3").Database)(storage, mode, callback);
     });
+    sequelize.options.storage = ":memory:";
     context.after(() => sequelize.close());
     await User.sync();
     const password = await bcrypt.hash("test12345", 4);

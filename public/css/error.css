@@ -1,0 +1,81 @@
+.error-page {
+    background-image: none;
+}
+
+.error-main {
+    flex: 1;
+    width: min(100%, 720px);
+    margin: 0 auto;
+    padding: 64px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.error-symbol {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    background: var(--danger-bg);
+    color: var(--danger);
+    font-size: 2rem;
+    margin-bottom: 28px;
+}
+
+.error-eyebrow {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+}
+
+.error-page h1 {
+    font-size: 1.8rem;
+    max-width: 540px;
+    margin-bottom: 16px;
+    overflow-wrap: anywhere;
+}
+
+.error-description {
+    max-width: 480px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.error-caution {
+    max-width: 480px;
+    padding-top: 20px;
+    margin-top: 24px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+    .error-main {
+        padding: 40px 24px;
+    }
+
+    .error-page h1 {
+        font-size: 1.5rem;
+    }
+
+    .error-actions {
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+    }
+}

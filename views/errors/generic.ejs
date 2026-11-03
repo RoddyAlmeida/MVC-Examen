@@ -10,31 +10,51 @@
   <!-- Tabler Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/student.css" />
+  <link rel="stylesheet" href="/css/error.css" />
 </head>
 
-<body>
-  <main class="container app-shell" style="text-align: center; padding: 4rem 2rem;">
-    <div class="theme-toggle-wrapper">
-      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+<body class="auth-page error-page">
+  <% const errorRole=typeof req !=='undefined' ? req.session?.role : null; const errorHome={
+    estudiante: '/student/exams' , profesor: '/professor/dashboard' , administrador: '/admin/dashboard' }[errorRole]
+    || '/login' ; const failedSubmission=typeof submissionFailed !=='undefined' && submissionFailed; %>
+    <header class="auth-topbar">
+      <a href="<%= errorHome %>" class="app-brand"><span class="brand-mark"><i class="ti ti-school"
+            aria-hidden="true"></i></span> MVC Examen</a>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color" title="Cambiar modo de color">
         <i class="ti ti-moon" aria-hidden="true"></i>
       </button>
-    </div>
-
-    <i class="ti ti-alert-triangle" aria-hidden="true"
-      style="font-size: 4rem; color: var(--danger); margin-bottom: 1rem; display: inline-block;"></i>
-    <h1 style="margin-bottom: 0.5rem">
-      <%= title %>
-    </h1>
-    <p class="lead" style="margin-bottom: 2rem;">
-      <%= message %>
-    </p>
-
-    <a class="btn btn-primary" href="/exam/start">
-      <i class="ti ti-refresh" aria-hidden="true"></i> Reintentar
-    </a>
-  </main>
-  <%- include('../partials/page-feedback') %>
-    <script src="/js/themeToggle.js"></script>
+    </header>
+    <main class="error-main">
+      <span class="error-symbol"><i class="ti ti-alert-triangle" aria-hidden="true"></i></span>
+      <p class="error-eyebrow">
+        <%= failedSubmission ? 'Estado de la entrega' : 'No pudimos continuar' %>
+      </p>
+      <h1>
+        <%= failedSubmission ? 'No se pudo confirmar la entrega' : title %>
+      </h1>
+      <p class="error-description">
+        <%= message %>
+      </p>
+      <% if (failedSubmission) { %>
+        <p class="error-caution" role="status">Consulta tus resultados antes de volver a enviar el examen.</p>
+        <% } %>
+          <div class="error-actions">
+            <% if (errorRole==='estudiante' ) { %>
+              <a class="btn btn-primary" href="/student/results"><i class="ti ti-chart-bar" aria-hidden="true"></i>
+                Consultar mis resultados</a>
+              <a class="btn btn-secondary" href="<%= errorHome %>"><i class="ti ti-arrow-left" aria-hidden="true"></i>
+                Mis exámenes</a>
+              <% } else { %>
+                <a class="btn btn-primary" href="<%= errorHome %>"><i class="ti ti-arrow-left" aria-hidden="true"></i>
+                  <%= errorRole ? 'Volver al panel' : 'Iniciar sesión' %>
+                </a>
+                <% } %>
+          </div>
+    </main>
+    <footer class="auth-footer"><span>MVC Examen</span><span>Espacio académico</span></footer>
+    <%- include('../partials/page-feedback') %>
+      <script src="/js/themeToggle.js"></script>
 </body>
 
 </html>

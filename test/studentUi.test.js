@@ -86,3 +86,15 @@ test("leaderboard redesign is isolated to students and authentication retains fo
         assert.match(html, /class="auth-page"/);
     }
 });
+
+test("error pages offer safe role-specific recovery without replaying exam submissions", async () => {
+    const html = await render("errors/generic", { title: "Error del servidor", message: "Entrega no confirmada", submissionFailed: true });
+    assert.match(html, /No se pudo confirmar la entrega/);
+    assert.match(html, /href="\/student\/results"/);
+    assert.match(html, /href="\/student\/exams"/);
+    assert.doesNotMatch(html, /\/exam\/start|history\.back|location\.reload|<form\b|app-shell/);
+    for (const [role, destination] of [["profesor", "/professor/dashboard"], ["administrador", "/admin/dashboard"], [null, "/login"]]) {
+        const page = await render("errors/generic", { title: "Error", message: "No disponible", req: { session: { role } } });
+        assert.ok(page.includes(`href="${destination}"`));
+    }
+});

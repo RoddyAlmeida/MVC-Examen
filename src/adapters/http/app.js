@@ -46,7 +46,12 @@ function createApp() {
   app.use((error, req, res, next) => {
     console.error("Request failed:", error.name);
     if (res.headersSent) return next(error);
-    res.status(500).render("errors/generic", { title: "Error del servidor", message: "No se pudo completar la operacion. Intentalo de nuevo." });
+    const submissionFailed = req.method === "POST" && /^\/student\/exams\/\d+\/take$/.test(req.path);
+    res.status(500).render("errors/generic", {
+      title: "Error del servidor",
+      message: submissionFailed ? "La solicitud terminó con un error y no podemos confirmar que se haya guardado." : "No se pudo completar la operación. Puedes volver a tu espacio y comprobar su estado.",
+      submissionFailed,
+    });
   });
   return app;
 }

@@ -7,26 +7,33 @@ const vm = require("node:vm");
 function databaseWithFailure(failure) {
     const connections = [];
     class Sequelize {
-        constructor() {
+        constructor(options) {
+            this.options = options;
             this.connectionManager = {
+                sequelize: this,
                 connections: {},
-                async getConnection() {
-                    if (!this.connections[1]) {
+                async getConnection(options = {}) {
+                    const key = this.sequelize.options.storage === ":memory:" ? 1 : options.uuid || "default";
+                    if (!this.connections[key]) {
                         const connection = {
                             closed: false,
                             get(sql, callback) {
                                 assert.equal(sql, "SELECT 1");
-                                callback(connections[0] === this ? failure : null);
+                                callback(typeof failure === "function" ? failure(connections.indexOf(this)) : connections[0] === this ? failure : null);
                             },
                             close(callback) {
                                 this.closed = true;
-                                queueMicrotask(callback);
+                                if (callback) queueMicrotask(callback);
                             },
                         };
                         connections.push(connection);
-                        this.connections[1] = connection;
+                        this.connections[key] = connection;
                     }
-                    return this.connections[1];
+                    return this.connections[key];
+                },
+                releaseConnection(connection, force) {
+                    if (connection.filename === ":memory:" && force !== true) return;
+                    if (connection.uuid) { connection.close(); delete this.connections[connection.uuid]; }
                 },
             };
         }
@@ -79,4 +86,36 @@ test("concurrent requests share the replacement connection", async () => {
     const [first, second] = await Promise.all([manager.getConnection(), manager.getConnection()]);
     assert.equal(first, second);
     assert.equal(connections.length, 2);
+});
+
+test("ordinary queries cannot release the connection of an active remote transaction", async () => {
+    const { manager } = databaseWithFailure(null);
+    const transaction = await manager.getConnection({ uuid: "transaction-one" });
+    transaction.uuid = "transaction-one";
+    const ordinary = await manager.getConnection();
+    manager.releaseConnection(ordinary);
+    assert.notEqual(ordinary, transaction);
+    assert.equal(transaction.closed, false);
+});
+
+test("independent remote transactions receive independent connections", async () => {
+    const { manager } = databaseWithFailure(null);
+    const first = await manager.getConnection({ uuid: "transaction-one" });
+    const second = await manager.getConnection({ uuid: "transaction-two" });
+    assert.notEqual(first, second);
+    manager.releaseConnection(Object.assign(first, { uuid: "transaction-one" }));
+    assert.equal(second.closed, false);
+});
+
+test("simultaneous reconnections do not merge independent transaction connections", async () => {
+    const closed = Object.assign(new Error("Closed"), { name: "ClosedError" });
+    const { manager, connections } = databaseWithFailure(index => index < 2 ? closed : null);
+    const [first, second] = await Promise.all([
+        manager.getConnection({ uuid: "transaction-one" }),
+        manager.getConnection({ uuid: "transaction-two" }),
+    ]);
+    assert.notEqual(first, second);
+    assert.equal(connections.length, 4);
+    assert.equal(connections[0].closed, true);
+    assert.equal(connections[1].closed, true);
 });

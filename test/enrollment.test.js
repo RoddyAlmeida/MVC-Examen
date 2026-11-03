@@ -101,6 +101,7 @@ test("HTTP invitations, forced enrollment, codes, passwords and notifications st
     context.mock.method(sequelize.connectionManager.lib, "Database", function (storage, mode, callback) {
         return new (require("sqlite3").Database)(storage, mode, callback);
     });
+    sequelize.options.storage = ":memory:";
     context.after(() => sequelize.close());
     await require("../src/adapters/persistence/sequelize/schemaMigration").initializeDatabase();
     const password = await bcrypt.hash("test12345", 4);

@@ -8,11 +8,11 @@ const libsql = require("@libsql/sqlite3");
 
 // Sequelize annotates SQLite index rows during sync; libSQL returns frozen rows.
 const originalStatementAll = libsql.Statement.prototype.all;
-libsql.Statement.prototype.all = function(...args) {
+libsql.Statement.prototype.all = function (...args) {
   const callbackIndex = args.length - 1;
   if (typeof args[callbackIndex] === "function") {
     const callback = args[callbackIndex];
-    args[callbackIndex] = function(error, rows) {
+    args[callbackIndex] = function (error, rows) {
       callback.call(this, error, Array.isArray(rows) ? rows.map((row) => ({ ...row })) : rows);
     };
   }
@@ -37,22 +37,23 @@ const customLibsql = {
 
 const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: ":memory:", // Evita la creación de directorios en Windows
+  storage: ".",
   dialectModule: customLibsql,
   logging: false,
 });
 
 const manager = sequelize.connectionManager;
 const acquireConnection = manager.getConnection.bind(manager);
-let reconnecting;
+const reconnecting = new Map();
 
 function isClosedStream(error) {
   if (!error) return false;
   return error.name === "ClosedError" || error.status === 404 || isClosedStream(error.cause);
 }
 
-manager.getConnection = async function(options) {
-  if (reconnecting) await reconnecting;
+manager.getConnection = async function (options) {
+  const connectionKey = sequelize.options.storage === ":memory:" ? 1 : options?.uuid || "default";
+  if (reconnecting.has(connectionKey)) await reconnecting.get(connectionKey);
   const connection = await acquireConnection(options);
   try {
     await new Promise((resolve, reject) => {
@@ -61,16 +62,16 @@ manager.getConnection = async function(options) {
     return connection;
   } catch (error) {
     if (!isClosedStream(error)) throw error;
-    if (!reconnecting) {
-      reconnecting = (async () => {
+    if (!reconnecting.has(connectionKey)) {
+      reconnecting.set(connectionKey, (async () => {
         for (const key of Object.keys(manager.connections)) {
           if (manager.connections[key] === connection) delete manager.connections[key];
         }
         await new Promise((resolve) => connection.close(resolve));
         return acquireConnection(options);
-      })().finally(() => { reconnecting = null; });
+      })().finally(() => { reconnecting.delete(connectionKey); }));
     }
-    return reconnecting;
+    return reconnecting.get(connectionKey);
   }
 };
 

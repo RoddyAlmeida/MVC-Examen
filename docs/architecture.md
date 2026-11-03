@@ -71,6 +71,8 @@ Los resultados son registros JavaScript planos, incluyendo sus asociaciones. El 
 
 `unitOfWork.run(work)` coordina las operaciones atomicas. El argumento `transaction` recibido por `work` es un contexto opaco: se transmite a las operaciones de persistencia, sin inspeccionarlo en el nucleo. Los literales SQL, incluido el incremento de revision de seguridad, se construyen solo dentro de los adaptadores.
 
+El adaptador Turso usa `storage: "."` como marcador para el gestor de conexiones de Sequelize; el driver ignora esa ruta y abre la URL remota, sin crear una base local. No debe usar `:memory:`: esa ruta especial hace que SQLite comparta la misma conexion entre consultas y transacciones. El driver remoto no tiene el atributo `filename` de SQLite nativo, por lo que liberar una consulta ajena podia cerrar una transaccion en curso. Cada transaccion remota conserva ahora su conexion y la recuperacion de streams caducados se coordina por clave, no globalmente. No se repiten escrituras ni commits. Las pruebas que sustituyen el driver por SQLite nativo configuran explicitamente `storage: ":memory:"`.
+
 Otros puertos son `users.findByEmail/create`, `passwords.hash/compare/byteLength`, `tokens.hex` e `importQuestions(buffer)`.
 
 ## Entrada y presentacion
@@ -104,6 +106,8 @@ Resumen, usuarios, examenes y cursos comparten `admin-dashboard-header.ejs`; `ad
 ### Feedback de operaciones
 
 Las entradas EJS incluyen `partials/page-feedback.ejs`. `public/js/pageFeedback.js` presenta carga, espera prolongada y perdida de conexion para formularios y navegacion local, sin sustituir el envio nativo ni deshabilitar campos serializados. Evita envios duplicados y limpia el estado al restaurar una pagina del historial. Los errores y confirmaciones de negocio siguen procediendo de los controladores y casos de uso.
+
+La pantalla `errors/generic.ejs` mantiene el tema claro/oscuro y ofrece enlaces GET segun el rol. Ante un fallo al entregar, no afirma que la nota se haya guardado ni reenvia el formulario: dirige al historial y a los examenes. La prueba de seed entrega las siete preguntas en dos paginas y simula una escritura fallida para comprobar que el intento sigue abierto y una entrega posterior genera un solo resultado.
 
 Actividad, notificaciones y autoguardado mantienen indicadores propios; las peticiones de supervision no disparan avisos globales. En Electron, `src/adapters/desktop/navigationFeedback.js` abre una pantalla local durante el arranque y ante fallos de navegacion. El preload solo expone suscripcion al estado y recuperacion; esta ultima exige la ventana y pagina locales autorizadas y vuelve por GET, nunca repitiendo el POST fallido. `test/feedback.test.js` cubre estos contratos y los eventos tardios de las paginas de error de Chromium.
 
