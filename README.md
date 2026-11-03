@@ -68,19 +68,23 @@ pnpm run seed -- --users-only
 | --- | --- | --- |
 | Administrador | <administrador@example.com> | administrador123 |
 | Profesor | <profesor@example.com> | profesor123 |
-| Estudiante | <estudiante@example.com> | estudiante123 |
+| Estudiante de Lengua y Literatura | <estudiante@example.com> | estudiante123 |
+| Estudiante de Matemáticas | <estudiante2@example.com> | estudiante123 |
+| Estudiante de Física | <estudiante3@example.com> | estudiante123 |
 
 El login y el registro normalizan el correo a minúsculas y eliminan espacios exteriores. Estas cuentas son solo para pruebas; no las uses en producción.
 
-Para cargar las cuentas y el examen plantilla sin borrar datos:
+Para cargar las cinco cuentas, los tres cursos y sus exámenes sin borrar datos:
 
 ```bash
 pnpm run seed -- --demo
 ```
 
-Este modo migra los correos antiguos de las dos cuentas de prueba conservando sus identificadores y contraseñas. No sobrescribe cuentas existentes y puede repetirse sin duplicar la plantilla ni sus asignaciones.
+Este modo migra los correos antiguos del profesor y del primer estudiante de prueba conservando sus identificadores y contraseñas. No sobrescribe cuentas existentes y puede repetirse sin duplicar los cursos, exámenes, preguntas ni sus asignaciones. Los datos anteriores, incluida la antigua plantilla de accesibilidad, se conservan: para tener exclusivamente los cinco perfiles y los tres cursos de esta seed, usa el comando sin `--demo`, teniendo en cuenta que elimina todos los datos existentes.
 
-La plantilla contiene siete preguntas: opción múltiple con cinco opciones, verdadero, falso, completar escrito, completar arrastrando, conceptos con revisión manual y crucigrama. Pertenece al curso del profesor de prueba y se asigna al estudiante de prueba. Si el profesor no tiene curso, el seed crea «Accesibilidad e interfaces»; si ya tiene uno, lo reutiliza.
+El profesor tiene tres cursos: **Lengua y Literatura**, **Matematicas** y **Fisica**. Cada curso tiene un estudiante distinto y un examen de ejemplo con siete preguntas propias de la materia: opción múltiple con cinco opciones, verdadero, falso, completar escrito, completar arrastrando, conceptos con revisión manual y crucigrama. Son 21 preguntas en total. Las inscripciones y los accesos a exámenes se crean activos, sin aceptación de invitaciones. Los exámenes nuevos no tienen contraseña, temporizador ni restricciones de pantalla.
+
+Para probar el flujo completo, entra con cada estudiante y entrega su examen; después entra con el profesor para corregir las respuestas de conceptos. No se crean intentos ni resultados previos.
 
 ### Administración y permisos
 
@@ -162,17 +166,22 @@ Si el instalador abre pero no muestra contenido, revisa que el archivo `.env` ex
 
 ## Estructura
 
+El núcleo sigue una **arquitectura hexagonal**: reglas de dominio, casos de uso con puertos inyectados y adaptadores externos. Consulta la [guía de arquitectura](docs/architecture.md) para orientarte y ampliar funcionalidades.
+
 ```text
-├── app.js
-├── config/
-├── controllers/
-├── electron/
-├── models/
+├── src/
+│   ├── domain/        # Reglas puras
+│   ├── application/   # Casos de uso
+│   ├── ports/         # Contratos de dependencias
+│   ├── adapters/      # HTTP, persistencia, crypto, QTI, Electron y CLI
+│   └── bootstrap/     # Composición y arranque
+├── docs/
 ├── public/
-├── routes/
-├── scripts/
+├── test/
 └── views/
 ```
+
+Los comandos actuales apuntan directamente a las implementaciones de `src/`. No hay carpetas MVC duplicadas ni archivos puente en la raíz. Electron y su preload están juntos en el adaptador de escritorio.
 
 ## Atajos
 

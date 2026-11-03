@@ -1,9 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const bcrypt = require("bcryptjs");
-const { User } = require("../models");
-const { login, register } = require("../controllers/authController");
-const { seedUsers } = require("../scripts/seed");
+const { User } = require("../src/adapters/persistence/sequelize/models/index");
+const { login, register } = require("../src/adapters/http/controllers/authController");
+const { seedUsers } = require("../src/adapters/cli/seed");
 
 function response() {
     return {
@@ -62,7 +62,7 @@ test("registration stores normalized email and a hashed student password", async
     assert.equal(res.location, "/login?registered=1");
 });
 
-test("seed creates all three roles with hashed passwords and preserves existing accounts", async (context) => {
+test("seed creates five accounts across three roles with hashed passwords and preserves existing accounts", async (context) => {
     const accounts = new Map();
     const existingProfessor = { email: "profesor@example.com", password: "existing-hash", role: "profesor" };
     accounts.set(existingProfessor.email, existingProfessor);
@@ -77,8 +77,10 @@ test("seed creates all three roles with hashed passwords and preserves existing 
     });
     await seedUsers();
     await seedUsers();
-    assert.equal(accounts.size, 3);
+    assert.equal(accounts.size, 5);
     assert.equal(accounts.get(existingProfessor.email), existingProfessor);
     assert.equal(accounts.get("estudiante@example.com").role, "estudiante");
+    assert.equal(accounts.get("estudiante2@example.com").role, "estudiante");
+    assert.equal(accounts.get("estudiante3@example.com").role, "estudiante");
     assert.equal(accounts.get("administrador@example.com").role, "administrador");
 });

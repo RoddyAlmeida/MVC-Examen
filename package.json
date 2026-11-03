@@ -1,16 +1,16 @@
 {
   "name": "mvc",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Aplicación de exámenes MVC con Electron",
   "author": "El duo dinamita",
   "license": "MIT",
-  "main": "electron/main.js",
+  "main": "src/adapters/desktop/main.js",
   "scripts": {
-    "dev": "node app.js",
-    "start": "node app.js",
+    "dev": "node src/bootstrap/server.js",
+    "start": "node src/bootstrap/server.js",
     "test": "node --test",
     "electron": "electron .",
-    "seed": "node scripts/seed.js",
+    "seed": "node src/adapters/cli/seed.js",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux"

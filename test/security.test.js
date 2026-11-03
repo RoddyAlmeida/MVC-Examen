@@ -16,7 +16,9 @@ test("Electron restricts only locked exams and never invalidates or quits a moni
     const events = [];
     const ipcMain = new EventEmitter();
     class BrowserWindow extends EventEmitter {
-        constructor() {
+        constructor(options) {
+            assert.equal(options.webPreferences.preload, path.join(__dirname, "../src/adapters/desktop/preload.js"));
+            assert.ok(fs.existsSync(options.webPreferences.preload));
             super(); window = this;
             this.webContents = new EventEmitter();
             Object.assign(this.webContents, {
@@ -45,16 +47,16 @@ test("Electron restricts only locked exams and never invalidates or quits a moni
         powerSaveBlocker: { start() { return 1; }, isStarted() { return true; }, stop() {} },
     };
     const context = vm.createContext({
-        __dirname: path.join(__dirname, "../electron"), process: { env: {}, platform: "darwin" }, console,
+        __dirname: path.join(__dirname, "../src/adapters/desktop"), process: { env: {}, platform: "darwin" }, console,
         URL,
         require(name) {
             if (name === "electron") return electron;
             if (name === "path") return path;
-            if (name === "../app") return { async startServer() { return { close(callback) { callback(); } }; } };
+            if (name === "../../bootstrap/server") return { async startServer() { return { close(callback) { callback(); } }; } };
             throw new Error(`Unexpected require: ${name}`);
         },
     });
-    vm.runInContext(fs.readFileSync(path.join(__dirname, "../electron/main.js"), "utf8"), context);
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/adapters/desktop/main.js"), "utf8"), context);
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(registered, 0);
     window.emit("blur");
@@ -108,7 +110,7 @@ test("browser supervision reports focus changes without blocking or fabricating 
 });
 
 test("background notification checks do not consume action confirmations", () => {
-    const { prepareActions } = require("../middleware/requestSecurity");
+    const { prepareActions } = require("../src/adapters/http/middleware/requestSecurity");
     const notice = { kind: "success", message: "Invitacion enviada" };
     const req = { method: "GET", path: "/notifications/count", session: { actionNotice: notice } };
     const res = { locals: {} };

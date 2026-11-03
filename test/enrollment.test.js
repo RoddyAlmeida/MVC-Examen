@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 const { Sequelize } = require("sequelize");
 
 test("students can see members only with active enrollment and explicit teacher permission", async context => {
-    const { CourseEnrollment } = require("../models");
-    const { requireVisibleCourseMembers } = require("../middleware/access");
+    const { CourseEnrollment } = require("../src/adapters/persistence/sequelize/models/index");
+    const { requireVisibleCourseMembers } = require("../src/adapters/http/middleware/access");
     let enrollment = null;
     context.mock.method(CourseEnrollment, "findOne", async ({ where }) => {
         assert.deepEqual(where, { userId: 7, courseId: "3", status: "active" });
@@ -25,8 +25,8 @@ test("students can see members only with active enrollment and explicit teacher 
 test("enrollments distinguish invitations from active access and cannot duplicate membership", async () => {
     const database = new Sequelize({ dialect: "sqlite", storage: ":memory:", dialectModule: require("sqlite3"), logging: false });
     try {
-        const Enrollment = require("../models/CourseEnrollment")(database);
-        const Assignment = require("../models/ExamAssignment")(database);
+        const Enrollment = require("../src/adapters/persistence/sequelize/models/CourseEnrollment")(database);
+        const Assignment = require("../src/adapters/persistence/sequelize/models/ExamAssignment")(database);
         await database.sync();
         const enrollment = await Enrollment.create({ userId: 7, courseId: 3 });
         assert.equal(enrollment.status, "invited");
@@ -42,7 +42,7 @@ test("enrollments distinguish invitations from active access and cannot duplicat
 });
 
 test("exam questions and submissions require a current password verification grant", () => {
-    const { requireExamAccess } = require("../middleware/access");
+    const { requireExamAccess } = require("../src/adapters/http/middleware/access");
     const req = { method: "GET", exam: { id: 9, securityRevision: 2 }, session: {} };
     let location;
     const res = { redirect(path) { location = path; }, status(code) { assert.equal(code, 403); return this; }, render() {} };
@@ -58,8 +58,8 @@ test("exam questions and submissions require a current password verification gra
 });
 
 test("accepting or joining an exam requires active course membership", async context => {
-    const { CourseEnrollment, ExamAssignment } = require("../models");
-    const { activateAssignment } = require("../services/enrollmentService");
+    const { CourseEnrollment, ExamAssignment } = require("../src/adapters/persistence/sequelize/models/index");
+    const { activateAssignment } = require("../src/bootstrap/system").enrollment;
     let membership = null;
     context.mock.method(CourseEnrollment, "findOne", async ({ where }) => {
         assert.deepEqual(where, { userId: 7, courseId: 3, status: "active" });
@@ -78,8 +78,8 @@ test("accepting or joining an exam requires active course membership", async con
 });
 
 test("pending invitations and missing membership cannot access an exam directly", async context => {
-    const { Exam, ExamAssignment, CourseEnrollment } = require("../models");
-    const { requireAssignedExam } = require("../middleware/access");
+    const { Exam, ExamAssignment, CourseEnrollment } = require("../src/adapters/persistence/sequelize/models/index");
+    const { requireAssignedExam } = require("../src/adapters/http/middleware/access");
     let assignment = null;
     context.mock.method(ExamAssignment, "findOne", async ({ where }) => {
         assert.equal(where.status, "active");
@@ -97,12 +97,12 @@ test("pending invitations and missing membership cannot access an exam directly"
 test("HTTP invitations, forced enrollment, codes, passwords and notifications stay scoped", async context => {
     const bcrypt = require("bcryptjs");
     const { randomUUID } = require("node:crypto");
-    const { sequelize, User, Course, Exam, Question, CourseEnrollment, ExamAssignment, ExamSecurityEvent, ExamAttempt, Result } = require("../models");
+    const { sequelize, User, Course, Exam, Question, CourseEnrollment, ExamAssignment, ExamSecurityEvent, ExamAttempt, Result } = require("../src/adapters/persistence/sequelize/models/index");
     context.mock.method(sequelize.connectionManager.lib, "Database", function (storage, mode, callback) {
         return new (require("sqlite3").Database)(storage, mode, callback);
     });
     context.after(() => sequelize.close());
-    await require("../services/schemaMigration").initializeDatabase();
+    await require("../src/adapters/persistence/sequelize/schemaMigration").initializeDatabase();
     const password = await bcrypt.hash("test12345", 4);
     async function user(name, role) { return User.create({ name, email: `${name}@local.test`, role, password }); }
     const admin = await user("admin", "administrador");
@@ -120,7 +120,7 @@ test("HTTP invitations, forced enrollment, codes, passwords and notifications st
     const invitedExam = await exam("Examen invitado");
     const codeExam = await exam("Examen con codigo");
     const foreignExam = await exam("Examen ajeno", other, foreignCourse);
-    const { app } = require("../app");
+    const { app } = require("../src/bootstrap/server");
     const server = await new Promise(resolve => { const listening = app.listen(0, "127.0.0.1", () => resolve(listening)); });
     context.after(() => new Promise(resolve => server.close(resolve)));
     const base = `http://127.0.0.1:${server.address().port}`;
@@ -389,7 +389,7 @@ test("HTTP invitations, forced enrollment, codes, passwords and notifications st
             assert.equal(submitted.status, 200);
             assert.match(await submitted.text(), new RegExp(`/student/exams/${ranked.id}/leaderboard`));
         }
-        const { getExamLeaderboard } = require("../services/examLeaderboard");
+        const { getExamLeaderboard } = require("../src/bootstrap/system").leaderboard;
         let rows = await getExamLeaderboard(ranked);
         assert.deepEqual(rows.map(row => row.userId), [second.id, student.id]);
         assert.equal(rows[0].score, 1);

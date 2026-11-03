@@ -1,15 +1,15 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const bcrypt = require("bcryptjs");
-const { User, Exam, Question, QuestionContent, ExamAssignment, Result, sequelize, Course, CourseEnrollment } = require("../models");
-const { EnrollmentError } = require("../services/enrollmentService");
-const controller = require("../controllers/adminController");
-const { requireRole, requireAssignedExam, requireOwnedExam, requireCourse } = require("../middleware/access");
-const professorController = require("../controllers/professorController");
-const { calculateMetrics } = require("../services/adminMetrics");
-const { initializeDatabase, removeCourseProfessorUniqueness } = require("../services/schemaMigration");
-const { seedTemplate, templateInputs } = require("../scripts/seed");
-const { QUESTION_TYPES, normalizeQuestionInput } = require("../services/questionService");
+const { User, Exam, Question, QuestionContent, ExamAssignment, Result, sequelize, Course, CourseEnrollment } = require("../src/adapters/persistence/sequelize/models/index");
+const { EnrollmentError } = require("../src/bootstrap/system").enrollment;
+const controller = require("../src/adapters/http/controllers/adminController");
+const { requireRole, requireAssignedExam, requireOwnedExam, requireCourse } = require("../src/adapters/http/middleware/access");
+const professorController = require("../src/adapters/http/controllers/professorController");
+const { calculateMetrics } = require("../src/domain/adminMetrics");
+const { initializeDatabase, removeCourseProfessorUniqueness } = require("../src/adapters/persistence/sequelize/schemaMigration");
+const { seedTemplate, demoCourses } = require("../src/adapters/cli/seed");
+const { QUESTION_TYPES, normalizeQuestionInput } = require("../src/domain/questions");
 
 function response() {
     return {
@@ -165,37 +165,44 @@ test("schema migration adds missing course and authorship columns without forcin
     assert.deepEqual(added, ["creatorId", "courseId", "passwordHash", "securityMode", "securityRevision", "joinCode", "timeLimitMinutes", "leaderboardEnabled"]);
 });
 
-test("template covers all types and repeated seeding does not duplicate questions", async (context) => {
-    const definitions = templateInputs.map(normalizeQuestionInput);
-    assert.deepEqual(new Set(definitions.map(item => item.type)), QUESTION_TYPES);
-    assert.equal(definitions.filter(item => item.type === "true_false").length, 2);
+test("each demo exam covers all types and repeated seeding does not duplicate questions", async (context) => {
+    for (const course of demoCourses) {
+        const definitions = course.questions.map(normalizeQuestionInput);
+        assert.deepEqual(new Set(definitions.map(item => item.type)), QUESTION_TYPES);
+        assert.equal(definitions.filter(item => item.type === "true_false").length, 2);
+    }
     const questions = new Map();
     const contents = new Map();
-    context.mock.method(Course, "findOne", async ({ where }) => {
-        assert.deepEqual(where, { professorId: 2 });
-        return { id: 9 };
+    context.mock.method(Course, "findCreateFind", async ({ where }) => {
+        assert.equal(where.professorId, 2);
+        const index = demoCourses.findIndex(course => course.name === where.name);
+        assert.ok(index >= 0);
+        return [{ id: index + 9 }, false];
     });
-    context.mock.method(Exam, "findCreateFind", async ({ defaults }) => {
-        assert.equal(defaults.courseId, 9);
-        return [{ id: 3, courseId: 9 }, false];
+    context.mock.method(Exam, "findCreateFind", async ({ where }) => {
+        assert.equal(where.creatorId, 2);
+        return [{ id: where.courseId - 6, courseId: where.courseId }, false];
     });
     context.mock.method(Question, "findCreateFind", async ({ where, defaults }) => {
-        if (!questions.has(where.prompt)) questions.set(where.prompt, { id: questions.size + 1, ...where, ...defaults });
-        return [questions.get(where.prompt), false];
+        const key = `${where.examId}:${where.prompt}`;
+        if (!questions.has(key)) questions.set(key, { id: questions.size + 1, ...where, ...defaults });
+        return [questions.get(key), false];
     });
     context.mock.method(QuestionContent, "findCreateFind", async ({ where, defaults }) => {
         if (!contents.has(where.questionId)) contents.set(where.questionId, defaults);
         return [contents.get(where.questionId), false];
     });
-    context.mock.method(ExamAssignment, "findCreateFind", async ({ where }) => {
-        assert.deepEqual(where, { userId: 7, examId: 3 });
+    context.mock.method(ExamAssignment, "findCreateFind", async ({ where, defaults }) => {
+        assert.equal(where.userId, where.examId + 4);
+        assert.equal(defaults.status, "active");
         return [{ id: 1 }, false];
     });
     context.mock.method(CourseEnrollment, "findCreateFind", async () => [{ id: 1 }, false]);
-    await seedTemplate({ profesor: { id: 2 }, estudiante: { id: 7 } });
-    await seedTemplate({ profesor: { id: 2 }, estudiante: { id: 7 } });
-    assert.equal(questions.size, 7);
-    assert.equal(contents.size, 7);
+    const users = { profesor: { id: 2 }, estudiantes: [{ id: 7 }, { id: 8 }, { id: 9 }] };
+    await seedTemplate(users);
+    await seedTemplate(users);
+    assert.equal(questions.size, 21);
+    assert.equal(contents.size, 21);
 });
 
 test("courses require a professor and allow several courses for the same professor", async (context) => {
@@ -221,7 +228,7 @@ test("course migration permits multiple courses per professor and preserves refe
     const { Sequelize } = require("sequelize");
     const database = new Sequelize({ dialect: "sqlite", storage: ":memory:", dialectModule: require("sqlite3"), logging: false });
     try {
-        const Courses = require("../models/Course")(database);
+        const Courses = require("../src/adapters/persistence/sequelize/models/Course")(database);
         await database.query("PRAGMA foreign_keys = ON");
         await database.query("CREATE TABLE users (id INTEGER PRIMARY KEY)");
         await database.query("INSERT INTO users VALUES (7)");
@@ -356,7 +363,7 @@ test("admin routes require a role and CSRF token for mutations", async (context)
     context.mock.method(User, "findByPk", async () => admin);
     context.mock.method(controller, "listUsers", (req, res) => res.json({ csrf: res.locals.csrf }));
     const create = context.mock.method(User, "create", async () => ({ id: 7 }));
-    const { app } = require("../app");
+    const { app } = require("../src/bootstrap/server");
     const server = await new Promise(resolve => { const listening = app.listen(0, "127.0.0.1", () => resolve(listening)); });
     context.after(() => new Promise(resolve => server.close(resolve)));
     const base = `http://127.0.0.1:${server.address().port}`;
@@ -403,7 +410,7 @@ test("course HTTP workflow migrates legacy exams and preserves assignments on re
     const assignment = await ExamAssignment.findOne({ where: { examId: legacy.id, userId: student.id } });
     assert.equal(assignment.status, "active");
     const result = await Result.create({ examId: legacy.id, userId: student.id, score: 1, total: 1, answers: "{}" });
-    const { app } = require("../app");
+    const { app } = require("../src/bootstrap/server");
     const server = await new Promise(resolve => { const listening = app.listen(0, "127.0.0.1", () => resolve(listening)); });
     context.after(() => new Promise(resolve => server.close(resolve)));
     const base = `http://127.0.0.1:${server.address().port}`;

@@ -32,7 +32,7 @@ function databaseWithFailure(failure) {
         }
     }
     class Statement { all() { } }
-    const filePath = require.resolve("../config/database");
+    const filePath = require.resolve("../src/adapters/persistence/sequelize/database");
     const context = {
         module: { exports: {} },
         __dirname: path.dirname(filePath),

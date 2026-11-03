@@ -3,12 +3,12 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const { ExamAttempt } = require("../models");
-const { startAttempt, activityView, examTiming } = require("../services/examActivity");
+const { ExamAttempt } = require("../src/adapters/persistence/sequelize/models/index");
+const { startAttempt, activityView, examTiming } = require("../src/bootstrap/system").activity;
 
 test("professor timer settings require at least five whole minutes and allow disabling", async context => {
-    const { Exam } = require("../models");
-    const { createExam, editExam } = require("../controllers/professorController");
+    const { Exam } = require("../src/adapters/persistence/sequelize/models/index");
+    const { createExam, editExam } = require("../src/adapters/http/controllers/professorController");
     const saved = [];
     context.mock.method(Exam, "create", async values => saved.push(values));
     context.mock.method(Exam, "findByPk", async () => ({ id: 9, async update(values) { saved.push(values); } }));
@@ -60,7 +60,7 @@ test("re-entering an unfinished exam preserves its original start time", async c
 });
 
 test("leaderboard ranks final scores then elapsed time and never exposes answer or email data", () => {
-    const { leaderboardRows } = require("../services/examLeaderboard");
+    const { leaderboardRows } = require("../src/bootstrap/system").leaderboard;
     function result(userId, score, seconds, answers = "{}") {
         return { userId, score, total: 5, answers, user: { name: `Student ${userId}`, email: "private@example.com", examAttempts: seconds === null ? [] : [{ startedAt: new Date(0), finishedAt: new Date(seconds * 1000), token: "secret" }] } };
     }

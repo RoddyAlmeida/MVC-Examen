@@ -4,9 +4,9 @@ const yazl = require("yazl");
 const {
     gradeQuestion,
     normalizeQuestionInput,
-} = require("../services/questionService");
-const { buildCrosswordLayout } = require("../services/crosswordLayout");
-const { parseQtiPackage, questionFromItem } = require("../services/examImport");
+} = require("../src/domain/questions");
+const { buildCrosswordLayout } = require("../src/domain/crossword");
+const { parseQtiPackage, questionFromItem } = require("../src/adapters/import/qti");
 
 function questionFrom(type, configuration) {
     return { content: { type, configuration: JSON.stringify(configuration) } };
@@ -137,8 +137,8 @@ test("QTI 3 package follows test item order and imports atomically as one exam",
 });
 
 test("QTI controller imports into the professor assigned course", async (context) => {
-    const { sequelize, Exam, Question, QuestionContent } = require("../models");
-    const controller = require("../controllers/professorController");
+    const { sequelize, Exam, Question, QuestionContent } = require("../src/adapters/persistence/sequelize/models/index");
+    const controller = require("../src/adapters/http/controllers/professorController");
     const xml = qtiItem({
         prompt: "Choose",
         interaction: { correct: "A", xml: '<qti-choice-interaction response-identifier="RESPONSE" max-choices="1"><qti-simple-choice identifier="A">Yes</qti-simple-choice><qti-simple-choice identifier="B">No</qti-simple-choice></qti-choice-interaction>' },
