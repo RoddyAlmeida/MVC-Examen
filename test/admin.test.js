@@ -6,7 +6,7 @@ const { EnrollmentError } = require("../src/bootstrap/system").enrollment;
 const controller = require("../src/adapters/http/controllers/adminController");
 const { requireRole, requireAssignedExam, requireOwnedExam, requireCourse } = require("../src/adapters/http/middleware/access");
 const professorController = require("../src/adapters/http/controllers/professorController");
-const { calculateMetrics } = require("../src/domain/adminMetrics");
+const { calculateMetrics, pendingReview } = require("../src/domain/adminMetrics");
 const { initializeDatabase, removeCourseProfessorUniqueness } = require("../src/adapters/persistence/sequelize/schemaMigration");
 const { seedTemplate, demoCourses } = require("../src/adapters/cli/seed");
 const { QUESTION_TYPES, normalizeQuestionInput } = require("../src/domain/questions");
@@ -20,6 +20,39 @@ function response() {
         redirect(path) { this.location = path; },
     };
 }
+
+test("admin dashboard renders empty and populated metrics without changing other admin layouts", async () => {
+    const ejs = require("ejs");
+    const path = require("node:path");
+    const base = { title: "Administracion", active: "dashboard", notice: null, req: { session: { userName: "Admin <script>" } }, pendingReview };
+    const emptyMetrics = calculateMetrics({ users: [], exams: [], assignments: [], results: [] });
+    const render = data => ejs.renderFile(path.join(__dirname, "../views/admin/dashboard.ejs"), { ...base, ...data });
+    const empty = await render({ metrics: emptyMetrics, results: [] });
+    assert.match(empty, /Sin entregas todavía/);
+    assert.match(empty, /Sin calificaciones finales todavía/);
+    assert.match(empty, /Admin &lt;script&gt;/);
+    assert.match(empty, /href="\/admin\/dashboard" aria-current="page"/);
+    assert.match(empty, /href="\/admin\/users\?role=estudiante"/);
+    assert.match(empty, /aria-label="Actualizar resumen"/);
+    assert.doesNotMatch(empty, /NaN|Infinity/);
+    assert.equal((empty.match(/id="theme-toggle"/g) || []).length, 1);
+    const results = Array.from({ length: 12 }, (_, index) => ({
+        userId: index + 1, examId: 1, score: 3, total: 5, createdAt: new Date("2026-11-03"),
+        answers: index === 0 ? JSON.stringify({ _pendingManual: [7] }) : "{}",
+        user: { name: `Estudiante ${index + 1}` }, exam: { title: "Examen <script>" },
+    }));
+    const metrics = calculateMetrics({ users: [], exams: [], assignments: [{ userId: 1, examId: 1 }, { userId: 20, examId: 1 }], results });
+    const populated = await render({ metrics, results });
+    assert.match(populated, /value="50"/);
+    assert.match(populated, /1 por corregir/);
+    assert.match(populated, /Corregido/);
+    assert.match(populated, /Examen &lt;script&gt;/);
+    assert.match(populated, /10 de 12/);
+    assert.equal((populated.match(/<time /g) || []).length, 10);
+    assert.doesNotMatch(populated, /Estudiante 11|Estudiante 12/);
+    const sharedHeader = await ejs.renderFile(path.join(__dirname, "../views/partials/admin-header.ejs"), { ...base, active: "users" });
+    assert.doesNotMatch(sharedHeader, /admin-dashboard.css|dashboard-sidebar/);
+});
 
 test("admin validates roles, normalized emails and passwords", () => {
     for (const role of Object.keys(controller.roles)) {

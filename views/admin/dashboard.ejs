@@ -1,40 +1,47 @@
-<%- include('../partials/admin-header') %>
-    <section class="admin-stats" aria-label="Metricas generales">
-        <% const stats=[ ['ti-users', 'Usuarios' , metrics.users, `${metrics.students} estudiantes /
-            ${metrics.professors} profesores / ${metrics.administrators} administradores`], ['ti-notes', 'Examenes' ,
-            metrics.exams, `${metrics.questions} preguntas`], ['ti-list-check', 'Asignaciones' , metrics.assignments,
-            `${metrics.pendingAssignments} pendientes`], ['ti-circle-check', 'Cumplimiento' ,
-            `${metrics.completionRate}%`, `${metrics.completedAssignments} asignaciones completadas`],
-            ['ti-pencil-check', 'Entregas' , metrics.attempts, `${metrics.recentAttempts} en los ultimos 7 dias`],
-            ['ti-clock', 'Revision pendiente' , metrics.pendingAnswers, `${metrics.pendingResults} entregas con revision
-            pendiente`], ['ti-chart-line', 'Nota media final' , metrics.averageScore===null ? '--' :
-            `${metrics.averageScore}%`, 'Solo entregas corregidas' ], ['ti-award', 'Aprobacion (60%)' ,
-            metrics.passRate===null ? '--' : `${metrics.passRate}%`, 'Solo entregas corregidas' ] ]; %>
-            <% stats.forEach(([icon, label, value, detail])=> { %>
-                <div class="admin-stat"><span class="admin-stat-label"><i class="ti <%= icon %>" aria-hidden="true"></i>
+<%- include('../partials/admin-dashboard-header') %>
+    <section class="dashboard-overview" aria-label="Actividad general">
+        <% const overview=[ ['users', 'Usuarios' , metrics.users, `Estudiantes: ${metrics.students} / Profesores:
+            ${metrics.professors} / Administradores: ${metrics.administrators}`], ['notes', 'Exámenes' , metrics.exams,
+            `${metrics.questions} preguntas en total`], ['list-check', 'Asignaciones activas' , metrics.assignments,
+            `Por completar: ${metrics.pendingAssignments}`], ['pencil-check', 'Entregas' , metrics.attempts,
+            `${metrics.recentAttempts} en los últimos 7 días`] ]; %>
+            <% overview.forEach(([icon, label, value, detail])=> { %>
+                <div class="dashboard-metric"><span class="dashboard-metric-label"><i class="ti ti-<%= icon %>"
+                            aria-hidden="true"></i>
                         <%= label %>
                     </span><strong>
                         <%= value %>
-                    </strong><span class="admin-muted">
+                    </strong>
+                    <p>
                         <%= detail %>
-                    </span></div>
+                    </p>
+                </div>
                 <% }) %>
     </section>
-    <div class="admin-columns">
-        <section class="admin-section">
-            <h2>Seguimiento</h2>
-            <div class="admin-progress-label"><span>Asignaciones completadas</span><strong>
-                    <%= metrics.completedAssignments %> / <%= metrics.assignments %>
-                </strong></div>
+    <div class="dashboard-monitoring">
+        <section aria-labelledby="tracking-title">
+            <h2 id="tracking-title">Seguimiento académico</h2>
+            <strong class="dashboard-progress-value">
+                <%= metrics.completionRate %>%
+            </strong>
+            <p class="dashboard-progress-caption">Asignaciones completadas: <%= metrics.completedAssignments %> / <%=
+                        metrics.assignments %>
+            </p>
             <meter min="0" max="100" value="<%= metrics.completionRate %>"
                 aria-label="Porcentaje de asignaciones completadas">
                 <%= metrics.completionRate %>%
             </meter>
-            <dl class="admin-summary">
+            <dl class="dashboard-summary">
                 <div>
                     <dt>Pendientes de entrega</dt>
                     <dd>
                         <%= metrics.pendingAssignments %>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Entregas en revisión</dt>
+                    <dd>
+                        <%= metrics.pendingResults %>
                     </dd>
                 </div>
                 <div>
@@ -45,55 +52,94 @@
                 </div>
             </dl>
         </section>
-        <section class="admin-section">
-            <h2>Atencion</h2>
-            <a class="admin-attention" href="/admin/users?role=estudiante"><span><i class="ti ti-user-question"
-                        aria-hidden="true"></i> Estudiantes sin asignaciones</span><strong>
+        <section aria-labelledby="grades-title">
+            <h2 id="grades-title">Calificaciones finales</h2>
+            <dl class="dashboard-grades">
+                <div>
+                    <dt>Nota media</dt>
+                    <dd>
+                        <%= metrics.averageScore===null ? '--' : `${metrics.averageScore}%` %>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Aprobación (60%)</dt>
+                    <dd>
+                        <%= metrics.passRate===null ? '--' : `${metrics.passRate}%` %>
+                    </dd>
+                </div>
+            </dl>
+            <p class="dashboard-grading-note">Solo entregas corregidas.</p>
+            <% if (metrics.averageScore===null) { %>
+                <p class="dashboard-grading-note" role="status">Sin calificaciones finales todavía.</p>
+                <% } %>
+                    <dl class="dashboard-summary">
+                        <div>
+                            <dt>Entregas registradas</dt>
+                            <dd>
+                                <%= metrics.attempts %>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>Últimos 7 días</dt>
+                            <dd>
+                                <%= metrics.recentAttempts %>
+                            </dd>
+                        </div>
+                    </dl>
+        </section>
+        <section aria-labelledby="attention-title">
+            <h2 id="attention-title">Requieren atención</h2>
+            <a class="dashboard-attention<%= metrics.unassignedStudents ? ' has-items' : '' %>"
+                href="/admin/users?role=estudiante"><i class="ti ti-user-question"
+                    aria-hidden="true"></i><span>Estudiantes sin asignaciones</span><strong>
                     <%= metrics.unassignedStudents %>
                 </strong><i class="ti ti-chevron-right" aria-hidden="true"></i></a>
-            <a class="admin-attention" href="/admin/exams"><span><i class="ti ti-notes" aria-hidden="true"></i>
-                    Examenes sin autor</span><strong>
+            <a class="dashboard-attention<%= metrics.unownedExams ? ' has-items' : '' %>" href="/admin/exams"><i
+                    class="ti ti-notes" aria-hidden="true"></i><span>Exámenes sin autor</span><strong>
                     <%= metrics.unownedExams %>
                 </strong><i class="ti ti-chevron-right" aria-hidden="true"></i></a>
         </section>
     </div>
-    <section class="admin-section">
-        <div class="admin-section-heading">
-            <h2>Ultimas entregas</h2><span class="admin-muted">
-                <%= results.length %> en total
+    <section class="dashboard-deliveries" aria-labelledby="deliveries-title">
+        <div class="dashboard-section-heading">
+            <h2 id="deliveries-title">Últimas entregas</h2><span>
+                <%= results.length> 10 ? `10 de ${results.length}` : results.length %> registradas
             </span>
         </div>
         <% if (!results.length) { %>
-            <p class="admin-empty">Sin entregas registradas.</p>
+            <div class="dashboard-empty" role="status"><i class="ti ti-inbox" aria-hidden="true"></i>
+                <h3>Sin entregas todavía</h3>
+                <p>Las evaluaciones entregadas aparecerán aquí.</p>
+            </div>
             <% } else { %>
                 <div class="admin-table-scroll">
-                    <table class="admin-table">
+                    <table class="admin-table" aria-label="Últimas entregas de estudiantes">
                         <thead>
                             <tr>
-                                <th>Estudiante</th>
-                                <th>Examen</th>
-                                <th>Nota</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
+                                <th scope="col">Estudiante</th>
+                                <th scope="col">Examen</th>
+                                <th scope="col">Puntaje</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Fecha</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <% results.slice(0, 10).forEach(result=> { %><tr>
+                            <% results.slice(0, 10).forEach(result=> { const pending = pendingReview(result); %>
+                                <tr>
                                     <td><a href="/admin/users/<%= result.userId %>">
                                             <%= result.user?.name || result.user?.email || 'Usuario eliminado' %>
                                         </a></td>
                                     <td>
                                         <%= result.exam?.title || 'Examen eliminado' %>
                                     </td>
-                                    <td>
-                                        <%= result.score %> / <%= result.total %>
+                                    <td class="dashboard-score"><strong>
+                                            <%= result.score %>
+                                        </strong> / <%= result.total %>
                                     </td>
-                                    <td><span
-                                            class="admin-status <%= pendingReview(result) ? 'is-pending' : 'is-complete' %>">
-                                            <%= pendingReview(result) ? `${pendingReview(result)} por corregir`
-                                                : 'Corregido' %>
+                                    <td><span class="admin-status <%= pending ? 'is-pending' : 'is-complete' %>">
+                                            <%= pending ? `${pending} por corregir` : 'Corregido' %>
                                         </span></td>
-                                    <td><time datetime="<%= result.createdAt.toISOString() %>">
+                                    <td class="dashboard-date"><time datetime="<%= result.createdAt.toISOString() %>">
                                             <%= result.createdAt.toLocaleDateString('es') %>
                                         </time></td>
                                 </tr>
@@ -103,4 +149,5 @@
                 </div>
                 <% } %>
     </section>
+    <footer class="dashboard-footer"><span>MVC Examen</span><span>Administración académica</span></footer>
     <%- include('../partials/admin-footer') %>

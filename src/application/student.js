@@ -43,17 +43,29 @@ function createStudentUseCases({ data, unitOfWork, activity }) {
     return true;
   }
 
+  function pendingReview(result) {
+    try {
+      return JSON.parse(result.answers || "{}")._pendingManual?.length || 0;
+    } catch (_error) {
+      return 0;
+    }
+  }
+
+  async function listResults(context, output) {
+    const results = await data.listStudentResults(context);
+    output.render("student/results", {
+      title: "Mis resultados",
+      results: results.map(result => ({ ...result, pendingReview: pendingReview(result) })),
+    });
+  }
+
   async function listExams(context, output) {
     const exams = await data.listAccessibleExams(context);
     const myResults = await data.listStudentResults(context);
     const resultsMap = {};
     const invitations = await data.listExamInvitations(context);
     for (const result of myResults) {
-      let pendingReview = 0;
-      try {
-        pendingReview = JSON.parse(result.answers || "{}")._pendingManual?.length || 0;
-      } catch (_error) { }
-      resultsMap[result.examId] = { score: result.score, total: result.total, pendingReview };
+      resultsMap[result.examId] = { score: result.score, total: result.total, pendingReview: pendingReview(result) };
     }
     output.render("student/exams", {
       title: "Exámenes disponibles",
@@ -226,7 +238,7 @@ function createStudentUseCases({ data, unitOfWork, activity }) {
     });
   }
 
-  return { listExams, renderStart, renderExam, submitExam };
+  return { listExams, listResults, renderStart, renderExam, submitExam };
 }
 
 module.exports = { createStudentUseCases };

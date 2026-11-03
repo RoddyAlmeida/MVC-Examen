@@ -128,9 +128,9 @@ if (commandStatus && examForm) {
   });
 
   if (toggleReadBtn) {
-    toggleReadBtn.textContent = `Lectura guiada: ${guidedReadEnabled ? "ON" : "OFF"}`;
+    toggleReadBtn.checked = guidedReadEnabled;
     toggleReadBtn.addEventListener("click", () => {
-      guidedReadEnabled = !guidedReadEnabled;
+      guidedReadEnabled = toggleReadBtn.checked;
       if (speech) {
         if (!guidedReadEnabled) {
           // Speak once and then stay silent.
@@ -143,7 +143,6 @@ if (commandStatus && examForm) {
       } else {
         localStorage.setItem("guidedReadEnabled", String(guidedReadEnabled));
       }
-      toggleReadBtn.textContent = `Lectura guiada: ${guidedReadEnabled ? "ON" : "OFF"}`;
       setStatus(
         guidedReadEnabled
           ? "Lectura guiada activada en espanol."

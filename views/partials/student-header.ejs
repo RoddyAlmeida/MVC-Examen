@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="<%= csrfToken %>" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/enrollment.css" />
+    <link rel="stylesheet" href="/css/student.css" />
+</head>
+
+<body class="student-page membership-page">
+    <aside class="student-sidebar">
+        <a href="/student/exams" class="app-brand"><span class="brand-mark"><i class="ti ti-school"
+                    aria-hidden="true"></i></span> MVC Examen</a>
+        <p class="sidebar-label">Mi espacio</p>
+        <nav class="student-nav" aria-label="Navegación del estudiante">
+            <% const studentLinks=[ { key: 'exams' , href: '/student/exams' , icon: 'notes' , label: 'Exámenes' }, {
+                key: 'courses' , href: '/student/courses' , icon: 'books' , label: 'Cursos' }, { key: 'results' ,
+                href: '/student/results' , icon: 'chart-bar' , label: 'Resultados' } ]; %>
+                <% studentLinks.forEach(link=> { %>
+                    <a href="<%= link.href %>" <%- activeSection===link.key ? 'aria-current="page"' : '' %>><i
+                            class="ti ti-<%= link.icon %>" aria-hidden="true"></i>
+                        <%= link.label %>
+                    </a>
+                    <% }) %>
+        </nav>
+        <div class="student-account">
+            <span class="account-avatar" aria-hidden="true">
+                <%= (req.session.userName || 'E' ).trim().charAt(0).toUpperCase() %>
+            </span>
+            <div><strong>
+                    <%= req.session.userName || 'Estudiante' %>
+                </strong><span>Estudiante</span></div>
+            <a href="/logout" class="account-logout" title="Cerrar sesión" aria-label="Cerrar sesión"><i
+                    class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+    </aside>
+    <div class="student-workspace">
+        <header class="student-topbar"><span>Área de estudiantes</span><button id="theme-toggle" class="theme-toggle"
+                aria-label="Cambiar modo de color" title="Cambiar modo de color"><i class="ti ti-moon"
+                    aria-hidden="true"></i></button></header>
+        <main class="student-main" id="main-content">
+            <header class="student-heading">
+                <div>
+                    <p class="eyebrow">Mi aprendizaje</p>
+                    <h1>
+                        <%= title %>
+                    </h1>
+                </div>
+                <% if (typeof headingMeta !=='undefined' ) { %><span class="student-heading-meta">
+                        <%= headingMeta %>
+                    </span>
+                    <% } %>
+            </header>
+            <% if (typeof actionNotice !=='undefined' && actionNotice) { %>
+                <div class="alert <%= actionNotice.kind === 'error' ? 'alert-error' : '' %>" role="alert">
+                    <%= actionNotice.message %>
+                </div>
+                <% } %>

@@ -1,0 +1,16 @@
+<header class="student-topbar exam-topbar">
+    <% if (typeof taking !=='undefined' && taking) { %>
+        <span class="app-brand"><span class="brand-mark"><i class="ti ti-school" aria-hidden="true"></i></span> MVC
+            Examen</span>
+        <% } else { %>
+            <a href="/student/exams" class="app-brand"><span class="brand-mark"><i class="ti ti-school"
+                        aria-hidden="true"></i></span> MVC Examen</a>
+            <% } %>
+                <div class="workflow-actions">
+                    <% if (typeof taking==='undefined' || !taking) { %><a href="/student/exams" class="student-back"><i
+                                class="ti ti-arrow-left" aria-hidden="true"></i> Mis exámenes</a>
+                        <% } %>
+                            <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color"
+                                title="Cambiar modo de color"><i class="ti ti-moon" aria-hidden="true"></i></button>
+                </div>
+</header>

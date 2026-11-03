@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %> | Administración
+    </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/admin-dashboard.css" />
+</head>
+
+<body class="admin-page admin-dashboard-page">
+    <a href="#dashboard-content" class="dashboard-skip">Saltar al contenido</a>
+    <aside class="dashboard-sidebar">
+        <a class="dashboard-brand" href="/admin/dashboard"><span class="dashboard-brand-mark"><i class="ti ti-school"
+                    aria-hidden="true"></i></span> MVC Examen</a>
+        <p class="dashboard-nav-label">Administración</p>
+        <nav class="dashboard-nav" aria-label="Administración">
+            <a href="/admin/dashboard" aria-current="page"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>
+                Resumen</a>
+            <a href="/admin/users"><i class="ti ti-users" aria-hidden="true"></i> Usuarios</a>
+            <a href="/admin/exams"><i class="ti ti-notes" aria-hidden="true"></i> Exámenes</a>
+            <a href="/admin/courses"><i class="ti ti-books" aria-hidden="true"></i> Cursos</a>
+        </nav>
+        <div class="dashboard-account">
+            <span class="dashboard-avatar" aria-hidden="true">
+                <%= (req.session.userName || 'A' ).trim().charAt(0).toUpperCase() %>
+            </span>
+            <div><strong>
+                    <%= req.session.userName || 'Administrador' %>
+                </strong><span>Administrador</span></div>
+            <a href="/logout" class="dashboard-icon" title="Cerrar sesión" aria-label="Cerrar sesión"><i
+                    class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+    </aside>
+    <header class="dashboard-topbar">
+        <span>Administración <span class="dashboard-breadcrumb" aria-hidden="true">/</span> Resumen</span>
+        <div class="dashboard-tools">
+            <a href="/admin/dashboard" class="dashboard-icon" title="Actualizar resumen"
+                aria-label="Actualizar resumen"><i class="ti ti-refresh" aria-hidden="true"></i></a>
+            <button id="theme-toggle" class="theme-toggle dashboard-icon" title="Cambiar modo de color"
+                aria-label="Cambiar modo de color"><i class="ti ti-moon" aria-hidden="true"></i></button>
+        </div>
+    </header>
+    <main class="admin-main" id="dashboard-content">
+        <header class="dashboard-heading">
+            <div>
+                <p class="dashboard-eyebrow">Vista general</p>
+                <h1>Resumen académico</h1>
+            </div>
+            <a href="/admin/users" class="btn btn-primary"><i class="ti ti-users" aria-hidden="true"></i> Gestionar
+                usuarios</a>
+        </header>
+        <% if (notice) { %>
+            <div class="alert <%= notice.kind === 'error' ? 'alert-error' : 'admin-success' %>" role="alert">
+                <%= notice.message %>
+            </div>
+            <% } %>

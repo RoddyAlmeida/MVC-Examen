@@ -83,6 +83,12 @@ Los cambios al estado de sesion se sincronizan incluso ante errores, para conser
 
 La representacion HTML permanece en `views/`, y los recursos de interfaz en `public/`. No contienen reglas de persistencia.
 
+### Interfaz de estudiantes
+
+Login y registro usan `public/css/student.css` con la clase `auth-page`. Las vistas de estudiantes comparten `student-header.ejs` y `student-footer.ejs`: navegacion, identidad y tema. El recorrido de evaluacion usa `student-exam-topbar.ejs` sin enlaces de salida mientras se responde. Los estilos se limitan a `auth-page` y `student-page`; profesor y administracion conservan su interfaz.
+
+`GET /student/results` publica el historial propio mediante el controlador y el caso de uso `listResults`. El repositorio filtra por el usuario de sesion y el caso de uso identifica las calificaciones provisionales. Las vistas solo presentan esos datos. `test/studentUi.test.js` verifica renderizado y contratos de formularios; `test/enrollment.test.js` comprueba el aislamiento HTTP del historial.
+
 ## Ejemplo de sustitucion
 
 Un caso de uso puede probarse sin HTTP ni base de datos:

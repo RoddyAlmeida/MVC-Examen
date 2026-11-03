@@ -1,57 +1,75 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= title %></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="/css/styles.css" />
-  </head>
-  <body class="centered-page">
-    <div class="theme-toggle-wrapper">
-      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
-        <i class="ti ti-moon" aria-hidden="true"></i>
-      </button>
-    </div>
-    <main class="container app-shell" style="max-width: 440px; margin: 0;">
-      <header class="page-header" style="text-align: center;">
-        <p class="eyebrow"><i class="ti ti-school" aria-hidden="true"></i> Sistema de Examen</p>
-        <h1>Iniciar sesión</h1>
-      </header>
 
-      <% if (typeof error !== 'undefined' && error) { %>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= title %>
+  </title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/student.css" />
+</head>
+
+<body class="auth-page">
+  <header class="auth-topbar">
+    <a href="/login" class="app-brand"><span class="brand-mark"><i class="ti ti-school" aria-hidden="true"></i></span>
+      MVC Examen</a>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color" title="Cambiar modo de color">
+      <i class="ti ti-moon" aria-hidden="true"></i>
+    </button>
+  </header>
+  <main class="auth-main">
+    <header class="auth-heading">
+      <p class="eyebrow">Tu espacio de aprendizaje</p>
+      <h1>Iniciar sesión</h1>
+      <p>Continúa con tu cuenta.</p>
+    </header>
+
+    <% if (typeof error !=='undefined' && error) { %>
       <div class="alert alert-error" role="alert">
         <i class="ti ti-alert-circle alert-icon" aria-hidden="true"></i>
-        <div class="alert-content"><p><%= error %></p></div>
+        <div class="alert-content">
+          <p>
+            <%= error %>
+          </p>
+        </div>
       </div>
       <% } %>
 
-      <% if (registered) { %>
-      <div class="alert" style="background: var(--success-bg); border-color: var(--success); color: var(--success);">
-        <i class="ti ti-circle-check alert-icon" aria-hidden="true"></i>
-        <div class="alert-content"><p>Cuenta creada correctamente. Inicia sesión.</p></div>
-      </div>
-      <% } %>
+        <% if (registered) { %>
+          <div class="alert auth-success" role="status">
+            <i class="ti ti-circle-check alert-icon" aria-hidden="true"></i>
+            <div class="alert-content">
+              <p>Cuenta creada correctamente. Inicia sesión.</p>
+            </div>
+          </div>
+          <% } %>
 
-      <form method="POST" action="/login">
-        <div class="form-group">
-          <label for="email" class="form-label">Correo electrónico</label>
-          <input type="email" id="email" name="email" class="form-input" placeholder="correo@ejemplo.com" required />
-        </div>
-        <div class="form-group">
-          <label for="password" class="form-label">Contraseña</label>
-          <input type="password" id="password" name="password" class="form-input" placeholder="••••••" required />
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-          <i class="ti ti-login" aria-hidden="true"></i> Ingresar
-        </button>
-      </form>
+            <form method="POST" action="/login">
+              <div class="form-group">
+                <label for="email" class="form-label">Correo electrónico</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="correo@ejemplo.com"
+                  autocomplete="username" required />
+              </div>
+              <div class="form-group">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="Tu contraseña"
+                  autocomplete="current-password" required />
+              </div>
+              <button type="submit" class="btn btn-primary auth-submit">
+                Entrar <i class="ti ti-arrow-right" aria-hidden="true"></i>
+              </button>
+            </form>
 
-      <p style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-        ¿No tienes cuenta?
-        <a href="/register" style="color: var(--primary); font-weight: 600;">Regístrate aquí</a>
-      </p>
-    </main>
-    <script src="/js/themeToggle.js"></script>
-  </body>
+            <p class="auth-switch">
+              ¿No tienes cuenta?
+              <a href="/register">Crear cuenta</a>
+            </p>
+  </main>
+  <footer class="auth-footer"><span>MVC Examen</span><span>Espacio académico</span></footer>
+  <script src="/js/themeToggle.js"></script>
+</body>
+
 </html>

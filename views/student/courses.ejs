@@ -1,6 +1,6 @@
-<%- include('../partials/course-header') %>
+<%- include('../partials/student-header', { activeSection: 'courses' , headingMeta: enrollments.length + ' cursos' }) %>
     <section class="workflow-section">
-        <h2>Cursos e invitaciones</h2>
+        <h2>Tu comunidad académica</h2>
         <div class="workflow-table-scroll">
             <table class="workflow-table">
                 <thead>
@@ -22,7 +22,10 @@
                                     || 'Sin profesor' %>
                             </td>
                             <td>
-                                <%= enrollment.status==='active' ? 'Inscrito' : 'Invitacion pendiente' %>
+                                <span
+                                    class="status-badge <%= enrollment.status === 'active' ? 'status-complete' : '' %>">
+                                    <%= enrollment.status==='active' ? 'Inscrito' : 'Invitación pendiente' %>
+                                </span>
                             </td>
                             <td>
                                 <% if (enrollment.status==='invited' ) { %>
@@ -55,4 +58,4 @@
             </table>
         </div>
     </section>
-    <%- include('../partials/course-footer') %>
+    <%- include('../partials/student-footer') %>

@@ -144,6 +144,25 @@ test("HTTP invitations, forced enrollment, codes, passwords and notifications st
     }
     async function get(path, session) { return fetch(`${base}${path}`, { headers: { cookie: session.cookie }, redirect: "manual" }); }
 
+    await context.test("student result history is authenticated and contains only the current student's grades", async () => {
+        assert.equal((await get("/student/results", { cookie: "" })).status, 302);
+        assert.equal((await get("/student/results", professorSession)).status, 403);
+        const ownResult = await Result.create({ userId: student.id, examId: invitedExam.id, score: 0, total: 1, answers: JSON.stringify({ _pendingManual: [1] }) });
+        const otherResult = await Result.create({ userId: second.id, examId: foreignExam.id, score: 1, total: 1, answers: "{}" });
+        try {
+            const reply = await get("/student/results", studentSession);
+            assert.equal(reply.status, 200);
+            const html = await reply.text();
+            assert.match(html, /Examen invitado/);
+            assert.match(html, /En revisión/);
+            assert.doesNotMatch(html, /Examen ajeno/);
+            assert.match(html, /href="\/student\/results" aria-current="page"/);
+        } finally {
+            await ownResult.destroy();
+            await otherResult.destroy();
+        }
+    });
+
     await context.test("course invitation acceptance is required and owned by the recipient", async () => {
         assert.equal((await post(`/professor/courses/${course.id}/invitations`, { email: student.email }, professorSession, false)).status, 403);
         await post(`/professor/courses/${course.id}/invitations`, { email: ` ${student.email.toUpperCase()} `, status: "active" }, professorSession);

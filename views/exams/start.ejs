@@ -10,83 +10,63 @@
   <!-- Tabler Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/enrollment.css" />
+  <link rel="stylesheet" href="/css/student.css" />
 </head>
 
-<body>
-  <main class="container app-shell"
-    data-page-read="Bienvenido al sistema de examen en línea. Revisa las indicaciones y presiona Comenzar examen para continuar.">
-    <div class="theme-toggle-wrapper">
-      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
-        <i class="ti ti-moon" aria-hidden="true"></i>
-      </button>
-    </div>
-
-    <header class="page-header">
-      <p class="eyebrow"><i class="ti ti-school" aria-hidden="true"></i> Sistema de Examen en Línea</p>
-      <h1>
-        <%= exam.title %>
-      </h1>
-      <p class="lead">
-        <%= exam.instructions %>
-      </p>
-    </header>
-
-    <section class="stats-grid" aria-label="Resumen del examen">
-      <article class="stat-card">
-        <i class="ti ti-copy stat-icon" aria-hidden="true"></i>
-        <p class="stat-label">Preguntas por pantalla</p>
-        <p class="stat-value">
-          <%= maxItems %>
+<body class="student-page student-focus">
+  <%- include('../partials/student-exam-topbar') %>
+    <main class="student-focus-main"
+      data-page-read="Bienvenido al sistema de examen en línea. Revisa las indicaciones y presiona Comenzar examen para continuar.">
+      <header class="page-header">
+        <p class="eyebrow">Antes de comenzar</p>
+        <h1>
+          <%= exam.title %>
+        </h1>
+        <p class="lead">
+          <%= exam.instructions %>
         </p>
-      </article>
-      <article class="stat-card">
-        <i class="ti ti-layers stat-icon" aria-hidden="true"></i>
-        <p class="stat-label">Secciones</p>
-        <p class="stat-value">
-          <%= totalPages %>
+      </header>
+
+      <section class="stats-grid" aria-label="Resumen del examen">
+        <article class="stat-card">
+          <i class="ti ti-copy stat-icon" aria-hidden="true"></i>
+          <p class="stat-label">Preguntas por pantalla</p>
+          <p class="stat-value">
+            <%= maxItems %>
+          </p>
+        </article>
+        <article class="stat-card">
+          <i class="ti ti-layers stat-icon" aria-hidden="true"></i>
+          <p class="stat-label">Secciones</p>
+          <p class="stat-value">
+            <%= totalPages %>
+          </p>
+        </article>
+        <article class="stat-card">
+          <i class="ti ti-accessible stat-icon" aria-hidden="true"></i>
+          <p class="stat-label">Modo accesible</p>
+          <p class="stat-value">Activo</p>
+        </article>
+        <article class="stat-card">
+          <i class="ti ti-clock stat-icon" aria-hidden="true"></i>
+          <p class="stat-label">Tiempo limite</p>
+          <p class="stat-value">
+            <%= exam.timeLimitMinutes ? exam.timeLimitMinutes + ' min' : 'Sin limite' %>
+          </p>
+        </article>
+      </section>
+
+      <% if (exam.securityMode !=='none' ) { %>
+        <p class="alert" role="status">
+          <%= exam.securityMode==='locked' ? 'Modo restringido activo.' : 'Supervision de pantalla activa.' %> Los
+            cambios
+            de ventana y salidas se reportan al profesor.
         </p>
-      </article>
-      <article class="stat-card">
-        <i class="ti ti-accessible stat-icon" aria-hidden="true"></i>
-        <p class="stat-label">Modo accesible</p>
-        <p class="stat-value">Activo</p>
-      </article>
-      <article class="stat-card">
-        <i class="ti ti-clock stat-icon" aria-hidden="true"></i>
-        <p class="stat-label">Tiempo limite</p>
-        <p class="stat-value">
-          <%= exam.timeLimitMinutes ? exam.timeLimitMinutes + ' min' : 'Sin limite' %>
-        </p>
-      </article>
-    </section>
-
-    <section class="panel" aria-labelledby="accesibilidad-titulo">
-      <h2 id="accesibilidad-titulo"><i class="ti ti-brain" aria-hidden="true"></i> Medidas de usabilidad</h2>
-      <ul class="feature-list">
-        <li><strong>Capacidad cognitiva:</strong> Máximo de <%= maxItems %> preguntas por pantalla.</li>
-        <li><strong>Mensajes inclusivos:</strong> Texto + íconos + semántica accesible.</li>
-        <li><strong>Entrada flexible:</strong> Teclado, mouse y comandos simples.</li>
-      </ul>
-    </section>
-
-    <section class="panel">
-      <h2><i class="ti ti-info-circle" aria-hidden="true"></i> Antes de comenzar</h2>
-      <ol class="step-list">
-        <li>Lee cada pregunta completa.</li>
-        <li>Selecciona una opción por cada pregunta.</li>
-        <li>Envía el formulario para ver tu puntaje.</li>
-      </ol>
-    </section>
-
-    <% if (exam.securityMode !=='none' ) { %>
-      <p class="alert" role="status">
-        <%= exam.securityMode==='locked' ? 'Modo restringido activo.' : 'Supervision de pantalla activa.' %> Los cambios
-          de ventana y salidas se reportan al profesor.
-      </p>
-      <% } %>
-        <% if (startErrors.length) { %>
-          <div class="alert alert-error" role="alert">
-            <%= startErrors.join(' ') %></div><% } %>
+        <% } %>
+          <% if (startErrors.length) { %>
+            <div class="alert alert-error" role="alert">
+              <%= startErrors.join(' ') %></div><% } %>
       <form action="/student/exams/<%= exam.id %>/begin" method="POST">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
         <% if (exam.passwordHash) { %><div class="form-group"><label for="examPassword" class="form-label">Contrasena del examen</label><input id="examPassword" name="password" type="password" class="form-input" autocomplete="off" required maxlength="72" /></div><% } %>

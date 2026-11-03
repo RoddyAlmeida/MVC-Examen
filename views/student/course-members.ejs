@@ -1,4 +1,5 @@
-<%- include('../partials/course-header') %>
+<%- include('../partials/student-header', { activeSection: 'courses' }) %>
+    <a href="/student/courses" class="student-back"><i class="ti ti-arrow-left" aria-hidden="true"></i> Mis cursos</a>
     <section class="workflow-section">
         <h2>Integrantes del curso</h2>
         <div class="workflow-table-scroll">
@@ -34,4 +35,4 @@
             </table>
         </div>
     </section>
-    <%- include('../partials/course-footer') %>
+    <%- include('../partials/student-footer') %>

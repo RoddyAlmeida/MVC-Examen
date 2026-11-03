@@ -14,6 +14,7 @@ router.post("/courses/invitations/:id/respond", enrollmentController.respondCour
 router.post("/exams/invitations/:id/respond", enrollmentController.respondExam);
 router.post("/exams/join", enrollmentController.joinExam);
 router.get("/exams", studentController.listExams);
+router.get("/results", studentController.listResults);
 router.get("/exams/:id/leaderboard", requireAssignedExam, examAccessController.leaderboard);
 router.get("/exams/:id/start", requireAssignedExam, studentController.renderStart);
 router.post("/exams/:id/begin", requireAssignedExam, examAccessController.beginExam);

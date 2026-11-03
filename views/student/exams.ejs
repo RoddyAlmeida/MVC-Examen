@@ -1,134 +1,124 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="csrf-token" content="<%= csrfToken %>" />
-  <title>
-    <%= title %>
-  </title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/enrollment.css" />
-</head>
-
-<body class="membership-page professor-course-page">
-  <main class="container app-shell" style="max-width: 800px;">
-    <div class="theme-toggle-wrapper">
-      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
-        <i class="ti ti-moon" aria-hidden="true"></i>
-      </button>
-    </div>
-
-    <header class="page-header"
-      style="display: flex; justify-content: space-between; align-items: flex-start; padding-right: 3rem; padding-top: 1.5rem;">
-      <div>
-        <p class="eyebrow"><i class="ti ti-users" aria-hidden="true"></i>
-          <%= typeof userName !=='undefined' ? userName : 'Estudiante' %>
-        </p>
-        <h1>Mis exámenes</h1>
+<%- include('../partials/student-header', { title: 'Mis exámenes' , activeSection: 'exams' , headingMeta: exams.length
+  + ' asignados' }) %>
+  <div class="student-overview" aria-label="Resumen de exámenes">
+    <div><span class="overview-label">Por completar</span><strong>
+        <%= exams.filter(exam=> !resultsMap?.[exam.id]).length %>
+      </strong></div>
+    <div><span class="overview-label">Entregados</span><strong>
+        <%= exams.filter(exam=> resultsMap?.[exam.id]).length %>
+      </strong></div>
+    <div><span class="overview-label">Invitaciones</span><strong>
+        <%= invitations.length %>
+      </strong></div>
+  </div>
+  <div class="student-exam-layout">
+    <section aria-labelledby="assigned-title">
+      <div class="section-heading">
+        <h2 id="assigned-title">Tus evaluaciones</h2><i class="ti ti-notes" aria-hidden="true"></i>
       </div>
-      <div class="header-actions">
-        <a href="/student/courses" class="btn btn-secondary"><i class="ti ti-school" aria-hidden="true"></i> Mis
-          cursos</a>
-        <a href="/logout" class="btn btn-secondary">
-          <i class="ti ti-logout" aria-hidden="true"></i> Salir
-        </a>
-      </div>
-    </header>
-    <% if (actionNotice) { %>
-      <div class="alert <%= actionNotice.kind === 'error' ? 'alert-error' : '' %>" role="alert">
-        <%= actionNotice.message %>
-      </div>
-      <% } %>
-        <section class="workflow-section">
-          <h2>Unirse con codigo</h2>
-          <form action="/student/exams/join" method="POST" class="workflow-form">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            <label class="form-group">Codigo del examen<input name="code" class="form-input" required maxlength="12"
-                autocomplete="off" /></label>
-            <button class="btn btn-primary"><i class="ti ti-key" aria-hidden="true"></i> Unirme</button>
-          </form>
-        </section>
-        <% if (invitations.length) { %>
-          <section class="workflow-section">
-            <h2>Invitaciones a examenes</h2>
-            <% invitations.forEach(invitation=> { %>
-              <div class="workflow-section"><strong>
-                  <%= invitation.exam.title %>
-                </strong>
-                <p class="workflow-muted">
-                  <%= invitation.exam.course?.name || 'Sin curso' %>
-                </p>
-                <form action="/student/exams/invitations/<%= invitation.id %>/respond" method="POST"
-                  class="workflow-actions">
-                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                  <button name="action" value="accept" class="btn btn-primary"><i class="ti ti-check"
-                      aria-hidden="true"></i> Aceptar</button>
-                  <button name="action" value="reject" class="btn btn-secondary"><i class="ti ti-x"
-                      aria-hidden="true"></i> Rechazar</button>
-                </form>
-              </div>
-              <% }) %>
-          </section>
-          <% } %>
-
-            <% if (exams.length===0) { %>
-              <section class="panel" style="text-align: center; padding: 3rem;">
-                <i class="ti ti-file-off"
-                  style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
-                <p style="color: var(--text-secondary);">No tienes exámenes asignados.</p>
-              </section>
-              <% } else { %>
-                <div class="exam-list">
-                  <% exams.forEach((exam)=> { %>
-                    <% const taken=resultsMap && resultsMap[exam.id] %>
-                      <article class="exam-card<%= taken ? ' exam-card-taken' : '' %>">
-                        <div class="exam-card-body">
-                          <h2 class="exam-card-title">
-                            <%= exam.title %>
-                          </h2>
-                          <p class="exam-card-desc">
-                            <%= exam.instructions %>
-                          </p>
-                          <p class="exam-card-meta">
-                            <i class="ti ti-calendar" aria-hidden="true"></i> Publicado: <%=
-                              exam.createdAt.toLocaleDateString() %>
-                          </p>
-                          <% if (taken) { %>
-                            <div class="exam-result-inline">
-                              <i class="ti ti-lock" aria-hidden="true"></i>
-                              <span class="result-text">Rendido — <strong>
-                                  <%= taken.score %>
-                                </strong>/<%= taken.total %></span>
-                            </div>
-                            <% if (taken.pendingReview> 0) { %>
-                              <p class="exam-card-meta"><i class="ti ti-clock" aria-hidden="true"></i>
-                                <%= taken.pendingReview %> respuesta(s) pendiente(s) de revisión
-                              </p>
-                              <% } %>
-                                <% } %>
-                        </div>
-                        <% if (exam.leaderboardEnabled) { %>
-                          <a href="/student/exams/<%= exam.id %>/leaderboard" class="btn btn-secondary"><i
-                              class="ti ti-trophy" aria-hidden="true"></i> Ranking</a>
+      <% if (!exams.length) { %>
+        <div class="student-empty"><i class="ti ti-notes-off" aria-hidden="true"></i>
+          <h2>Todo al día</h2>
+          <p>No tienes exámenes asignados.</p><a href="/student/courses" class="btn btn-secondary"><i
+              class="ti ti-books" aria-hidden="true"></i> Ver mis cursos</a>
+        </div>
+        <% } else { %>
+          <div class="student-exam-list">
+            <% exams.forEach(exam=> { const taken = resultsMap?.[exam.id]; %>
+              <article class="student-exam-row">
+                <span class="exam-row-icon" aria-hidden="true"><i
+                    class="ti ti-<%= taken ? 'circle-check' : 'file-text' %>"></i></span>
+                <div class="exam-row-content">
+                  <div class="exam-row-heading">
+                    <h3>
+                      <%= exam.title %>
+                    </h3><span class="status-badge <%= taken ? 'status-complete' : '' %>">
+                      <%= taken ? 'Entregado' : 'Pendiente' %>
+                    </span>
+                  </div>
+                  <% if (exam.instructions) { %>
+                    <p class="exam-row-description">
+                      <%= exam.instructions %>
+                    </p>
+                    <% } %>
+                      <div class="exam-row-meta">
+                        <% if (exam.course?.name) { %><span><i class="ti ti-books" aria-hidden="true"></i>
+                            <%= exam.course.name %>
+                          </span>
                           <% } %>
-                            <% if (taken) { %>
-                              <span class="btn btn-secondary" style="pointer-events: none; opacity: 0.6;">
-                                <i class="ti ti-lock" aria-hidden="true"></i> No disponible
+                            <span><i class="ti ti-calendar" aria-hidden="true"></i>
+                              <%= exam.createdAt.toLocaleDateString('es') %>
+                            </span>
+                            <% if (exam.timeLimitMinutes) { %><span><i class="ti ti-clock" aria-hidden="true"></i>
+                                <%= exam.timeLimitMinutes %> min
                               </span>
-                              <% } else { %>
-                                <a href="/student/exams/<%= exam.id %>/start" class="btn btn-primary">
-                                  <i class="ti ti-arrow-right" aria-hidden="true"></i> Comenzar
-                                </a>
-                                <% } %>
-                      </article>
-                      <% }) %>
+                              <% } %>
+                                <% if (taken) { %><span>
+                                    <%= taken.score %> / <%= taken.total %> puntos
+                                  </span>
+                                  <% } %>
+                                    <% if (taken?.pendingReview> 0) { %><span><i class="ti ti-clock"
+                                          aria-hidden="true"></i> Revisión pendiente (<%= taken.pendingReview %>)</span>
+                                      <% } %>
+                      </div>
                 </div>
-                <% } %>
-  </main>
-  <script src="/js/themeToggle.js"></script>
-</body>
-
-</html>
+                <div class="exam-row-actions">
+                  <% if (exam.leaderboardEnabled) { %><a href="/student/exams/<%= exam.id %>/leaderboard"
+                      class="btn btn-secondary" title="Ranking de <%= exam.title %>"
+                      aria-label="Ranking de <%= exam.title %>"><i class="ti ti-trophy" aria-hidden="true"></i></a>
+                    <% } %>
+                      <% if (taken) { %><a href="/student/results" class="btn btn-secondary">Resultados <i
+                            class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
+                        <% } else { %><a href="/student/exams/<%= exam.id %>/start" class="btn btn-primary">Comenzar <i
+                              class="ti ti-arrow-right" aria-hidden="true"></i></a>
+                          <% } %>
+                </div>
+              </article>
+              <% }) %>
+          </div>
+          <% } %>
+    </section>
+    <aside class="student-exam-aside" aria-label="Acceso e invitaciones">
+      <section class="join-exam">
+        <span class="utility-icon"><i class="ti ti-key" aria-hidden="true"></i></span>
+        <h2>¿Tienes un código?</h2>
+        <form action="/student/exams/join" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <label for="exam-code" class="form-label">Código del examen</label>
+          <input id="exam-code" name="code" class="form-input" required maxlength="12" autocomplete="off"
+            placeholder="Código de 12 caracteres" />
+          <button class="btn btn-primary auth-submit"><i class="ti ti-plus" aria-hidden="true"></i> Unirme al
+            examen</button>
+        </form>
+      </section>
+      <% if (invitations.length) { %>
+        <section class="student-invitations" aria-labelledby="invitations-title">
+          <div class="section-heading">
+            <h2 id="invitations-title">Invitaciones</h2><span class="status-badge">
+              <%= invitations.length %>
+            </span>
+          </div>
+          <% invitations.forEach(invitation=> { %>
+            <article class="invitation-row">
+              <h3>
+                <%= invitation.exam.title %>
+              </h3>
+              <p>
+                <%= invitation.exam.course?.name || 'Sin curso' %>
+              </p>
+              <form action="/student/exams/invitations/<%= invitation.id %>/respond" method="POST"
+                class="workflow-actions">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button name="action" value="accept" class="btn btn-primary"><i class="ti ti-check"
+                    aria-hidden="true"></i> Aceptar</button>
+                <button name="action" value="reject" class="btn btn-secondary" title="Rechazar invitación"
+                  aria-label="Rechazar invitación a <%= invitation.exam.title %>"><i class="ti ti-x"
+                    aria-hidden="true"></i></button>
+              </form>
+            </article>
+            <% }) %>
+        </section>
+        <% } %>
+    </aside>
+  </div>
+  <%- include('../partials/student-footer') %>

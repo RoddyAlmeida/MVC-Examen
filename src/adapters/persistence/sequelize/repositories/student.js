@@ -17,7 +17,9 @@ function createRepository(models) {
     async listStudentResults(req) {
       return toRecord(await Result.findAll({
         where: { userId: req.session.userId },
-        attributes: ["examId", "score", "total", "answers"],
+        attributes: ["examId", "score", "total", "answers", "createdAt"],
+        include: [{ model: Exam, as: "exam", attributes: ["id", "title"] }],
+        order: [["createdAt", "DESC"]],
       }));
     },
 
