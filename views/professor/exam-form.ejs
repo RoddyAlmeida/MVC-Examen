@@ -1,113 +1,95 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>
-    <%= title %>
-  </title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <link rel="stylesheet" href="/css/styles.css" />
-</head>
-
-<body>
-  <main class="container app-shell" style="max-width: 700px;">
-    <div class="theme-toggle-wrapper">
-      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
-        <i class="ti ti-moon" aria-hidden="true"></i>
-      </button>
-    </div>
-
-    <header class="page-header">
-      <a href="/professor/dashboard" class="btn btn-secondary" style="margin-bottom: 1rem; width: fit-content;">
-        <i class="ti ti-arrow-left" aria-hidden="true"></i> Volver
-      </a>
-      <p class="eyebrow"><i class="ti ti-<%= exam ? 'edit' : 'plus' %>" aria-hidden="true"></i> Profesor</p>
-      <h1>
-        <%= exam && exam.id ? 'Editar examen' : 'Nuevo examen' %>
-      </h1>
-      <% if (course) { %>
-        <p><i class="ti ti-school" aria-hidden="true"></i>
-          <%= course.name %>
-        </p>
-        <% } %>
-    </header>
-
-    <% if (errors.length> 0) { %>
+<%- include('../partials/professor-header', { pageHeading: exam && exam.id ? 'Editar examen' : 'Nuevo examen' }) %>
+  <a href="/professor/dashboard<%= course ? '?courseId=' + course.id : '' %>" class="professor-back"><i
+      class="ti ti-arrow-left" aria-hidden="true"></i> Mis exámenes</a>
+  <%- include('../partials/exam-workflow', { currentStep: 'details' }) %>
+    <% if (errors.length) { %>
       <div class="alert alert-error" role="alert">
-        <i class="ti ti-alert-circle alert-icon" aria-hidden="true"></i>
-        <div class="alert-content">
-          <ul>
-            <% errors.forEach((error)=> { %>
-              <li>
-                <%= error.msg %>
-              </li>
-              <% }) %>
-          </ul>
-        </div>
+        <ul>
+          <% errors.forEach(error=> { %><li>
+              <%= error.msg %>
+            </li>
+            <% }) %>
+        </ul>
       </div>
       <% } %>
-
-        <form method="POST" action="/professor/exams/<%= exam && exam.id ? exam.id + '/edit' : 'create' %>"
-          class="panel">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-          <% if (!exam || !exam.id) { %>
-            <div class="form-group">
-              <label for="courseId" class="form-label">Curso</label>
-              <select id="courseId" name="courseId" class="form-input" required>
-                <option value="">Seleccionar curso</option>
-                <% courses.forEach(item=> { %>
-                  <option value="<%= item.id %>" <%=course && course.id===item.id ? 'selected' : '' %>><%= item.name %>
-                  </option>
-                  <% }) %>
-              </select>
-            </div>
-            <% } %>
-              <div class="form-group">
-                <label for="title" class="form-label">Título del examen</label>
-                <input type="text" id="title" name="title" class="form-input" value="<%= exam ? exam.title : '' %>"
-                  placeholder="Ej: Examen de Introducción a HCI" required />
+        <div class="exam-builder-layout">
+          <form method="POST" action="/professor/exams/<%= exam && exam.id ? exam.id + '/edit' : 'create' %>"
+            id="examDetailsForm">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <section class="exam-builder-section" aria-labelledby="exam-details-title">
+              <h2 id="exam-details-title">Datos del examen</h2>
+              <% if (!exam || !exam.id) { %>
+                <div class="form-group"><label for="courseId" class="form-label">Curso</label><select id="courseId"
+                    name="courseId" class="form-input" required>
+                    <option value="">Seleccionar curso</option>
+                    <% courses.forEach(item=> { %><option value="<%= item.id %>" <%=course && course.id===item.id
+                        ? 'selected' : '' %>><%= item.name %>
+                      </option>
+                      <% }) %>
+                  </select></div>
+                <% } %>
+                  <div class="form-group"><label for="title" class="form-label">Título del examen</label><input
+                      id="title" name="title" class="form-input" value="<%= exam ? exam.title : '' %>"
+                      placeholder="Ej. Comprensión lectora · Unidad 3" required /></div>
+                  <div class="form-group"><label for="instructions" class="form-label">Instrucciones para los
+                      estudiantes</label><textarea id="instructions" name="instructions" class="form-input" rows="5"
+                      placeholder="Indicaciones de la evaluación"
+                      required><%= exam ? exam.instructions : '' %></textarea></div>
+            </section>
+            <% const timerEnabled=exam && (Object.hasOwn(exam, 'timerEnabled' ) ? exam.timerEnabled==='on' :
+              Boolean(exam.timeLimitMinutes)); const rankingEnabled=exam && (exam.leaderboardEnabled===true ||
+              exam.leaderboardEnabled==='on' ); %>
+              <details class="exam-settings exam-builder-section" <%=timerEnabled || rankingEnabled ? 'open' : '' %>>
+                <summary>Opciones de evaluación <i class="ti ti-chevron-down" aria-hidden="true"></i></summary>
+                <label class="exam-setting" for="timerEnabled"><span><i class="ti ti-clock" aria-hidden="true"></i>
+                    Límite de tiempo</span><input id="timerEnabled" name="timerEnabled" type="checkbox" role="switch"
+                    <%=timerEnabled ? 'checked' : '' %> /></label>
+                <div id="timerDuration" class="exam-duration" <%=timerEnabled ? '' : 'hidden' %>><label
+                    for="timeLimitMinutes" class="form-label">Duración en minutos</label><input id="timeLimitMinutes"
+                    name="timeLimitMinutes" type="number" class="form-input" min="5" max="2147483647" step="1"
+                    value="<%= exam && exam.timeLimitMinutes != null ? exam.timeLimitMinutes : 30 %>" <%=timerEnabled
+                    ? 'required' : 'disabled' %> /></div>
+                <label class="exam-setting" for="leaderboardEnabled"><span><i class="ti ti-trophy"
+                      aria-hidden="true"></i> Ranking del examen</span><input id="leaderboardEnabled"
+                    name="leaderboardEnabled" type="checkbox" role="switch" <%=rankingEnabled ? 'checked' : '' %>
+                  /></label>
+              </details>
+              <div class="exam-builder-submit"><a
+                  href="/professor/dashboard<%= course ? '?courseId=' + course.id : '' %>"
+                  class="btn btn-secondary">Cancelar</a><button type="submit" class="btn btn-primary"><span
+                    data-submit-label>
+                    <%= exam && exam.id ? 'Guardar cambios' : 'Crear y añadir preguntas' %>
+                  </span><i class="ti ti-arrow-right" aria-hidden="true"></i></button></div>
+          </form>
+          <aside class="exam-builder-aside" aria-labelledby="exam-summary-title">
+            <h2 id="exam-summary-title">Resumen</h2>
+            <dl>
+              <div>
+                <dt>Curso</dt>
+                <dd data-exam-summary-course>
+                  <%= course ? course.name : 'Sin seleccionar' %>
+                </dd>
               </div>
-              <div class="form-group">
-                <label for="instructions" class="form-label">Instrucciones</label>
-                <textarea id="instructions" name="instructions" class="form-input form-textarea" rows="4"
-                  placeholder="Describe las indicaciones para el estudiante..."
-                  required><%= exam ? exam.instructions : '' %></textarea>
+              <div>
+                <dt>Título</dt>
+                <dd data-exam-summary-title>
+                  <%= exam && exam.title ? exam.title : 'Sin título' %>
+                </dd>
               </div>
-              <% const timerEnabled=exam && (Object.prototype.hasOwnProperty.call(exam, 'timerEnabled' ) ?
-                exam.timerEnabled==='on' : Boolean(exam.timeLimitMinutes)); %>
-                <div class="form-group">
-                  <label class="form-label" for="timerEnabled">
-                    <input id="timerEnabled" name="timerEnabled" type="checkbox" <%=timerEnabled ? 'checked' : '' %> />
-                    <i class="ti ti-clock" aria-hidden="true"></i> Activar temporizador
-                  </label>
-                  <div id="timerDuration" <%=timerEnabled ? '' : 'hidden' %>>
-                    <label for="timeLimitMinutes" class="form-label">Duracion en minutos</label>
-                    <input id="timeLimitMinutes" name="timeLimitMinutes" type="number" class="form-input" min="5"
-                      max="2147483647" step="1"
-                      value="<%= exam && exam.timeLimitMinutes != null ? exam.timeLimitMinutes : 5 %>" <%=timerEnabled
-                      ? 'required' : 'disabled' %> />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="leaderboardEnabled">
-                    <input id="leaderboardEnabled" name="leaderboardEnabled" type="checkbox" <%=exam &&
-                      (exam.leaderboardEnabled===true || exam.leaderboardEnabled==='on' ) ? 'checked' : '' %> />
-                    <i class="ti ti-trophy" aria-hidden="true"></i> Activar ranking del examen
-                  </label>
-                </div>
-                <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-                  <button type="submit" class="btn btn-primary">
-                    <i class="ti ti-device-floppy" aria-hidden="true"></i>
-                    <%= exam && exam.id ? 'Guardar cambios' : 'Crear examen' %>
-                  </button>
-                  <a href="/professor/dashboard" class="btn btn-secondary">Cancelar</a>
-                </div>
-        </form>
-  </main>
-  <script src="/js/themeToggle.js"></script>
-  <script src="/js/examTimer.js"></script>
-</body>
-
-</html>
+              <div>
+                <dt>Duración</dt>
+                <dd data-exam-summary-duration>
+                  <%= timerEnabled ? exam.timeLimitMinutes + ' min' : 'Sin límite' %>
+                </dd>
+              </div>
+              <div>
+                <dt>Ranking</dt>
+                <dd data-exam-summary-ranking>
+                  <%= rankingEnabled ? 'Activado' : 'Desactivado' %>
+                </dd>
+              </div>
+            </dl>
+          </aside>
+        </div>
+        <script src="/js/examTimer.js" defer></script>
+        <%- include('../partials/professor-footer') %>

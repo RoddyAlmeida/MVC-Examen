@@ -21,7 +21,7 @@ function response() {
     };
 }
 
-test("admin dashboard renders empty and populated metrics without changing other admin layouts", async () => {
+test("admin pages share the dashboard layout and highlight the current section", async () => {
     const ejs = require("ejs");
     const path = require("node:path");
     const base = { title: "Administracion", active: "dashboard", notice: null, req: { session: { userName: "Admin <script>" } }, pendingReview };
@@ -51,7 +51,69 @@ test("admin dashboard renders empty and populated metrics without changing other
     assert.equal((populated.match(/<time /g) || []).length, 10);
     assert.doesNotMatch(populated, /Estudiante 11|Estudiante 12/);
     const sharedHeader = await ejs.renderFile(path.join(__dirname, "../views/partials/admin-header.ejs"), { ...base, active: "users" });
-    assert.doesNotMatch(sharedHeader, /admin-dashboard.css|dashboard-sidebar/);
+    assert.match(sharedHeader, /admin-dashboard.css/);
+    assert.match(sharedHeader, /dashboard-sidebar/);
+    assert.match(sharedHeader, /href="\/admin\/users" aria-current="page"/);
+    assert.doesNotMatch(sharedHeader, /href="\/admin\/dashboard" aria-current="page"/);
+});
+
+test("admin management views render modal controls, escaped account data and consistent navigation", async () => {
+    const ejs = require("ejs");
+    const path = require("node:path");
+    const createdAt = new Date("2026-11-03");
+    const admin = { id: 1, name: "Admin", email: "admin@local.test", role: "administrador", createdAt };
+    const student = { id: 2, name: 'Ana "<script>"', email: "student@local.test", role: "estudiante", createdAt };
+    const professor = { id: 3, name: "Profesor", email: "teacher@local.test", role: "profesor", createdAt };
+    const course = { id: 1, name: "Literatura", professorId: 3, professor, exams: [] };
+    const exam = { id: 1, title: "Lectura", instructions: "Responder", courseId: 1, course, creatorId: 3, creator: professor, questions: [], createdAt };
+    const base = { title: "Usuarios", notice: null, csrf: "test-csrf", roles: controller.roles, query: "", role: "", users: [admin, student, professor], user: student, professors: [professor], students: [student], courses: [course], exams: [exam], assignments: [], results: [], enrollments: [], pendingReview, req: { session: { userId: 1, userName: "Admin" } } };
+    for (const [view, active] of [["users", "users"], ["user-detail", "users"], ["exams", "exams"], ["courses", "courses"]]) {
+        const html = await ejs.renderFile(path.join(__dirname, `../views/admin/${view}.ejs`), { ...base, active });
+        assert.match(html, /admin-management.css/);
+        assert.match(html, new RegExp(`href="/admin/${active}"\\s+aria-current="page"`));
+        assert.match(html, /name="_csrf" value="test-csrf"/);
+        assert.doesNotMatch(html, /class="admin-inline-editor"|class="admin-editor"/);
+        if (active === "users") {
+            assert.match(html, /id="admin-account-dialog"/);
+            assert.match(html, /id="admin-delete-user-dialog"/);
+            assert.match(html, /data-user-action="edit"/);
+            assert.doesNotMatch(html, /<script>"/);
+            assert.match(html, /&lt;script&gt;/);
+            assert.doesNotMatch(html, /data-user-action="delete"\s+data-account="[^\"]*&#34;id&#34;:1[,}]/);
+        } else {
+            assert.match(html, new RegExp(`data-dialog-open="create-${active === "exams" ? "exam" : "course"}-dialog"`));
+        }
+    }
+});
+
+test("admin dialogs close with Escape but cannot dismiss a pending mutation", () => {
+    const handlers = {};
+    let closed = 0;
+    let destination;
+    const dialog = {
+        dataset: {},
+        addEventListener(name, callback) { handlers[name] = callback; },
+        close() { closed += 1; },
+        querySelector() { return null; },
+    };
+    require("node:vm").runInNewContext(require("node:fs").readFileSync(require("node:path").join(__dirname, "../public/js/adminDialogs.js"), "utf8"), {
+        document: { addEventListener() { }, querySelectorAll: selector => selector === "dialog.admin-dialog" ? [dialog] : [] },
+        location: { assign(path) { destination = path; } },
+    });
+    const event = { key: "Escape", prevented: false, preventDefault() { this.prevented = true; } };
+    handlers.keydown(event);
+    assert.equal(event.prevented, true);
+    assert.equal(closed, 1);
+    dialog.dataset.pending = "true";
+    handlers.keydown(event);
+    assert.equal(closed, 1);
+    event.prevented = false;
+    handlers.cancel(event);
+    assert.equal(event.prevented, true);
+    delete dialog.dataset.pending;
+    dialog.dataset.redirect = "/admin/users/7";
+    handlers.close();
+    assert.equal(destination, "/admin/users/7");
 });
 
 test("admin validates roles, normalized emails and passwords", () => {
@@ -338,6 +400,7 @@ test("professor exam creation uses a selected own course and rejects foreign cou
     context.mock.method(Course, "findAll", async () => [{ id: 3 }, { id: 4 }]);
     const create = context.mock.method(Exam, "create", async (values) => {
         assert.deepEqual(values, { title: "Examen", instructions: "Resolver", timeLimitMinutes: null, leaderboardEnabled: false, creatorId: 7, courseId: 3 });
+        return { id: 9, ...values };
     });
     const req = { method: "POST", session: { userId: 7 }, body: { title: " Examen ", instructions: " Resolver ", courseId: 99, creatorId: 99 } };
     const rejected = response();
@@ -346,10 +409,10 @@ test("professor exam creation uses a selected own course and rejects foreign cou
     delete req.body.courseId;
     await requireCourse(req, response(), () => assert.fail("Missing course allowed"));
     req.body.courseId = "3";
-    await requireCourse(req, response(), () => {});
+    await requireCourse(req, response(), () => { });
     const createdResponse = response();
     await professorController.createExam(req, createdResponse);
-    assert.equal(createdResponse.location, "/professor/dashboard?courseId=3");
+    assert.equal(createdResponse.location, "/professor/exams/9/questions");
     assert.equal(create.mock.callCount(), 1);
 });
 
@@ -469,6 +532,39 @@ test("course HTTP workflow migrates legacy exams and preserves assignments on re
     assert.equal(coursesPage.status, 200);
     const html = await coursesPage.text();
     const csrf = html.match(/name="_csrf" value="([^"]+)"/)[1];
+    await context.test("user dialogs receive JSON validation and CRUD responses while keeping CSRF and self-protection", async () => {
+        async function action(path, body, token = csrf) {
+            return fetch(`${base}${path}`, { method: "POST", body: new URLSearchParams({ ...body, _csrf: token }), headers: { cookie: adminCookie, Accept: "application/json" }, redirect: "manual" });
+        }
+        const account = { name: "Usuario popup", email: "popup@local.test", role: "estudiante", password: "test12345" };
+        const forbidden = await action("/admin/users", account, "wrong-token");
+        assert.equal(forbidden.status, 403);
+        assert.match((await forbidden.json()).message, /seguridad/);
+        const invalid = await action("/admin/users", { ...account, password: "short" });
+        assert.equal(invalid.status, 422);
+        const created = await action("/admin/users", account);
+        assert.equal(created.status, 200);
+        const createdBody = await created.json();
+        assert.equal(createdBody.message, "Usuario creado.");
+        const user = await User.findOne({ where: { email: account.email } });
+        assert.equal(createdBody.redirect, `/admin/users/${user.id}`);
+        const duplicate = await action("/admin/users", account);
+        assert.equal(duplicate.status, 409);
+        assert.match((await duplicate.json()).message, /ese correo/);
+        const updated = await action(`/admin/users/${user.id}/update`, { ...account, name: "Cuenta editada", password: "" });
+        assert.equal(updated.status, 200);
+        assert.equal((await updated.json()).message, "Cuenta actualizada.");
+        assert.equal((await user.reload()).name, "Cuenta editada");
+        const selfDelete = await action(`/admin/users/${admin.id}/delete`, {});
+        assert.equal(selfDelete.status, 422);
+        assert.match((await selfDelete.json()).message, /No puedes eliminar tu cuenta/);
+        const deleted = await action(`/admin/users/${user.id}/delete`, {});
+        assert.equal(deleted.status, 200);
+        assert.equal((await deleted.json()).redirect, "/admin/users");
+        assert.equal(await User.findByPk(user.id), null);
+        const page = await fetch(`${base}/admin/users`, { headers: { cookie: adminCookie } });
+        assert.doesNotMatch(await page.text(), /Usuario eliminado\. Sus examenes/);
+    });
     assert.equal((await post("/admin/courses", { name: "Curso", professorId: professor.id }, adminCookie)).status, 403);
     assert.equal((await post("/admin/courses", { name: "Curso", professorId: professor.id, _csrf: csrf }, adminCookie)).status, 302);
     const course = await Course.findOne({ where: { professorId: professor.id } });

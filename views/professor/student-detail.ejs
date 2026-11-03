@@ -1,109 +1,74 @@
-<!DOCTYPE html>
-<html lang="es">
+<%- include('../partials/professor-header', { activeSection: 'students' , pageHeading: student.name || 'Estudiante' })
+  %>
+  <a href="/professor/students" class="professor-back"><i class="ti ti-arrow-left" aria-hidden="true"></i>
+    Estudiantes</a>
+  <p class="professor-muted">
+    <%= student.email %>
+  </p>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>
-    <%= title %>
-  </title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <link rel="stylesheet" href="/css/styles.css" />
-</head>
-
-<body>
-  <main class="container app-shell" style="max-width: 800px;">
-    <div class="theme-toggle-wrapper">
-      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
-        <i class="ti ti-moon" aria-hidden="true"></i>
-      </button>
-    </div>
-
-    <header class="page-header"
-      style="display: flex; justify-content: space-between; align-items: flex-start; padding-right: 3rem; padding-top: 1.5rem;">
-      <div>
-        <p class="eyebrow"><i class="ti ti-users" aria-hidden="true"></i>
-          <%= student.email %>
+  <% if (req.query.error) { %>
+    <div class="alert alert-error" role="alert">
+      <i class="ti ti-alert-circle alert-icon" aria-hidden="true"></i>
+      <div class="alert-content">
+        <p>
+          <%= req.query.error %>
         </p>
-        <h1>
-          <%= student.name || 'Sin nombre' %>
-        </h1>
       </div>
-      <div class="header-actions">
-        <a href="/professor/students" class="btn btn-secondary">
-          <i class="ti ti-arrow-left" aria-hidden="true"></i> Volver
-        </a>
-      </div>
-    </header>
+    </div>
+    <% } %>
 
-    <% if (req.query.error) { %>
-      <div class="alert alert-error" role="alert">
-        <i class="ti ti-alert-circle alert-icon" aria-hidden="true"></i>
-        <div class="alert-content">
-          <p>
-            <%= req.query.error %>
-          </p>
-        </div>
-      </div>
-      <% } %>
+      <h2 style="margin-top: 2rem;"><i class="ti ti-clipboard-check" aria-hidden="true"></i> Resultados por examen
+      </h2>
 
-        <h2 style="margin-top: 2rem;"><i class="ti ti-clipboard-check" aria-hidden="true"></i> Resultados por examen
-        </h2>
-
-        <% if (results.length===0) { %>
-          <section class="panel" style="text-align: center; padding: 2rem;">
-            <i class="ti ti-chart-bar-off"
-              style="font-size: 2rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
-            <p style="color: var(--text-secondary);">Este estudiante aún no ha rendido ningún examen.</p>
-          </section>
-          <% } else { %>
-            <div class="exam-list">
-              <% results.forEach((r)=> { %>
-                <article class="exam-card" style="flex-wrap: wrap;">
-                  <a href="/professor/students/<%= student.id %>/exam/<%= r.examId %>"
-                    style="display: flex; flex: 1; text-decoration: none; align-items: center; gap: 1rem;">
-                    <div class="exam-card-body" style="flex: 1;">
-                      <h2 class="exam-card-title">
-                        <%= r.exam ? r.exam.title : 'Examen #' + r.examId %>
-                      </h2>
-                      <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
-                        <div class="score-display" style="font-size: 1.25rem; margin: 0;">
-                          <span class="score-value">
-                            <%= r.score %>
-                          </span>
-                          <span class="score-total">/ <%= r.total %></span>
-                        </div>
-                        <span
-                          style="color: var(--<%= r.score >= r.total * 0.6 ? 'success' : 'danger' %>); font-weight: 600;">
-                          <%= Math.round((r.score / r.total) * 100) %>%
+      <% if (results.length===0) { %>
+        <section class="panel" style="text-align: center; padding: 2rem;">
+          <i class="ti ti-chart-bar-off"
+            style="font-size: 2rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
+          <p style="color: var(--text-secondary);">Este estudiante aún no ha rendido ningún examen.</p>
+        </section>
+        <% } else { %>
+          <div class="exam-list">
+            <% results.forEach((r)=> { %>
+              <article class="exam-card" style="flex-wrap: wrap;">
+                <a href="/professor/students/<%= student.id %>/exam/<%= r.examId %>"
+                  style="display: flex; flex: 1; text-decoration: none; align-items: center; gap: 1rem;">
+                  <div class="exam-card-body" style="flex: 1;">
+                    <h2 class="exam-card-title">
+                      <%= r.exam ? r.exam.title : 'Examen #' + r.examId %>
+                    </h2>
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
+                      <div class="score-display" style="font-size: 1.25rem; margin: 0;">
+                        <span class="score-value">
+                          <%= r.score %>
                         </span>
-                        <span style="color: var(--text-secondary); font-size: 0.85rem;">
-                          <%= r.createdAt.toLocaleDateString() %>
-                        </span>
-                        <% if (r.pendingReview> 0) { %>
-                          <span style="color: var(--primary); font-size: 0.85rem;"><i class="ti ti-clock"
-                              aria-hidden="true"></i>
-                            <%= r.pendingReview %> pendiente(s)
-                          </span>
-                          <% } %>
+                        <span class="score-total">/ <%= r.total %></span>
                       </div>
+                      <span
+                        style="color: var(--<%= r.score >= r.total * 0.6 ? 'success' : 'danger' %>); font-weight: 600;">
+                        <%= Math.round((r.score / r.total) * 100) %>%
+                      </span>
+                      <span style="color: var(--text-secondary); font-size: 0.85rem;">
+                        <%= r.createdAt.toLocaleDateString() %>
+                      </span>
+                      <% if (r.pendingReview> 0) { %>
+                        <span style="color: var(--primary); font-size: 0.85rem;"><i class="ti ti-clock"
+                            aria-hidden="true"></i>
+                          <%= r.pendingReview %> pendiente(s)
+                        </span>
+                        <% } %>
                     </div>
-                    <i class="ti ti-chevron-right" style="font-size: 1.5rem; color: var(--text-secondary);"></i>
-                  </a>
-                  <form method="POST" action="/professor/students/<%= student.id %>/reset-exam/<%= r.examId %>"
-                    onsubmit="return confirm('¿Resetear este resultado? El estudiante podrá volver a rendir el examen.');">
-                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                    <button class="btn btn-secondary" style="color: var(--danger);">
-                      <i class="ti ti-refresh"></i> Reset
-                    </button>
-                  </form>
-                </article>
-                <% }) %>
-            </div>
-            <% } %>
-  </main>
-
-  <script src="/js/themeToggle.js"></script>
-</body>
-
-</html>
+                  </div>
+                  <i class="ti ti-chevron-right" style="font-size: 1.5rem; color: var(--text-secondary);"></i>
+                </a>
+                <form method="POST" action="/professor/students/<%= student.id %>/reset-exam/<%= r.examId %>"
+                  data-confirm-message="Se eliminará este resultado y el estudiante podrá volver a rendir el examen.">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <button class="btn btn-secondary" style="color: var(--danger);">
+                    <i class="ti ti-refresh" aria-hidden="true"></i> Restablecer intento
+                  </button>
+                </form>
+              </article>
+              <% }) %>
+          </div>
+          <% } %>
+            <%- include('../partials/professor-footer') %>

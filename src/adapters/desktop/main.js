@@ -1,6 +1,7 @@
 const { app, BrowserWindow, globalShortcut, shell, powerSaveBlocker, ipcMain } = require("electron");
 const path = require("path");
 const { startServer } = require("../../bootstrap/server");
+const { createNavigationFeedback } = require("./navigationFeedback");
 
 const EXAM_PORT = Number(process.env.PORT) || 3000;
 const EXAM_URL = `http://localhost:${EXAM_PORT}/login`;
@@ -144,15 +145,19 @@ function createMainWindow() {
     setExamMode("none");
   });
 
-  mainWindow.loadURL(EXAM_URL);
+  return createNavigationFeedback({
+    window: mainWindow,
+    ipcMain,
+    appUrl: EXAM_URL,
+    startBackend: async () => { httpServer = await startServer(EXAM_PORT); },
+  });
 }
 
 async function bootstrapElectron() {
   await app.whenReady();
-  httpServer = await startServer(EXAM_PORT);
-
+  const feedback = createMainWindow();
   powerSaveId = powerSaveBlocker.start("prevent-display-sleep");
-  createMainWindow();
+  await feedback.connect();
 }
 
 bootstrapElectron().catch((error) => {

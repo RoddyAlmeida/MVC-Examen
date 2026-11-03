@@ -59,7 +59,7 @@
                   autocomplete="current-password" required />
               </div>
               <button type="submit" class="btn btn-primary auth-submit">
-                Entrar <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                <span data-submit-label>Entrar</span> <i class="ti ti-arrow-right" aria-hidden="true"></i>
               </button>
             </form>
 
@@ -69,7 +69,8 @@
             </p>
   </main>
   <footer class="auth-footer"><span>MVC Examen</span><span>Espacio académico</span></footer>
-  <script src="/js/themeToggle.js"></script>
+  <%- include('partials/page-feedback') %>
+    <script src="/js/themeToggle.js"></script>
 </body>
 
 </html>

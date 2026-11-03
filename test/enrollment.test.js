@@ -11,7 +11,7 @@ test("students can see members only with active enrollment and explicit teacher 
         return enrollment;
     });
     const req = { session: { userId: 7 }, params: { id: "3" } };
-    const res = { status(code) { assert.equal(code, 403); return this; }, render() {} };
+    const res = { status(code) { assert.equal(code, 403); return this; }, render() { } };
     await requireVisibleCourseMembers(req, res, () => assert.fail("Non-member saw the roster"));
     enrollment = { course: { id: 3, membersVisible: false } };
     await requireVisibleCourseMembers(req, res, () => assert.fail("Hidden roster was disclosed"));
@@ -45,7 +45,7 @@ test("exam questions and submissions require a current password verification gra
     const { requireExamAccess } = require("../src/adapters/http/middleware/access");
     const req = { method: "GET", exam: { id: 9, securityRevision: 2 }, session: {} };
     let location;
-    const res = { redirect(path) { location = path; }, status(code) { assert.equal(code, 403); return this; }, render() {} };
+    const res = { redirect(path) { location = path; }, status(code) { assert.equal(code, 403); return this; }, render() { } };
     requireExamAccess(req, res, () => assert.fail("Password was bypassed"));
     assert.equal(location, "/student/exams/9/start");
     req.method = "POST";
@@ -87,7 +87,7 @@ test("pending invitations and missing membership cannot access an exam directly"
     });
     context.mock.method(Exam, "findByPk", async () => ({ id: 9, courseId: 3 }));
     context.mock.method(CourseEnrollment, "findOne", async () => null);
-    const res = { status(code) { assert.equal(code, 403); return this; }, render() {} };
+    const res = { status(code) { assert.equal(code, 403); return this; }, render() { } };
     const req = { params: { id: "9" }, session: { userId: 7 } };
     await requireAssignedExam(req, res, () => assert.fail("Invitation bypassed acceptance"));
     assignment = { status: "active" };
@@ -397,7 +397,7 @@ test("HTTP invitations, forced enrollment, codes, passwords and notifications st
         assert.equal((await post(`/professor/exams/${ranked.id}/edit`, settings, professorSession)).status, 302);
         const empty = await get(studentPath, studentSession);
         assert.equal(empty.status, 200);
-        assert.match(await empty.text(), /Sin entregas calificadas/);
+        assert.match(await empty.text(), /Sin entregas\s+calificadas/);
         assert.match(await (await get("/student/exams", studentSession)).text(), new RegExp(`/student/exams/${ranked.id}/leaderboard`));
         assert.match(await (await get("/professor/dashboard", professorSession)).text(), new RegExp(`/professor/exams/${ranked.id}/leaderboard`));
         const question = await Question.findOne({ where: { examId: ranked.id } });

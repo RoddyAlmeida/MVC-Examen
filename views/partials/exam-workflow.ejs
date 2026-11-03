@@ -1,0 +1,19 @@
+<nav class="exam-workflow" aria-label="Configuración del examen">
+    <% const saved=exam && exam.id; const steps=[['details', 'Datos' , saved ? `/professor/exams/${exam.id}/edit` :
+        null], ['questions', 'Preguntas' , saved ? `/professor/exams/${exam.id}/questions` : null], ['access', 'Acceso'
+        , saved ? `/professor/exams/${exam.id}/access` : null]]; %>
+        <% steps.forEach(([key, label, href], index)=> { %>
+            <% if (href && key !==currentStep) { %><a href="<%= href %>"><span>
+                        <%= index + 1 %>
+                    </span>
+                    <%= label %>
+                </a>
+                <% } else { %><span class="exam-workflow-step" <%- key===currentStep ? 'aria-current="step"'
+                        : 'aria-disabled="true"' %>><span>
+                            <%= index + 1 %>
+                        </span>
+                        <%= label %>
+                    </span>
+                    <% } %>
+                        <% }) %>
+</nav>

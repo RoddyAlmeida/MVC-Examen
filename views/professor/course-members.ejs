@@ -1,4 +1,4 @@
-<%- include('../partials/course-header') %>
+<%- include('../partials/professor-header') %>
     <section class="workflow-section">
         <h2>Visibilidad del curso</h2>
         <form action="/professor/courses/<%= course.id %>/members/visibility" method="POST" class="workflow-form">
@@ -64,7 +64,7 @@
                                         <form
                                             action="/professor/courses/<%= course.id %>/members/<%= enrollment.id %>/delete"
                                             method="POST"
-                                            onsubmit="return confirm('Retirar la inscripcion y accesos a examenes de este curso? Los resultados se conservaran.')">
+                                            data-confirm-message="Se retirará la inscripción y los accesos a exámenes de este curso. Los resultados se conservarán.">
                                             <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                                             <button class="btn btn-secondary" title="Retirar inscripcion"
                                                 aria-label="Retirar inscripcion de <%= enrollment.student.name || enrollment.student.email %>"><i
@@ -82,4 +82,4 @@
             </table>
         </div>
     </section>
-    <%- include('../partials/course-footer') %>
+    <%- include('../partials/professor-footer') %>

@@ -1,7 +1,16 @@
 <%- include('../partials/admin-header') %>
     <% const available=professors; %>
-        <details class="admin-editor" open>
-            <summary><i class="ti ti-plus" aria-hidden="true"></i> Nuevo curso</summary>
+        <div class="admin-section-heading admin-list-heading"><span class="admin-muted">
+                <%= courses.length %> cursos
+            </span><button type="button" class="btn btn-primary" data-dialog-open="create-course-dialog"
+                <%=available.length ? '' : 'disabled' %>><i class="ti ti-plus" aria-hidden="true"></i> Nuevo
+                curso</button></div>
+        <dialog id="create-course-dialog" class="admin-dialog" aria-labelledby="create-course-title">
+            <header class="admin-dialog-heading">
+                <h2 id="create-course-title">Nuevo curso</h2><button type="button" class="dashboard-icon"
+                    data-dialog-close title="Cerrar" aria-label="Cerrar"><i class="ti ti-x"
+                        aria-hidden="true"></i></button>
+            </header>
             <form action="/admin/courses" method="POST" class="admin-form-grid">
                 <input type="hidden" name="_csrf" value="<%= csrf %>" />
                 <label>Nombre del curso<input name="name" required maxlength="200" /></label>
@@ -13,139 +22,176 @@
                             </option>
                             <% }) %>
                     </select></label>
-                <div class="admin-form-actions"><button class="btn btn-primary" <%=available.length ? '' : 'disabled'
-                        %>><i class="ti ti-plus" aria-hidden="true"></i> Crear curso</button></div>
+                <div class="admin-form-actions admin-dialog-actions"><button type="button" class="btn btn-secondary"
+                        data-dialog-close>Cancelar</button><button class="btn btn-primary" <%=available.length ? ''
+                        : 'disabled' %>><i class="ti ti-plus" aria-hidden="true"></i> Crear curso</button></div>
             </form>
-            <% if (!available.length) { %>
-                <p class="admin-muted">No hay profesores disponibles.</p>
-                <% } %>
-        </details>
-        <section class="admin-section">
-            <h2>Inscribir estudiante directamente</h2>
-            <form action="/admin/enrollments" method="POST" class="admin-filters">
-                <input type="hidden" name="_csrf" value="<%= csrf %>" />
-                <select name="courseId" required aria-label="Curso para inscribir">
-                    <option value="">Seleccionar curso</option>
-                    <% courses.forEach(course=> { %><option value="<%= course.id %>">
-                            <%= course.name %>
-                        </option>
-                        <% }) %>
-                </select>
-                <select name="userId" required aria-label="Estudiante para inscribir">
-                    <option value="">Seleccionar estudiante</option>
-                    <% students.forEach(student=> { %><option value="<%= student.id %>">
-                            <%= student.name || student.email %>
-                        </option>
-                        <% }) %>
-                </select>
-                <button class="btn btn-primary"><i class="ti ti-user-plus" aria-hidden="true"></i> Inscribir sin
-                    aceptacion</button>
-            </form>
-            <div class="admin-table-scroll">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Curso</th>
-                            <th>Estudiante</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% enrollments.forEach(enrollment=> { const course = courses.find(item => item.id ===
-                            enrollment.courseId); %><tr>
-                                <td>
-                                    <%= course?.name || 'Curso eliminado' %>
-                                </td>
-                                <td>
-                                    <%= enrollment.student?.name || enrollment.student?.email %>
-                                </td>
-                                <td>
-                                    <%= enrollment.status==='active' ? 'Inscrito' : enrollment.status==='invited'
-                                        ? 'Invitado' : 'Rechazada' %>
-                                </td>
-                            </tr>
-                            <% }) %>
-                                <% if (!enrollments.length) { %>
-                                    <tr>
-                                        <td colspan="3">Sin inscripciones.</td>
+        </dialog>
+        <% if (!available.length) { %>
+            <p class="admin-muted">No hay profesores disponibles.</p>
+            <% } %>
+                <section class="admin-section">
+                    <h2>Inscripciones</h2>
+                    <form action="/admin/enrollments" method="POST" class="admin-filters">
+                        <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                        <select name="courseId" required aria-label="Curso para inscribir">
+                            <option value="">Seleccionar curso</option>
+                            <% courses.forEach(course=> { %><option value="<%= course.id %>">
+                                    <%= course.name %>
+                                </option>
+                                <% }) %>
+                        </select>
+                        <select name="userId" required aria-label="Estudiante para inscribir">
+                            <option value="">Seleccionar estudiante</option>
+                            <% students.forEach(student=> { %><option value="<%= student.id %>">
+                                    <%= student.name || student.email %>
+                                </option>
+                                <% }) %>
+                        </select>
+                        <button class="btn btn-primary"><i class="ti ti-user-plus" aria-hidden="true"></i> Inscribir
+                            estudiante</button>
+                    </form>
+                    <div class="admin-table-scroll">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Estudiante</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% enrollments.forEach(enrollment=> { const course = courses.find(item => item.id ===
+                                    enrollment.courseId); %><tr>
+                                        <td>
+                                            <%= course?.name || 'Curso eliminado' %>
+                                        </td>
+                                        <td>
+                                            <%= enrollment.student?.name || enrollment.student?.email %>
+                                        </td>
+                                        <td>
+                                            <%= enrollment.status==='active' ? 'Inscrito' :
+                                                enrollment.status==='invited' ? 'Invitado' : 'Rechazada' %>
+                                        </td>
                                     </tr>
-                                    <% } %>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        <section class="admin-section">
-            <div class="admin-section-heading">
-                <h2>Cursos</h2><span class="admin-muted">
-                    <%= courses.length %> cursos
-                </span>
-            </div>
-            <div class="admin-table-scroll">
-                <table class="admin-table admin-course-table">
-                    <thead>
-                        <tr>
-                            <th>Curso</th>
-                            <th>Profesor</th>
-                            <th>Examenes</th>
-                            <th>Gestion</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% courses.forEach(course=> { %>
-                            <tr>
-                                <td><strong>
-                                        <%= course.name %>
-                                    </strong></td>
-                                <td>
-                                    <% if (course.professor) { %><a href="/admin/users/<%= course.professorId %>">
-                                            <%= course.professor.name || course.professor.email %>
-                                        </a>
-                                        <% } else { %><span class="admin-muted">Sin profesor</span>
+                                    <% }) %>
+                                        <% if (!enrollments.length) { %>
+                                            <tr>
+                                                <td colspan="3">Sin inscripciones.</td>
+                                            </tr>
                                             <% } %>
-                                </td>
-                                <td>
-                                    <%= course.exams.length %>
-                                </td>
-                                <td>
-                                    <details class="admin-inline-editor">
-                                        <summary title="Editar curso"><i class="ti ti-edit" aria-hidden="true"></i>
-                                            Editar</summary>
-                                        <form action="/admin/courses/<%= course.id %>/update" method="POST"
-                                            class="admin-edit-form">
-                                            <input type="hidden" name="_csrf" value="<%= csrf %>" />
-                                            <label>Nombre<input name="name" value="<%= course.name %>" required
-                                                    maxlength="200" /></label>
-                                            <label>Profesor<select name="professorId">
-                                                    <option value="">Sin profesor</option>
-                                                    <% professors.forEach(professor=> { %>
-                                                        <option value="<%= professor.id %>"
-                                                            <%=course.professorId===professor.id ? 'selected' : '' %>>
-                                                            <%= professor.name || professor.email %>
-                                                        </option>
-                                                        <% }) %>
-                                                </select></label>
-                                            <button class="btn btn-primary"><i class="ti ti-device-floppy"
-                                                    aria-hidden="true"></i> Guardar</button>
-                                        </form>
-                                    </details>
-                                    <form action="/admin/courses/<%= course.id %>/delete" method="POST"
-                                        onsubmit="return confirm('Eliminar este curso?')">
-                                        <input type="hidden" name="_csrf" value="<%= csrf %>" />
-                                        <button class="btn btn-secondary admin-icon admin-danger"
-                                            title="<%= course.exams.length ? 'El curso tiene examenes' : 'Eliminar curso' %>"
-                                            aria-label="Eliminar <%= course.name %>" <%=course.exams.length ? 'disabled'
-                                            : '' %>><i class="ti ti-trash" aria-hidden="true"></i></button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <% }) %>
-                                <% if (!courses.length) { %>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <section class="admin-section">
+                    <div class="admin-section-heading">
+                        <h2>Cursos</h2><span class="admin-muted">
+                            <%= courses.length %> cursos
+                        </span>
+                    </div>
+                    <div class="admin-table-scroll">
+                        <table class="admin-table admin-course-table">
+                            <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Profesor</th>
+                                    <th>Examenes</th>
+                                    <th>Gestion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% courses.forEach(course=> { %>
                                     <tr>
-                                        <td colspan="4" class="admin-empty">No hay cursos registrados.</td>
+                                        <td><strong>
+                                                <%= course.name %>
+                                            </strong></td>
+                                        <td>
+                                            <% if (course.professor) { %><a
+                                                    href="/admin/users/<%= course.professorId %>">
+                                                    <%= course.professor.name || course.professor.email %>
+                                                </a>
+                                                <% } else { %><span class="admin-muted">Sin profesor</span>
+                                                    <% } %>
+                                        </td>
+                                        <td>
+                                            <%= course.exams.length %>
+                                        </td>
+                                        <td>
+                                            <div class="admin-row-actions">
+                                                <button type="button" class="btn btn-secondary admin-icon"
+                                                    data-dialog-open="edit-course-<%= course.id %>" title="Editar curso"
+                                                    aria-label="Editar <%= course.name %>"><i class="ti ti-edit"
+                                                        aria-hidden="true"></i></button>
+                                                <button type="button" class="btn btn-secondary admin-icon admin-danger"
+                                                    data-dialog-open="delete-course-<%= course.id %>"
+                                                    title="<%= course.exams.length ? 'El curso tiene exámenes' : 'Eliminar curso' %>"
+                                                    aria-label="Eliminar <%= course.name %>" <%=course.exams.length
+                                                    ? 'disabled' : '' %>><i class="ti ti-trash"
+                                                        aria-hidden="true"></i></button>
+                                            </div>
+                                            <dialog id="edit-course-<%= course.id %>" class="admin-dialog"
+                                                aria-labelledby="edit-course-title-<%= course.id %>">
+                                                <header class="admin-dialog-heading">
+                                                    <h2 id="edit-course-title-<%= course.id %>">Editar curso</h2><button
+                                                        type="button" class="dashboard-icon" data-dialog-close
+                                                        title="Cerrar" aria-label="Cerrar"><i class="ti ti-x"
+                                                            aria-hidden="true"></i></button>
+                                                </header>
+                                                <form action="/admin/courses/<%= course.id %>/update" method="POST"
+                                                    class="admin-edit-form">
+                                                    <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                                                    <label>Nombre<input name="name" value="<%= course.name %>" required
+                                                            maxlength="200" /></label>
+                                                    <label>Profesor<select name="professorId">
+                                                            <option value="">Sin profesor</option>
+                                                            <% professors.forEach(professor=> { %>
+                                                                <option value="<%= professor.id %>"
+                                                                    <%=course.professorId===professor.id ? 'selected'
+                                                                    : '' %>>
+                                                                    <%= professor.name || professor.email %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select></label>
+                                                    <div class="admin-dialog-actions"><button type="button"
+                                                            class="btn btn-secondary"
+                                                            data-dialog-close>Cancelar</button><button
+                                                            class="btn btn-primary"><i class="ti ti-device-floppy"
+                                                                aria-hidden="true"></i> Guardar cambios</button></div>
+                                                </form>
+                                            </dialog>
+                                            <dialog id="delete-course-<%= course.id %>"
+                                                class="admin-dialog admin-dialog-small"
+                                                aria-labelledby="delete-course-title-<%= course.id %>">
+                                                <header class="admin-dialog-heading">
+                                                    <h2 id="delete-course-title-<%= course.id %>">Eliminar curso</h2>
+                                                    <button type="button" class="dashboard-icon" data-dialog-close
+                                                        title="Cerrar" aria-label="Cerrar"><i class="ti ti-x"
+                                                            aria-hidden="true"></i></button>
+                                                </header>
+                                                <p>Se eliminará <strong>
+                                                        <%= course.name %>
+                                                    </strong>. Esta acción no se puede deshacer.</p>
+                                                <form action="/admin/courses/<%= course.id %>/delete" method="POST">
+                                                    <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                                                    <div class="admin-dialog-actions"><button type="button"
+                                                            class="btn btn-secondary" data-dialog-close
+                                                            autofocus>Cancelar</button><button
+                                                            class="btn admin-delete-confirm" <%=course.exams.length
+                                                            ? 'disabled' : '' %>><i class="ti ti-trash"
+                                                                aria-hidden="true"></i> Eliminar curso</button></div>
+                                                </form>
+                                            </dialog>
+                                        </td>
                                     </tr>
-                                    <% } %>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        <%- include('../partials/admin-footer') %>
+                                    <% }) %>
+                                        <% if (!courses.length) { %>
+                                            <tr>
+                                                <td colspan="4" class="admin-empty">No hay cursos registrados.</td>
+                                            </tr>
+                                            <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <%- include('../partials/admin-footer') %>

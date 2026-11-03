@@ -57,23 +57,33 @@
         </article>
       </section>
 
-      <% if (exam.securityMode !=='none' ) { %>
+      <% if (exam.securityMode !=="none" ) { %>
         <p class="alert" role="status">
-          <%= exam.securityMode==='locked' ? 'Modo restringido activo.' : 'Supervision de pantalla activa.' %> Los
-            cambios
-            de ventana y salidas se reportan al profesor.
+          <%= exam.securityMode==="locked" ? "Modo restringido activo." : "Supervision de pantalla activa." %>
+            Los cambios de ventana y salidas se reportan al profesor.
         </p>
         <% } %>
           <% if (startErrors.length) { %>
             <div class="alert alert-error" role="alert">
-              <%= startErrors.join(' ') %></div><% } %>
-      <form action="/student/exams/<%= exam.id %>/begin" method="POST">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-        <% if (exam.passwordHash) { %><div class="form-group"><label for="examPassword" class="form-label">Contrasena del examen</label><input id="examPassword" name="password" type="password" class="form-input" autocomplete="off" required maxlength="72" /></div><% } %>
-        <button class="btn btn-primary" aria-label="Comenzar el examen en línea"><i class="ti ti-pencil" aria-hidden="true"></i> Comenzar examen</button>
-      </form>
+              <%= startErrors.join(" ") %>
+      </div>
+      <% } %>
+      <form action=" <%=`/student/exams/${exam.id}/begin` %>" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <% if (exam.passwordHash) { %>
+                  <div class="form-group">
+                    <label for="examPassword" class="form-label">Contraseña del examen</label>
+                    <input id="examPassword" name="password" type="password" class="form-input" autocomplete="off"
+                      required maxlength="72" />
+                  </div>
+                  <% } %>
+                    <button class="btn btn-primary" aria-label="Comenzar el examen en línea"><i class="ti ti-pencil"
+                        aria-hidden="true"></i> Comenzar examen</button>
+                    </form>
     </main>
-    <script src="/js/themeToggle.js"></script>
-    <script src="/js/pageNarration.js"></script>
-  </body>
+    <%- include("../partials/page-feedback") %>
+      <script src="/js/themeToggle.js"></script>
+      <script src="/js/pageNarration.js"></script>
+</body>
+
 </html>

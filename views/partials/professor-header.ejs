@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="<%= csrfToken %>" />
+    <title>
+        <%= title %> | Docencia
+    </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/enrollment.css" />
+    <link rel="stylesheet" href="/css/professor.css" />
+</head>
+
+<body class="professor-page membership-page">
+    <% const currentPath=req.originalUrl || req.path || '/professor/dashboard' ; const section=typeof activeSection
+        !=='undefined' ? activeSection : currentPath.includes('/students') ? 'students' :
+        currentPath.includes('/notifications') ? 'notifications' : 'courses' ; %>
+        <a class="professor-skip" href="#professor-content">Saltar al contenido</a>
+        <aside class="professor-sidebar">
+            <a href="/professor/dashboard" class="professor-brand"><span class="professor-brand-mark"><i
+                        class="ti ti-school" aria-hidden="true"></i></span> MVC Examen</a>
+            <p class="professor-nav-label">Docencia</p>
+            <nav class="professor-nav" aria-label="Navegación del profesor">
+                <a href="/professor/dashboard" <%- section==='courses' ? 'aria-current="page"' : '' %>><i
+                        class="ti ti-books" aria-hidden="true"></i> Mis cursos</a>
+                <a href="/professor/students" <%- section==='students' ? 'aria-current="page"' : '' %>><i
+                        class="ti ti-users" aria-hidden="true"></i> Estudiantes</a>
+                <a href="/professor/notifications" <%- section==='notifications' ? 'aria-current="page"' : '' %>><i
+                        class="ti ti-bell" aria-hidden="true"></i> Notificaciones <span
+                        data-notification-count></span></a>
+            </nav>
+            <div class="professor-account"><span class="professor-avatar" aria-hidden="true">
+                    <%= (req.session.userName || 'P' ).trim().charAt(0).toUpperCase() %>
+                </span>
+                <div><strong>
+                        <%= req.session.userName || 'Profesor' %>
+                    </strong><span>Profesor</span></div><a href="/logout" class="professor-icon" title="Cerrar sesión"
+                    aria-label="Cerrar sesión"><i class="ti ti-logout" aria-hidden="true"></i></a>
+            </div>
+        </aside>
+        <div class="professor-workspace">
+            <header class="professor-topbar"><span>Área de docencia</span><button id="theme-toggle"
+                    class="theme-toggle professor-icon" title="Cambiar modo de color"
+                    aria-label="Cambiar modo de color"><i class="ti ti-moon" aria-hidden="true"></i></button></header>
+            <main class="professor-main" id="professor-content">
+                <header class="professor-heading">
+                    <div>
+                        <p class="eyebrow">Docencia</p>
+                        <h1>
+                            <%= typeof pageHeading !=='undefined' ? pageHeading : title %>
+                        </h1>
+                    </div>
+                </header>
+                <% if (typeof actionNotice !=='undefined' && actionNotice) { %>
+                    <div class="alert <%= actionNotice.kind === 'error' ? 'alert-error' : '' %>" role="alert">
+                        <%= actionNotice.message %>
+                    </div>
+                    <% } %>

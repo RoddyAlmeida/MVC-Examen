@@ -1,0 +1,972 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+.professor-page {
+    --bg-color: #f7f8fa;
+    --surface-color: #fff;
+    --card-bg: #fff;
+    --text-primary: #23262b;
+    --text-secondary: #686e77;
+    --border-color: #e2e5e9;
+    --primary: #147d64;
+    --primary-hover: #10634f;
+    --secondary: #f0f2f4;
+    --secondary-hover: #e6e9ed;
+    --success: #147d64;
+    --success-bg: #eaf5f0;
+    --danger: #c23939;
+    --danger-bg: #fff0ef;
+    --focus-ring: #147d6460;
+    display: block;
+    font-family: 'Manrope', sans-serif;
+    background: var(--bg-color);
+    letter-spacing: 0;
+}
+
+[data-theme="dark"] .professor-page {
+    --bg-color: #181a1d;
+    --surface-color: #202327;
+    --card-bg: #202327;
+    --text-primary: #f0f1f3;
+    --text-secondary: #a3a8b0;
+    --border-color: #373c42;
+    --primary: #64c7a6;
+    --primary-hover: #88d9bd;
+    --secondary: #2b3035;
+    --secondary-hover: #363c42;
+    --success: #64c7a6;
+    --success-bg: #213b32;
+    --danger: #ff9b96;
+    --danger-bg: #402829;
+}
+
+.professor-page :is(h1, h2, h3, .eyebrow, .btn) {
+    letter-spacing: 0;
+}
+
+.professor-page :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+.professor-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 224px;
+    padding: 28px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+    background: var(--card-bg);
+    overflow-y: auto;
+    z-index: 20;
+}
+
+.professor-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.professor-brand,
+.professor-brand:visited {
+    color: var(--text-primary);
+}
+
+.professor-brand-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 6px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 1.4rem;
+}
+
+[data-theme="dark"] .professor-brand-mark {
+    color: #15251e;
+}
+
+.professor-nav-label {
+    margin: 48px 12px 12px;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+}
+
+.professor-nav {
+    display: grid;
+    gap: 6px;
+}
+
+.professor-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.professor-nav .ti {
+    font-size: 1.25rem;
+}
+
+.professor-nav a:hover {
+    background: var(--secondary);
+    text-decoration: none;
+}
+
+.professor-nav a[aria-current] {
+    background: var(--success-bg);
+    color: var(--primary);
+}
+
+.professor-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.professor-avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--secondary);
+    font-weight: 700;
+}
+
+.professor-account>div {
+    flex: 1;
+    min-width: 0;
+}
+
+.professor-account strong {
+    display: block;
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+}
+
+.professor-account div>span {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.professor-page .professor-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transform: none;
+}
+
+.professor-page .professor-icon:hover {
+    background: var(--secondary);
+    color: var(--primary);
+    transform: none;
+}
+
+.professor-workspace {
+    margin-left: 224px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.professor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 76px;
+    padding: 16px 36px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.professor-main {
+    flex: 1;
+    width: 100%;
+    max-width: 1450px;
+    padding: 36px;
+    margin: 0 auto;
+    min-width: 0;
+}
+
+.professor-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.professor-heading h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.professor-heading .eyebrow {
+    font-size: 0.75rem;
+    text-transform: none;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.professor-page h2 {
+    font-size: 1.05rem;
+}
+
+.professor-page h3 {
+    font-size: 0.95rem;
+}
+
+.professor-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 36px;
+    padding: 18px 0;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+}
+
+.professor-page .btn {
+    min-height: 42px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font: 700 0.8rem 'Manrope', sans-serif;
+    box-shadow: none;
+    transform: none;
+}
+
+.professor-page .btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.professor-page .btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+[data-theme="dark"] .professor-page .btn-primary {
+    color: #15251e;
+}
+
+.professor-page .form-input {
+    min-height: 44px;
+    border-radius: 6px;
+    background: var(--card-bg);
+    font-size: 0.85rem;
+}
+
+.professor-page .form-label {
+    font-size: 0.8rem;
+}
+
+.professor-page .alert {
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.professor-page .panel {
+    padding: 24px 0;
+    border: 0;
+    border-top: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+}
+
+.professor-page .panel:hover {
+    box-shadow: none;
+    transform: none;
+}
+
+.professor-page .workflow-section {
+    padding: 24px 0;
+}
+
+.professor-page .workflow-section h2 {
+    font-size: 1.05rem;
+}
+
+.professor-page .workflow-table {
+    font-size: 0.8rem;
+}
+
+.professor-page .workflow-table th {
+    background: transparent;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.professor-page .workflow-table td {
+    vertical-align: middle;
+    padding-block: 18px;
+}
+
+.professor-muted {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+
+.professor-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+}
+
+.professor-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.professor-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.exam-workflow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    padding: 16px 0;
+    margin-bottom: 28px;
+    border-block: 1px solid var(--border-color);
+}
+
+.exam-workflow>a,
+.exam-workflow-step {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.exam-workflow>a>span,
+.exam-workflow-step>span {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    border-radius: 50%;
+    background: var(--secondary);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.exam-workflow [aria-current] {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.exam-workflow [aria-current]>span {
+    background: var(--success-bg);
+}
+
+.exam-workflow [aria-disabled] {
+    opacity: 0.65;
+}
+
+.exam-builder-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 680px) minmax(200px, 1fr);
+    gap: 40px;
+    align-items: start;
+}
+
+.exam-builder-layout>form {
+    min-width: 0;
+}
+
+.exam-builder-section {
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.exam-builder-section h2 {
+    margin-bottom: 20px;
+}
+
+.exam-builder-section .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.exam-builder-aside {
+    border-left: 1px solid var(--border-color);
+    padding-left: 24px;
+}
+
+.exam-builder-aside h2 {
+    margin-bottom: 16px;
+}
+
+.exam-builder-aside dl>div {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.exam-builder-aside dt {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.exam-builder-aside dd {
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+    margin: 0;
+}
+
+.exam-settings summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.exam-settings summary::-webkit-details-marker {
+    display: none;
+}
+
+.exam-settings[open] summary {
+    margin-bottom: 24px;
+}
+
+.exam-settings[open] summary>.ti {
+    transform: rotate(180deg);
+}
+
+.exam-setting {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-block: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.exam-setting>span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+}
+
+.professor-page input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    accent-color: var(--primary);
+}
+
+.exam-duration {
+    padding-top: 16px;
+    max-width: 240px;
+}
+
+.exam-duration[hidden] {
+    display: none;
+}
+
+.exam-builder-submit {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.professor-skip {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 30;
+    padding: 10px 16px;
+    background: var(--card-bg);
+    transform: translateY(-200%);
+}
+
+.professor-skip:focus {
+    transform: translateY(0);
+}
+
+.professor-page .professor-dialog {
+    width: min(440px, calc(100vw - 40px));
+    max-height: calc(100vh - 48px);
+    margin: auto;
+    padding: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.professor-dialog::backdrop {
+    background: #10151470;
+    backdrop-filter: blur(3px);
+}
+
+.professor-dialog p {
+    margin-bottom: 24px;
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.professor-dialog .professor-actions {
+    justify-content: flex-end;
+}
+
+.professor-page .professor-danger-solid {
+    background: #ba3535;
+    color: #fff;
+}
+
+.professor-course-picker {
+    max-width: 400px;
+    flex: 1 1 260px;
+}
+
+.professor-course-picker select {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+}
+
+.professor-overview {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    border-block: 1px solid var(--border-color);
+    padding: 24px 0;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.professor-overview>div {
+    min-width: 0;
+}
+
+.professor-overview span {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.professor-overview strong {
+    display: block;
+    font-size: 1.8rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.professor-overview .professor-overview-name {
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+}
+
+.professor-overview>a {
+    margin-left: auto;
+    font-size: 0.8rem;
+}
+
+.professor-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.professor-section-heading h2 {
+    margin: 0;
+}
+
+.professor-exam-row,
+.professor-question-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 0;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.professor-exam-content {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.professor-exam-content h3 {
+    margin-bottom: 8px;
+    overflow-wrap: anywhere;
+}
+
+.professor-exam-content>p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    margin-bottom: 10px;
+}
+
+.professor-exam-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+.professor-danger {
+    color: var(--danger) !important;
+}
+
+.professor-empty {
+    padding: 48px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.professor-empty>.ti {
+    display: block;
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 16px;
+}
+
+.professor-empty h2 {
+    margin-bottom: 8px;
+}
+
+.professor-empty p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.professor-question-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.professor-question-number {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    border-radius: 6px;
+    background: var(--secondary);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.question-builder-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.75fr);
+}
+
+.question-preview {
+    position: sticky;
+    top: 24px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    min-width: 0;
+}
+
+.question-preview-type {
+    display: inline-block;
+    font-size: 0.7rem;
+    color: var(--primary);
+    background: var(--success-bg);
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.question-preview-prompt {
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    margin-bottom: 20px;
+}
+
+.question-preview-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+
+.question-preview-option input {
+    margin-top: 4px;
+    flex: 0 0 14px;
+}
+
+.question-preview-answer {
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.professor-page .question-config {
+    padding: 24px 0;
+    margin-bottom: 24px;
+    border: 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.professor-page .question-config legend {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.professor-page [data-type-fields][hidden] {
+    display: none;
+}
+
+.professor-page .choice-option-row {
+    grid-template-columns: 20px minmax(0, 1fr) 40px;
+    align-items: center;
+    gap: 10px;
+}
+
+.professor-page .choice-option-row input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+}
+
+.professor-page .option-label {
+    border-radius: 6px;
+    background: var(--card-bg);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+}
+
+.professor-page .question-card {
+    border: 0;
+    border-top: 1px solid var(--border-color);
+    border-radius: 0;
+    padding: 24px 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.professor-page .question-badge {
+    border-radius: 4px;
+    font-size: 0.7rem;
+    letter-spacing: 0;
+    text-transform: none;
+    background: var(--secondary);
+}
+
+.professor-page .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.professor-page .form-help {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 800px) {
+    .question-builder-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .question-preview {
+        position: static;
+    }
+}
+
+.professor-page .exam-list {
+    gap: 0;
+}
+
+.professor-page .exam-card {
+    border: 0;
+    border-top: 1px solid var(--border-color);
+    border-radius: 0;
+    padding: 24px 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+}
+
+.professor-page .exam-card-title {
+    font-size: 1rem;
+}
+
+.professor-page .exam-card-desc {
+    font-size: 0.8rem;
+}
+
+.professor-page .score-value {
+    font-size: 1.25rem;
+}
+
+.professor-page .score-total {
+    font-size: 0.9rem;
+}
+
+.professor-review-header {
+    margin-bottom: 24px;
+}
+
+.professor-page .question-card .option-label {
+    cursor: default;
+}
+
+@media (max-width: 1100px) {
+    .professor-sidebar {
+        width: 200px;
+        padding-inline: 16px;
+    }
+
+    .professor-workspace {
+        margin-left: 200px;
+    }
+
+    .professor-main {
+        padding: 28px;
+    }
+
+    .exam-builder-layout {
+        grid-template-columns: minmax(0, 1fr) 220px;
+        gap: 28px;
+    }
+}
+
+@media (max-width: 800px) {
+    .exam-builder-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .exam-builder-aside {
+        border-left: 0;
+        border-top: 1px solid var(--border-color);
+        padding: 24px 0 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .professor-sidebar {
+        position: static;
+        width: 100%;
+        padding: 16px 20px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .professor-nav-label {
+        display: none;
+    }
+
+    .professor-nav {
+        margin-top: 16px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+    }
+
+    .professor-nav a {
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        padding: 8px 4px;
+        font-size: 0.65rem;
+    }
+
+    .professor-account {
+        margin-top: 16px;
+        padding-top: 12px;
+    }
+
+    .professor-workspace {
+        margin-left: 0;
+    }
+
+    .professor-topbar {
+        padding: 8px 20px;
+        min-height: 54px;
+    }
+
+    .professor-main {
+        padding: 24px 20px;
+    }
+
+    .professor-heading h1 {
+        font-size: 1.5rem;
+    }
+
+    .professor-footer {
+        margin-inline: 20px;
+    }
+
+    .exam-workflow {
+        gap: 8px 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .professor-page * {
+        transition: none;
+        animation: none;
+    }
+}

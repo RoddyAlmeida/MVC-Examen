@@ -45,10 +45,12 @@ test("exam lists preserve invitations, CSRF, ranking and distinguish submitted e
 });
 
 test("result history labels provisional grades and handles a zero total", async () => {
-    const html = await render("student/results", { results: [
-        { exam, createdAt: exam.createdAt, score: 3, total: 5, pendingReview: 1 },
-        { exam, createdAt: exam.createdAt, score: 0, total: 0, pendingReview: 0 },
-    ] });
+    const html = await render("student/results", {
+        results: [
+            { exam, createdAt: exam.createdAt, score: 3, total: 5, pendingReview: 1 },
+            { exam, createdAt: exam.createdAt, score: 0, total: 0, pendingReview: 0 },
+        ]
+    });
     assert.match(html, /En revisión/);
     assert.match(html, /Calificado/);
     assert.doesNotMatch(html, /NaN|Infinity/);
@@ -56,7 +58,8 @@ test("result history labels provisional grades and handles a zero total", async 
 
 test("evaluation pages retain security, timer, answer and accessibility hooks without exit navigation during an exam", async () => {
     const start = await render("exams/start", { exam: { ...exam, passwordHash: "hash" }, maxItems: 5, totalPages: 1, startErrors: ["Contraseña incorrecta"] });
-    assert.match(start, /action="\/student\/exams\/1\/begin"/);
+    const action = start.match(/<form\s+action="([^"]+)"/)[1];
+    assert.equal(new URL(action, "http://localhost").href, "http://localhost/student/exams/1/begin");
     assert.match(start, /name="password"/);
     assert.match(start, /Contraseña incorrecta/);
     const question = { id: 9, prompt: "¿Es verdadero?" };

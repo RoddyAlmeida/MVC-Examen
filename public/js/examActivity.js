@@ -4,6 +4,7 @@
     const rows = panel.querySelector("[data-activity-rows]");
     const count = panel.querySelector("[data-activity-count]");
     const status = panel.querySelector("[data-activity-status]");
+    const refreshButton = panel.querySelector("[data-activity-refresh]");
     let attempts = [];
     let receivedAt = performance.now();
     let serverTime = 0;
@@ -57,8 +58,11 @@
     async function refresh(force = false) {
         if (refreshing || document.hidden && !force) return;
         refreshing = true;
+        refreshButton.disabled = true;
+        refreshButton.setAttribute?.("aria-busy", "true");
+        if (force || !serverTime) status.textContent = "Consultando actividad...";
         try {
-            const response = await fetch(panel.dataset.activityUrl, { cache: "no-store", headers: { Accept: "application/json" } });
+            const response = await fetch(panel.dataset.activityUrl, { cache: "no-store", headers: { Accept: "application/json" }, signal: globalThis.AbortSignal?.timeout?.(15000) });
             if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) throw new Error("Unavailable");
             const data = await response.json();
             attempts = data.attempts;
@@ -67,10 +71,14 @@
             render();
             status.textContent = `Actualizado: ${new Date(data.updatedAt).toLocaleTimeString("es")}`;
         } catch (_error) { status.textContent = "No se pudo actualizar la actividad. Reintentando..."; }
-        finally { refreshing = false; }
+        finally {
+            refreshing = false;
+            refreshButton.disabled = false;
+            refreshButton.removeAttribute?.("aria-busy");
+        }
     }
 
-    panel.querySelector("[data-activity-refresh]").addEventListener("click", () => refresh(true));
+    refreshButton.addEventListener("click", () => refresh(true));
     document.addEventListener("visibilitychange", () => refresh());
     let poll = setInterval(refresh, 5000);
     let clock = setInterval(() => { if (!document.hidden) tick(); }, 1000);

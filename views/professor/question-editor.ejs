@@ -1,33 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="/css/styles.css" />
-</head>
-
-<body>
-    <main class="container app-shell" style="max-width: 800px;">
-        <div class="theme-toggle-wrapper">
-            <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color"><i class="ti ti-moon"
-                    aria-hidden="true"></i></button>
-        </div>
-        <header class="page-header">
-            <a href="/professor/exams/<%= exam.id %>/questions" class="btn btn-secondary"
-                style="margin-bottom: 1rem; width: fit-content;"><i class="ti ti-arrow-left" aria-hidden="true"></i>
-                Preguntas</a>
-            <p class="eyebrow"><i class="ti ti-notes" aria-hidden="true"></i>
-                <%= exam.title %>
-            </p>
-            <h1>
-                <%= title %>
-            </h1>
-        </header>
+<%- include('../partials/professor-header') %>
+    <a href="/professor/exams/<%= exam.id %>/questions" class="professor-back"><i class="ti ti-arrow-left"
+            aria-hidden="true"></i>
+        <%= exam.title %>
+    </a>
+    <%- include('../partials/exam-workflow', { currentStep: 'questions' }) %>
         <% if (errors.length) { %>
             <div class="alert alert-error" role="alert">
                 <ul>
@@ -38,109 +14,121 @@
                 </ul>
             </div>
             <% } %>
-                <form method="POST" id="questionEditor"
-                    action="<%= editingQuestion ? `/professor/exams/${exam.id}/questions/${editingQuestion.id}/edit` : `/professor/exams/${exam.id}/questions/create` %>">
-                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                    <div class="form-group">
-                        <label for="questionType" class="form-label">Tipo de pregunta</label>
-                        <select id="questionType" name="questionType" class="form-input">
-                            <% const selectedType=formData.questionType || 'multiple_choice' ; %>
-                                <option value="multiple_choice" <%=selectedType==='multiple_choice' ? 'selected' : '' %>
-                                    >Opción múltiple</option>
-                                <option value="true_false" <%=selectedType==='true_false' ? 'selected' : '' %>>Verdadero
-                                    o falso</option>
-                                <option value="fill_text" <%=selectedType==='fill_text' ? 'selected' : '' %>>Completar
-                                    escribiendo</option>
-                                <option value="fill_drag" <%=selectedType==='fill_drag' ? 'selected' : '' %>>Completar
-                                    arrastrando</option>
-                                <option value="concept" <%=selectedType==='concept' ? 'selected' : '' %>>Concepto con
-                                    revisión manual</option>
-                                <option value="crossword" <%=selectedType==='crossword' ? 'selected' : '' %>>Crucigrama
-                                </option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="prompt" class="form-label">Enunciado o instrucciones</label>
-                        <textarea id="prompt" name="prompt" class="form-input form-textarea" rows="3"
-                            required><%= formData.prompt || '' %></textarea>
-                    </div>
-
-                    <fieldset class="panel question-config" data-type-fields="multiple_choice">
-                        <legend>Opciones</legend>
-                        <p class="form-help">Añade todas las opciones necesarias y marca la correcta.</p>
-                        <div id="choiceOptions">
-                            <% const choiceOptions=Array.isArray(formData.optionText) ? formData.optionText : ['', '' ];
-                                %>
-                                <% choiceOptions.forEach((option, index)=> { %>
-                                    <div class="choice-option-row">
-                                        <input type="radio" name="correctIndex" value="<%= index %>"
-                                            aria-label="Marcar opción <%= index + 1 %> como correcta"
-                                            <%=String(formData.correctIndex || 0)===String(index) ? 'checked' : '' %>>
-                                        <input type="text" name="optionText[]" class="form-input" value="<%= option %>"
-                                            placeholder="Opción <%= index + 1 %>">
-                                        <button type="button" class="btn btn-secondary remove-option"
-                                            aria-label="Eliminar opción <%= index + 1 %>"><i class="ti ti-x"
-                                                aria-hidden="true"></i></button>
-                                    </div>
-                                    <% }) %>
+                <div class="exam-builder-layout question-builder-layout">
+                    <form method="POST" id="questionEditor"
+                        action="<%= editingQuestion ? `/professor/exams/${exam.id}/questions/${editingQuestion.id}/edit` : `/professor/exams/${exam.id}/questions/create` %>">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                        <div class="form-group">
+                            <label for="questionType" class="form-label">Tipo de pregunta</label>
+                            <select id="questionType" name="questionType" class="form-input">
+                                <% const selectedType=formData.questionType || 'multiple_choice' ; %>
+                                    <option value="multiple_choice" <%=selectedType==='multiple_choice' ? 'selected'
+                                        : '' %>
+                                        >Opción múltiple</option>
+                                    <option value="true_false" <%=selectedType==='true_false' ? 'selected' : '' %>
+                                        >Verdadero
+                                        o falso</option>
+                                    <option value="fill_text" <%=selectedType==='fill_text' ? 'selected' : '' %>
+                                        >Completar
+                                        escribiendo</option>
+                                    <option value="fill_drag" <%=selectedType==='fill_drag' ? 'selected' : '' %>
+                                        >Completar
+                                        arrastrando</option>
+                                    <option value="concept" <%=selectedType==='concept' ? 'selected' : '' %>>Concepto
+                                        con
+                                        revisión manual</option>
+                                    <option value="crossword" <%=selectedType==='crossword' ? 'selected' : '' %>
+                                        >Crucigrama
+                                    </option>
+                            </select>
                         </div>
-                        <button type="button" class="btn btn-secondary" id="addOption"><i class="ti ti-plus"
-                                aria-hidden="true"></i> Añadir opción</button>
-                    </fieldset>
+                        <div class="form-group">
+                            <label for="prompt" class="form-label">Enunciado o instrucciones</label>
+                            <textarea id="prompt" name="prompt" class="form-input form-textarea" rows="3"
+                                required><%= formData.prompt || '' %></textarea>
+                        </div>
 
-                    <fieldset class="panel question-config" data-type-fields="true_false">
-                        <legend>Respuesta correcta</legend>
-                        <label class="option-label"><input type="radio" name="correctBoolean" value="true"
-                                <%=String(formData.correctBoolean)==='true' ? 'checked' : '' %>> Verdadero</label>
-                        <label class="option-label"><input type="radio" name="correctBoolean" value="false"
-                                <%=String(formData.correctBoolean)==='false' ? 'checked' : '' %>> Falso</label>
-                    </fieldset>
+                        <fieldset class="panel question-config" data-type-fields="multiple_choice">
+                            <legend>Opciones</legend>
+                            <div id="choiceOptions">
+                                <% const choiceOptions=Array.isArray(formData.optionText) ? formData.optionText :
+                                    ['', '' ]; %>
+                                    <% choiceOptions.forEach((option, index)=> { %>
+                                        <div class="choice-option-row">
+                                            <input type="radio" name="correctIndex" value="<%= index %>"
+                                                aria-label="Marcar opción <%= index + 1 %> como correcta"
+                                                <%=String(formData.correctIndex || 0)===String(index) ? 'checked' : ''
+                                                %>>
+                                            <input type="text" name="optionText[]" class="form-input"
+                                                value="<%= option %>" aria-label="Opción <%= index + 1 %>"
+                                                placeholder="Opción <%= index + 1 %>">
+                                            <button type="button" class="btn btn-secondary remove-option"
+                                                aria-label="Eliminar opción <%= index + 1 %>"><i class="ti ti-x"
+                                                    aria-hidden="true"></i></button>
+                                        </div>
+                                        <% }) %>
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="addOption"><i class="ti ti-plus"
+                                    aria-hidden="true"></i> Añadir opción</button>
+                        </fieldset>
 
-                    <fieldset class="panel question-config" data-type-fields="fill_text">
-                        <legend>Completar escribiendo</legend>
-                        <label for="acceptedAnswers" class="form-label">Respuestas aceptadas, una por línea</label>
-                        <textarea id="acceptedAnswers" name="acceptedAnswers" class="form-input form-textarea"
-                            rows="4"><%= formData.acceptedAnswers || '' %></textarea>
-                    </fieldset>
+                        <fieldset class="panel question-config" data-type-fields="true_false">
+                            <legend>Respuesta correcta</legend>
+                            <label class="option-label"><input type="radio" name="correctBoolean" value="true"
+                                    <%=String(formData.correctBoolean)==='true' ? 'checked' : '' %>> Verdadero</label>
+                            <label class="option-label"><input type="radio" name="correctBoolean" value="false"
+                                    <%=String(formData.correctBoolean)==='false' ? 'checked' : '' %>> Falso</label>
+                        </fieldset>
 
-                    <fieldset class="panel question-config" data-type-fields="fill_drag">
-                        <legend>Completar arrastrando</legend>
-                        <label for="fillTemplate" class="form-label">Frase con un espacio {{blank}}</label>
-                        <input id="fillTemplate" name="fillTemplate" class="form-input"
-                            value="<%= formData.fillTemplate || '' %>"
-                            placeholder="La capital de Ecuador es {{blank}}.">
-                        <label for="dragAnswer" class="form-label">Respuesta correcta</label>
-                        <input id="dragAnswer" name="dragAnswer" class="form-input"
-                            value="<%= formData.dragAnswer || '' %>">
-                        <label for="dragOptions" class="form-label">Opciones para arrastrar, una por línea</label>
-                        <textarea id="dragOptions" name="dragOptions" class="form-input form-textarea"
-                            rows="4"><%= formData.dragOptions || '' %></textarea>
-                    </fieldset>
+                        <fieldset class="panel question-config" data-type-fields="fill_text">
+                            <legend>Completar escribiendo</legend>
+                            <label for="acceptedAnswers" class="form-label">Respuestas aceptadas, una por línea</label>
+                            <textarea id="acceptedAnswers" name="acceptedAnswers" class="form-input form-textarea"
+                                rows="4"><%= formData.acceptedAnswers || '' %></textarea>
+                        </fieldset>
 
-                    <fieldset class="panel question-config" data-type-fields="concept">
-                        <legend>Respuesta de desarrollo</legend>
-                        <p>La respuesta del estudiante quedará pendiente de revisión y calificación manual.</p>
-                    </fieldset>
+                        <fieldset class="panel question-config" data-type-fields="fill_drag">
+                            <legend>Completar arrastrando</legend>
+                            <label for="fillTemplate" class="form-label">Frase con un espacio {{blank}}</label>
+                            <input id="fillTemplate" name="fillTemplate" class="form-input"
+                                value="<%= formData.fillTemplate || '' %>"
+                                placeholder="La capital de Ecuador es {{blank}}.">
+                            <label for="dragAnswer" class="form-label">Respuesta correcta</label>
+                            <input id="dragAnswer" name="dragAnswer" class="form-input"
+                                value="<%= formData.dragAnswer || '' %>">
+                            <label for="dragOptions" class="form-label">Opciones para arrastrar, una por línea</label>
+                            <textarea id="dragOptions" name="dragOptions" class="form-input form-textarea"
+                                rows="4"><%= formData.dragOptions || '' %></textarea>
+                        </fieldset>
 
-                    <fieldset class="panel question-config" data-type-fields="crossword">
-                        <legend>Palabras y pistas</legend>
-                        <label for="crosswordEntries" class="form-label">Una pista por línea: pista | respuesta</label>
-                        <textarea id="crosswordEntries" name="crosswordEntries" class="form-input form-textarea"
-                            rows="8"
-                            placeholder="Lenguaje de esta aplicación | JavaScript&#10;Sistema gestor de vistas | EJS"><%= formData.crosswordEntries || '' %></textarea>
-                        <p class="form-help">Se genera una cuadrícula con cruces automáticamente. Admite de 2 a 15
-                            palabras.</p>
-                    </fieldset>
+                        <fieldset class="panel question-config" data-type-fields="concept">
+                            <legend>Respuesta de desarrollo</legend>
+                            <p class="professor-muted">Calificación manual del profesor.</p>
+                        </fieldset>
 
-                    <div class="modal-actions">
-                        <a class="btn btn-secondary" href="/professor/exams/<%= exam.id %>/questions">Cancelar</a>
-                        <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy"
-                                aria-hidden="true"></i> Guardar pregunta</button>
-                    </div>
-                </form>
-    </main>
-    <script src="/js/themeToggle.js"></script>
-    <script src="/js/questionEditor.js"></script>
-</body>
+                        <fieldset class="panel question-config" data-type-fields="crossword">
+                            <legend>Palabras y pistas</legend>
+                            <label for="crosswordEntries" class="form-label">Una pista por línea: pista |
+                                respuesta</label>
+                            <textarea id="crosswordEntries" name="crosswordEntries" class="form-input form-textarea"
+                                rows="8"
+                                placeholder="Lenguaje de esta aplicación | JavaScript&#10;Sistema gestor de vistas | EJS"><%= formData.crosswordEntries || '' %></textarea>
+                        </fieldset>
 
-</html>
+                        <div class="modal-actions">
+                            <a class="btn btn-secondary" href="/professor/exams/<%= exam.id %>/questions">Cancelar</a>
+                            <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy"
+                                    aria-hidden="true"></i> Guardar pregunta</button>
+                        </div>
+                    </form>
+                    <aside class="question-preview" aria-labelledby="question-preview-title">
+                        <div class="professor-section-heading">
+                            <h2 id="question-preview-title">Vista previa</h2><i class="ti ti-eye"
+                                aria-hidden="true"></i>
+                        </div><span class="question-preview-type" data-preview-type></span>
+                        <p class="question-preview-prompt" data-preview-prompt></p>
+                        <div data-preview-options></div>
+                    </aside>
+                </div>
+                <script src="/js/questionEditor.js" defer></script>
+                <%- include('../partials/professor-footer') %>

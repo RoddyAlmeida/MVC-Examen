@@ -71,8 +71,8 @@ function createProfessorUseCases({ data, unitOfWork, importQuestions }) {
     if (errors.length > 0) {
       return output.status(400).render("professor/exam-form", { title: "Crear examen", exam: context.body, errors, course: context.course, courses: context.courses });
     }
-    await data.createExam({ title: title.trim(), instructions: instructions.trim(), timeLimitMinutes, leaderboardEnabled: context.body.leaderboardEnabled === "on", creatorId: context.session.userId, courseId: context.course.id });
-    output.redirect(`/professor/dashboard?courseId=${context.course.id}`);
+    const exam = await data.createExam({ title: title.trim(), instructions: instructions.trim(), timeLimitMinutes, leaderboardEnabled: context.body.leaderboardEnabled === "on", creatorId: context.session.userId, courseId: context.course.id });
+    output.redirect(`/professor/exams/${exam.id}/questions`);
   }
 
   async function renderEditExam(context, output) {

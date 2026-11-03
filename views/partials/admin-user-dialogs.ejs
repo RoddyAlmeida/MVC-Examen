@@ -1,0 +1,46 @@
+<dialog id="admin-account-dialog" class="admin-dialog" aria-labelledby="account-dialog-title">
+    <header class="admin-dialog-heading">
+        <h2 id="account-dialog-title">Nuevo usuario</h2><button type="button" class="dashboard-icon" data-dialog-close
+            title="Cerrar" aria-label="Cerrar"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </header>
+    <p class="admin-dialog-status" data-dialog-status role="status" aria-live="polite" tabindex="-1" hidden></p>
+    <form action="/admin/users" method="POST" data-user-form class="admin-form-grid">
+        <input type="hidden" name="_csrf" value="<%= csrf %>" />
+        <label for="account-name">Nombre<input id="account-name" name="name" required maxlength="120"
+                autocomplete="name" autofocus /></label>
+        <label for="account-email">Correo electrónico<input id="account-email" type="email" name="email" required
+                maxlength="254" autocomplete="off" /></label>
+        <label for="account-role">Rol<select id="account-role" name="role">
+                <% Object.entries(roles).forEach(([value, label])=> { %><option value="<%= value %>">
+                        <%= label %>
+                    </option>
+                    <% }) %>
+            </select></label>
+        <label for="account-password"><span id="account-password-label">Contraseña</span><input id="account-password"
+                type="password" name="password" required minlength="8" maxlength="72"
+                autocomplete="new-password" /></label>
+        <div class="admin-dialog-actions admin-wide"><button type="button" class="btn btn-secondary"
+                data-dialog-close>Cancelar</button><button type="submit" class="btn btn-primary"><i class="ti ti-check"
+                    aria-hidden="true"></i><span data-submit-label>Crear usuario</span></button></div>
+    </form>
+    <button type="button" class="btn btn-primary admin-dialog-finish" data-dialog-close data-dialog-finish
+        hidden>Listo</button>
+</dialog>
+<dialog id="admin-delete-user-dialog" class="admin-dialog admin-dialog-small" aria-labelledby="delete-user-title">
+    <header class="admin-dialog-heading">
+        <h2 id="delete-user-title">Eliminar usuario</h2><button type="button" class="dashboard-icon" data-dialog-close
+            title="Cerrar" aria-label="Cerrar"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </header>
+    <p class="admin-dialog-status" data-dialog-status role="status" aria-live="polite" tabindex="-1" hidden></p>
+    <form method="POST" data-user-form>
+        <input type="hidden" name="_csrf" value="<%= csrf %>" />
+        <p>Vas a eliminar a <strong data-delete-user-name></strong>.</p>
+        <p class="admin-dialog-warning">Se eliminarán sus asignaciones y resultados. Sus exámenes creados se conservarán
+            sin autor. Esta acción no se puede deshacer.</p>
+        <div class="admin-dialog-actions"><button type="button" class="btn btn-secondary" data-dialog-close
+                autofocus>Cancelar</button><button type="submit" class="btn admin-delete-confirm"><i class="ti ti-trash"
+                    aria-hidden="true"></i><span data-submit-label>Eliminar usuario</span></button></div>
+    </form>
+    <button type="button" class="btn btn-primary admin-dialog-finish" data-dialog-close data-dialog-finish
+        hidden>Listo</button>
+</dialog>

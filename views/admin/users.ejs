@@ -13,35 +13,18 @@
             <button class="btn btn-secondary" type="submit"><i class="ti ti-filter" aria-hidden="true"></i>
                 Filtrar</button>
         </form>
-        <span class="admin-muted">
-            <%= users.length %> usuarios
-        </span>
+        <div class="admin-toolbar-actions"><span class="admin-muted">
+                <%= users.length %> usuarios
+            </span><button type="button" class="btn btn-primary" data-user-action="create"><i class="ti ti-user-plus"
+                    aria-hidden="true"></i> Nuevo usuario</button></div>
     </div>
-    <details class="admin-editor">
-        <summary><i class="ti ti-user-plus" aria-hidden="true"></i> Nuevo usuario</summary>
-        <form action="/admin/users" method="POST" class="admin-form-grid">
-            <input type="hidden" name="_csrf" value="<%= csrf %>" />
-            <label>Nombre<input name="name" required maxlength="120" autocomplete="name" /></label>
-            <label>Correo<input type="email" name="email" required maxlength="254" autocomplete="off" /></label>
-            <label>Rol<select name="role">
-                    <% Object.entries(roles).forEach(([value, label])=> { %><option value="<%= value %>">
-                            <%= label %>
-                        </option>
-                        <% }) %>
-                </select></label>
-            <label>Contrasena<input type="password" name="password" required minlength="8" maxlength="72"
-                    autocomplete="new-password" /></label>
-            <div class="admin-form-actions"><button class="btn btn-primary"><i class="ti ti-user-plus"
-                        aria-hidden="true"></i> Crear usuario</button></div>
-        </form>
-    </details>
     <div class="admin-table-scroll">
         <table class="admin-table">
             <thead>
                 <tr>
                     <th>Usuario</th>
                     <th>Rol</th>
-                    <th>Examenes</th>
+                    <th>Exámenes</th>
                     <th>Alta</th>
                     <th><span class="sr-only">Acciones</span></th>
                 </tr>
@@ -79,9 +62,25 @@
                         <td>
                             <%= user.createdAt.toLocaleDateString('es') %>
                         </td>
-                        <td><a class="btn btn-secondary admin-icon" href="/admin/users/<%= user.id %>"
-                                title="Gestionar usuario" aria-label="Gestionar <%= user.name || user.email %>"><i
-                                    class="ti ti-settings" aria-hidden="true"></i></a></td>
+                        <td>
+                            <div class="admin-row-actions">
+                                <a class="btn btn-secondary admin-icon" href="/admin/users/<%= user.id %>"
+                                    title="Ver detalle" aria-label="Ver detalle de <%= user.name || user.email %>"><i
+                                        class="ti ti-eye" aria-hidden="true"></i></a>
+                                <% const account=JSON.stringify({ id: user.id, name: user.name || '' , email:
+                                    user.email, role: user.role }); %>
+                                    <button type="button" class="btn btn-secondary admin-icon" data-user-action="edit"
+                                        data-account="<%= account %>" title="Editar usuario"
+                                        aria-label="Editar a <%= user.name || user.email %>"><i class="ti ti-edit"
+                                            aria-hidden="true"></i></button>
+                                    <% if (user.id !==req.session.userId) { %><button type="button"
+                                            class="btn btn-secondary admin-icon admin-danger" data-user-action="delete"
+                                            data-account="<%= account %>" title="Eliminar usuario"
+                                            aria-label="Eliminar a <%= user.name || user.email %>"><i
+                                                class="ti ti-trash" aria-hidden="true"></i></button>
+                                        <% } %>
+                            </div>
+                        </td>
                     </tr>
                     <% }) %>
                         <% if (!users.length) { %>
@@ -92,4 +91,5 @@
             </tbody>
         </table>
     </div>
-    <%- include('../partials/admin-footer') %>
+    <%- include('../partials/admin-user-dialogs') %>
+        <%- include('../partials/admin-footer') %>

@@ -85,9 +85,27 @@ La representacion HTML permanece en `views/`, y los recursos de interfaz en `pub
 
 ### Interfaz de estudiantes
 
-Login y registro usan `public/css/student.css` con la clase `auth-page`. Las vistas de estudiantes comparten `student-header.ejs` y `student-footer.ejs`: navegacion, identidad y tema. El recorrido de evaluacion usa `student-exam-topbar.ejs` sin enlaces de salida mientras se responde. Los estilos se limitan a `auth-page` y `student-page`; profesor y administracion conservan su interfaz.
+Login y registro usan `public/css/student.css` con la clase `auth-page`. Las vistas de estudiantes comparten `student-header.ejs` y `student-footer.ejs`: navegacion, identidad y tema. El recorrido de evaluacion usa `student-exam-topbar.ejs` sin enlaces de salida mientras se responde. Sus estilos se limitan a `auth-page` y `student-page`.
 
 `GET /student/results` publica el historial propio mediante el controlador y el caso de uso `listResults`. El repositorio filtra por el usuario de sesion y el caso de uso identifica las calificaciones provisionales. Las vistas solo presentan esos datos. `test/studentUi.test.js` verifica renderizado y contratos de formularios; `test/enrollment.test.js` comprueba el aislamiento HTTP del historial.
+
+### Panel docente
+
+Las vistas del profesor comparten `professor-header.ejs`, `professor-footer.ejs` y `public/css/professor.css`. El ranking usa este layout solo para el profesor, sin modificar el del estudiante. `exam-workflow.ejs` mantiene el contexto entre datos, preguntas y acceso del mismo examen.
+
+La creacion pide curso, titulo e instrucciones, agrupa temporizador y ranking como opciones y presenta un resumen local en `professorWorkspace.js`. El caso de uso `createExam` conserva validacion, autoria y curso autorizado; tras guardar redirige directamente a las preguntas del examen nuevo. El editor mantiene los seis tipos y sus campos, con una vista previa de presentacion que no califica respuestas. Borrados y reinicios usan confirmaciones accesibles antes del POST nativo y antes del feedback global. `test/professorUi.test.js` cubre layout, formularios, limites, resumen y confirmaciones.
+
+### Administracion y dialogos
+
+Resumen, usuarios, examenes y cursos comparten `admin-dashboard-header.ejs`; `admin-header.ejs` reutiliza esa cabecera para las pantallas de gestion. `admin-management.css` adapta tablas, formularios y dialogos al tema del dashboard. Las altas y ediciones de cursos y examenes mantienen el envio nativo y sus rutas existentes.
+
+`admin-user-dialogs.ejs` y `public/js/adminDialogs.js` presentan alta, edicion y eliminacion de usuarios mediante dialogos nativos accesibles. El controlador HTTP negocia JSON solo para esas mutaciones cuando reciben `Accept: application/json`, mediante la opcion de presentacion de redirecciones de `adapt`. Los casos de uso conservan sus validaciones y no conocen los dialogos. Los errores CSRF, conflictos y validaciones se devuelven al popup; las peticiones HTML conservan las redirecciones anteriores. Una respuesta de red incierta no se reenvia automaticamente: el usuario vuelve al listado para comprobarla.
+
+### Feedback de operaciones
+
+Las entradas EJS incluyen `partials/page-feedback.ejs`. `public/js/pageFeedback.js` presenta carga, espera prolongada y perdida de conexion para formularios y navegacion local, sin sustituir el envio nativo ni deshabilitar campos serializados. Evita envios duplicados y limpia el estado al restaurar una pagina del historial. Los errores y confirmaciones de negocio siguen procediendo de los controladores y casos de uso.
+
+Actividad, notificaciones y autoguardado mantienen indicadores propios; las peticiones de supervision no disparan avisos globales. En Electron, `src/adapters/desktop/navigationFeedback.js` abre una pantalla local durante el arranque y ante fallos de navegacion. El preload solo expone suscripcion al estado y recuperacion; esta ultima exige la ventana y pagina locales autorizadas y vuelve por GET, nunca repitiendo el POST fallido. `test/feedback.test.js` cubre estos contratos y los eventos tardios de las paginas de error de Chromium.
 
 ## Ejemplo de sustitucion
 

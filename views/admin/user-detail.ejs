@@ -3,29 +3,39 @@
     <section class="admin-section">
         <div class="admin-section-heading">
             <h2>Cuenta</h2>
-            <% if (user.id !==req.session.userId) { %>
-                <form action="/admin/users/<%= user.id %>/delete" method="POST"
-                    onsubmit="return confirm('Eliminar este usuario, sus asignaciones y sus resultados?')"><input
-                        type="hidden" name="_csrf" value="<%= csrf %>" /><button
-                        class="btn btn-secondary admin-danger"><i class="ti ti-trash" aria-hidden="true"></i> Eliminar
-                        usuario</button></form>
-                <% } %>
+            <% const account=JSON.stringify({ id: user.id, name: user.name || '' , email: user.email, role: user.role
+                }); %>
+                <div class="admin-row-actions">
+                    <button type="button" class="btn btn-secondary" data-user-action="edit"
+                        data-account="<%= account %>"><i class="ti ti-edit" aria-hidden="true"></i> Editar
+                        usuario</button>
+                    <% if (user.id !==req.session.userId) { %><button type="button"
+                            class="btn btn-secondary admin-danger" data-user-action="delete"
+                            data-account="<%= account %>"><i class="ti ti-trash" aria-hidden="true"></i> Eliminar
+                            usuario</button>
+                        <% } %>
+                </div>
         </div>
-        <form action="/admin/users/<%= user.id %>/update" method="POST" class="admin-form-grid">
-            <input type="hidden" name="_csrf" value="<%= csrf %>" />
-            <label>Nombre<input name="name" value="<%= user.name || '' %>" required maxlength="120" /></label>
-            <label>Correo<input type="email" name="email" value="<%= user.email %>" required maxlength="254" /></label>
-            <label>Rol<select name="role">
-                    <% Object.entries(roles).forEach(([value, label])=> { %><option value="<%= value %>"
-                            <%=user.role===value ? 'selected' : '' %>><%= label %>
-                        </option>
-                        <% }) %>
-                </select></label>
-            <label>Nueva contrasena<input type="password" name="password" minlength="8" maxlength="72"
-                    autocomplete="new-password" placeholder="Sin cambios" /></label>
-            <div class="admin-form-actions"><button class="btn btn-primary"><i class="ti ti-device-floppy"
-                        aria-hidden="true"></i> Guardar cambios</button></div>
-        </form>
+        <dl class="admin-account-summary">
+            <div>
+                <dt>Nombre</dt>
+                <dd>
+                    <%= user.name || '--' %>
+                </dd>
+            </div>
+            <div>
+                <dt>Correo electrónico</dt>
+                <dd>
+                    <%= user.email %>
+                </dd>
+            </div>
+            <div>
+                <dt>Rol</dt>
+                <dd>
+                    <%= roles[user.role] %>
+                </dd>
+            </div>
+        </dl>
     </section>
     <% const assigned=assignments.filter(item=> item.userId === user.id); const history = results.filter(item =>
         item.userId === user.id); %>
@@ -171,4 +181,5 @@
                                 </div>
                             </section>
                             <% } %>
-                                <%- include('../partials/admin-footer') %>
+                                <%- include('../partials/admin-user-dialogs') %>
+                                    <%- include('../partials/admin-footer') %>

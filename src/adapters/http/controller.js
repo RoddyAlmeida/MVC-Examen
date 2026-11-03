@@ -1,6 +1,6 @@
 const { toRecord } = require("../persistence/sequelize/repositories/records");
 
-function adapt(useCase) {
+function adapt(useCase, options = {}) {
   return (req, res, next) => {
     const session = Object.fromEntries(Object.entries(req.session || {}).filter(([key, value]) => key !== "cookie" && typeof value !== "function"));
     const context = {
@@ -41,7 +41,7 @@ function adapt(useCase) {
       if (!action) return;
       if (action.kind === "signOut") return req.session.destroy(() => res.redirect(action.path));
       if (action.kind === "render") return res.render(action.view, action.data);
-      if (action.kind === "redirect") return res.redirect(action.path);
+      if (action.kind === "redirect") return options.redirect ? options.redirect(req, res, action.path) : res.redirect(action.path);
       if (action.kind === "sendStatus") return res.sendStatus(action.code);
       return res[action.kind](action.data);
     }

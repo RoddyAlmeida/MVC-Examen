@@ -1,96 +1,118 @@
-<!DOCTYPE html>
-<html lang="es">
+<% const professorView=backUrl.startsWith('/professor/'); %>
+    <% if (professorView) { %>
+        <%- include('../partials/professor-header', { pageHeading: exam.title }) %>
+            <a href="<%= backUrl %>" class="professor-back"><i class="ti ti-arrow-left" aria-hidden="true"></i> Volver
+                al examen</a>
+            <% } else { %>
+                <!DOCTYPE html>
+                <html lang="es">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/enrollment.css" />
-    <% if (backUrl.startsWith('/student/')) { %>
-        <link rel="stylesheet" href="/css/student.css" />
-        <% } %>
-</head>
-
-<body class="membership-page<%= backUrl.startsWith('/student/') ? ' student-page student-focus' : '' %>">
-    <% if (backUrl.startsWith('/student/')) { %><%- include('../partials/student-exam-topbar') %>
-            <% } %>
-                <main
-                    class="<%= backUrl.startsWith('/student/') ? 'student-focus-main' : 'container app-shell workflow-shell' %>">
-                    <% if (!backUrl.startsWith('/student/')) { %>
-                        <div class="theme-toggle-wrapper">
-                            <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color"><i
-                                    class="ti ti-moon" aria-hidden="true"></i></button>
-                        </div>
+                <head>
+                    <meta charset="UTF-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    <title>
+                        <%= title %>
+                    </title>
+                    <link rel="stylesheet"
+                        href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+                    <link rel="stylesheet" href="/css/styles.css" />
+                    <link rel="stylesheet" href="/css/enrollment.css" />
+                    <% if (backUrl.startsWith('/student/')) { %>
+                        <link rel="stylesheet" href="/css/student.css" />
                         <% } %>
-                            <header class="workflow-header">
-                                <a href="<%= backUrl %>" class="btn btn-secondary"><i class="ti ti-arrow-left"
-                                        aria-hidden="true"></i>
-                                    Volver</a>
-                                <p class="eyebrow"><i class="ti ti-trophy" aria-hidden="true"></i> Ranking del examen
-                                </p>
-                                <h1>
-                                    <%= exam.title %>
-                                </h1>
-                            </header>
-                            <section class="workflow-section" aria-label="Clasificacion">
-                                <div class="workflow-actions leaderboard-toolbar">
-                                    <p class="workflow-muted">
-                                        <%= rows.length %> participantes
-                                    </p>
-                                    <a href="<%= refreshUrl %>" class="btn btn-secondary"
-                                        aria-label="Actualizar ranking" title="Actualizar ranking"><i
-                                            class="ti ti-refresh" aria-hidden="true"></i></a>
-                                </div>
-                                <% if (!rows.length) { %>
-                                    <p class="workflow-muted" role="status">Sin entregas calificadas.</p>
-                                    <% } else { %>
-                                        <div class="workflow-table-scroll">
-                                            <table class="workflow-table leaderboard-table"
-                                                aria-label="Ranking del examen">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">Posicion</th>
-                                                        <th scope="col">Estudiante</th>
-                                                        <th scope="col">Correctas</th>
-                                                        <th scope="col">Tiempo</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% rows.forEach(row=> { %>
-                                                        <tr
-                                                            class="<%= row.userId === currentUserId ? 'leaderboard-current' : '' %>">
-                                                            <td>
-                                                                <%= row.position %>
-                                                            </td>
-                                                            <th scope="row">
-                                                                <%= row.name %>
-                                                                    <% if (row.userId===currentUserId) { %> <span
-                                                                            class="workflow-muted">(Tu)</span>
-                                                                        <% } %>
-                                                            </th>
-                                                            <td><strong>
-                                                                    <%= row.score %>
-                                                                </strong> / <%= row.total %>
-                                                            </td>
-                                                            <td>
-                                                                <% if (row.elapsedSeconds===null) { %>No registrado<% }
-                                                                        else { %>
-                                                                        <%= Math.floor(row.elapsedSeconds / 60) %> min
-                                                                            <%= row.elapsedSeconds % 60 %> s<% } %>
-                                                            </td>
-                                                        </tr>
-                                                        <% }) %>
-                                                </tbody>
-                                            </table>
+                </head>
+
+                <body
+                    class="membership-page<%= backUrl.startsWith('/student/') ? ' student-page student-focus' : '' %>">
+                    <% if (backUrl.startsWith('/student/')) { %><%- include('../partials/student-exam-topbar') %>
+                            <% } %>
+                                <main
+                                    class="<%= backUrl.startsWith('/student/') ? 'student-focus-main' : 'container app-shell workflow-shell' %>">
+                                    <% if (!backUrl.startsWith('/student/')) { %>
+                                        <div class="theme-toggle-wrapper">
+                                            <button id="theme-toggle" class="theme-toggle"
+                                                aria-label="Cambiar modo de color"><i class="ti ti-moon"
+                                                    aria-hidden="true"></i></button>
                                         </div>
                                         <% } %>
-                            </section>
-                </main>
-                <script src="/js/themeToggle.js"></script>
-</body>
+                                            <header class="workflow-header">
+                                                <a href="<%= backUrl %>" class="btn btn-secondary"><i
+                                                        class="ti ti-arrow-left" aria-hidden="true"></i>
+                                                    Volver</a>
+                                                <p class="eyebrow"><i class="ti ti-trophy" aria-hidden="true"></i>
+                                                    Ranking del examen
+                                                </p>
+                                                <h1>
+                                                    <%= exam.title %>
+                                                </h1>
+                                            </header>
+                                            <% } %>
+                                                <section class="workflow-section" aria-label="Clasificacion">
+                                                    <div class="workflow-actions leaderboard-toolbar">
+                                                        <p class="workflow-muted">
+                                                            <%= rows.length %> participantes
+                                                        </p>
+                                                        <a href="<%= refreshUrl %>" class="btn btn-secondary"
+                                                            aria-label="Actualizar ranking"
+                                                            title="Actualizar ranking"><i class="ti ti-refresh"
+                                                                aria-hidden="true"></i></a>
+                                                    </div>
+                                                    <% if (!rows.length) { %>
+                                                        <p class="workflow-muted" role="status">Sin entregas
+                                                            calificadas.</p>
+                                                        <% } else { %>
+                                                            <div class="workflow-table-scroll">
+                                                                <table class="workflow-table leaderboard-table"
+                                                                    aria-label="Ranking del examen">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th scope="col">Posicion</th>
+                                                                            <th scope="col">Estudiante</th>
+                                                                            <th scope="col">Correctas</th>
+                                                                            <th scope="col">Tiempo</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <% rows.forEach(row=> { %>
+                                                                            <tr
+                                                                                class="<%= row.userId === currentUserId ? 'leaderboard-current' : '' %>">
+                                                                                <td>
+                                                                                    <%= row.position %>
+                                                                                </td>
+                                                                                <th scope="row">
+                                                                                    <%= row.name %>
+                                                                                        <% if
+                                                                                            (row.userId===currentUserId)
+                                                                                            { %> <span
+                                                                                                class="workflow-muted">(Tu)</span>
+                                                                                            <% } %>
+                                                                                </th>
+                                                                                <td><strong>
+                                                                                        <%= row.score %>
+                                                                                    </strong> / <%= row.total %>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <% if (row.elapsedSeconds===null) {
+                                                                                        %>No registrado<% } else { %>
+                                                                                            <%= Math.floor(row.elapsedSeconds
+                                                                                                / 60) %> min
+                                                                                                <%= row.elapsedSeconds %
+                                                                                                    60 %> s<% } %>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <% }) %>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                            <% } %>
+                                                </section>
+                                                <% if (professorView) { %>
+                                                    <%- include('../partials/professor-footer') %>
+                                                        <% } else { %>
+                                </main>
+                                <%- include('../partials/page-feedback') %>
+                                    <script src="/js/themeToggle.js"></script>
+                </body>
 
-</html>
+                </html>
+                <% } %>

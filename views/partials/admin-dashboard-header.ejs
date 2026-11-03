@@ -11,20 +11,25 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/admin.css" />
     <link rel="stylesheet" href="/css/admin-dashboard.css" />
+    <link rel="stylesheet" href="/css/admin-management.css" />
 </head>
 
-<body class="admin-page admin-dashboard-page">
+<body class="admin-page admin-dashboard-page<%= active === 'dashboard' ? '' : ' admin-management-page' %>">
     <a href="#dashboard-content" class="dashboard-skip">Saltar al contenido</a>
     <aside class="dashboard-sidebar">
         <a class="dashboard-brand" href="/admin/dashboard"><span class="dashboard-brand-mark"><i class="ti ti-school"
                     aria-hidden="true"></i></span> MVC Examen</a>
         <p class="dashboard-nav-label">Administración</p>
         <nav class="dashboard-nav" aria-label="Administración">
-            <a href="/admin/dashboard" aria-current="page"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>
+            <a href="/admin/dashboard" <%- active==='dashboard' ? 'aria-current="page"' : '' %>><i
+                    class="ti ti-layout-dashboard" aria-hidden="true"></i>
                 Resumen</a>
-            <a href="/admin/users"><i class="ti ti-users" aria-hidden="true"></i> Usuarios</a>
-            <a href="/admin/exams"><i class="ti ti-notes" aria-hidden="true"></i> Exámenes</a>
-            <a href="/admin/courses"><i class="ti ti-books" aria-hidden="true"></i> Cursos</a>
+            <a href="/admin/users" <%- active==='users' ? 'aria-current="page"' : '' %>><i class="ti ti-users"
+                    aria-hidden="true"></i> Usuarios</a>
+            <a href="/admin/exams" <%- active==='exams' ? 'aria-current="page"' : '' %>><i class="ti ti-notes"
+                    aria-hidden="true"></i> Exámenes</a>
+            <a href="/admin/courses" <%- active==='courses' ? 'aria-current="page"' : '' %>><i class="ti ti-books"
+                    aria-hidden="true"></i> Cursos</a>
         </nav>
         <div class="dashboard-account">
             <span class="dashboard-avatar" aria-hidden="true">
@@ -38,22 +43,34 @@
         </div>
     </aside>
     <header class="dashboard-topbar">
-        <span>Administración <span class="dashboard-breadcrumb" aria-hidden="true">/</span> Resumen</span>
-        <div class="dashboard-tools">
-            <a href="/admin/dashboard" class="dashboard-icon" title="Actualizar resumen"
-                aria-label="Actualizar resumen"><i class="ti ti-refresh" aria-hidden="true"></i></a>
-            <button id="theme-toggle" class="theme-toggle dashboard-icon" title="Cambiar modo de color"
-                aria-label="Cambiar modo de color"><i class="ti ti-moon" aria-hidden="true"></i></button>
-        </div>
+        <% const sectionLabel={ dashboard: 'Resumen' , users: 'Usuarios' , exams: 'Exámenes' , courses: 'Cursos'
+            }[active] || 'Resumen' ; %>
+            <span>Administración <span class="dashboard-breadcrumb" aria-hidden="true">/</span>
+                <%= sectionLabel %>
+            </span>
+            <div class="dashboard-tools">
+                <a href="/admin/<%= active %>" class="dashboard-icon"
+                    title="Actualizar <%= sectionLabel.toLowerCase() %>"
+                    aria-label="Actualizar <%= sectionLabel.toLowerCase() %>"><i class="ti ti-refresh"
+                        aria-hidden="true"></i></a>
+                <button id="theme-toggle" class="theme-toggle dashboard-icon" title="Cambiar modo de color"
+                    aria-label="Cambiar modo de color"><i class="ti ti-moon" aria-hidden="true"></i></button>
+            </div>
     </header>
     <main class="admin-main" id="dashboard-content">
         <header class="dashboard-heading">
             <div>
-                <p class="dashboard-eyebrow">Vista general</p>
-                <h1>Resumen académico</h1>
+                <p class="dashboard-eyebrow">
+                    <%= active==='dashboard' ? 'Vista general' : 'Gestión académica' %>
+                </p>
+                <h1>
+                    <%= active==='dashboard' ? 'Resumen académico' : active==='exams' ? 'Exámenes' : title %>
+                </h1>
             </div>
-            <a href="/admin/users" class="btn btn-primary"><i class="ti ti-users" aria-hidden="true"></i> Gestionar
-                usuarios</a>
+            <% if (active==='dashboard' ) { %>
+                <a href="/admin/users" class="btn btn-primary"><i class="ti ti-users" aria-hidden="true"></i> Gestionar
+                    usuarios</a>
+                <% } %>
         </header>
         <% if (notice) { %>
             <div class="alert <%= notice.kind === 'error' ? 'alert-error' : 'admin-success' %>" role="alert">

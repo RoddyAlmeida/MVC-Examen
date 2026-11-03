@@ -10,6 +10,7 @@ router.use((req, res, next) => {
     const token = req.body._csrf;
     const expected = Buffer.from(req.session.adminCsrf);
     if (typeof token !== "string" || Buffer.byteLength(token) !== expected.length || !timingSafeEqual(Buffer.from(token), expected)) {
+      if (controller.wantsUserJson(req)) return res.status(403).json({ message: "La sesión de seguridad ha caducado. Recarga la página e inténtalo de nuevo." });
       return res.status(403).render("errors/generic", { title: "Solicitud rechazada", message: "Recarga la pagina e intentalo de nuevo." });
     }
   }
@@ -42,6 +43,10 @@ router.post("/exams/:id/delete", controller.deleteExam);
 router.use((error, req, res, next) => {
   if (!(error instanceof controller.AdminError) && error.name !== "SequelizeUniqueConstraintError" && error.name !== "EnrollmentError") return next(error);
   const courses = req.path.startsWith("/courses") || req.path.startsWith("/enrollments");
+  if (controller.wantsUserJson(req)) {
+    const conflict = error.name === "SequelizeUniqueConstraintError";
+    return res.status(conflict ? 409 : 422).json({ message: conflict ? "Ya existe una cuenta con ese correo." : error.message });
+  }
   req.session.adminNotice = {
     kind: "error", message: error.name === "SequelizeUniqueConstraintError"
       ? (courses ? "No se pudo guardar el curso por un conflicto de datos." : "Ya existe una cuenta con ese correo.") : error.message

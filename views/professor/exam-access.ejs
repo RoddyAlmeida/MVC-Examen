@@ -1,135 +1,139 @@
-<%- include('../partials/course-header') %>
-    <p class="workflow-muted"><i class="ti ti-school" aria-hidden="true"></i>
-        <%= course.name %>
-    </p>
-    <section class="workflow-section" data-exam-activity data-activity-url="/professor/exams/<%= exam.id %>/activity">
-        <div class="activity-heading">
-            <h2>Actividad del examen</h2>
-            <div class="workflow-actions"><span class="workflow-muted"><strong data-activity-count>0</strong>
-                    respondiendo</span>
-                <button type="button" class="btn btn-secondary" data-activity-refresh title="Actualizar actividad"
-                    aria-label="Actualizar actividad"><i class="ti ti-refresh" aria-hidden="true"></i></button>
-            </div>
-        </div>
-        <p class="workflow-muted" data-activity-status role="status">Cargando actividad...</p>
-        <div class="workflow-table-scroll">
-            <table class="workflow-table">
-                <thead>
-                    <tr>
-                        <th>Estudiante</th>
-                        <th>Estado</th>
-                        <th>Inicio</th>
-                        <th>Tiempo aprox.</th>
-                        <th>Ultima senal</th>
-                    </tr>
-                </thead>
-                <tbody data-activity-rows>
-                    <tr>
-                        <td colspan="5">Cargando...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-    <section class="workflow-section">
-        <h2>Invitar a un estudiante</h2>
-        <form action="/professor/exams/<%= exam.id %>/invitations" method="POST" class="workflow-form">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            <label class="form-group">Estudiante inscrito<select name="userId" class="form-input" required>
-                    <option value="">Seleccionar estudiante</option>
-                    <% members.forEach(member=> { %><option value="<%= member.userId %>">
-                            <%= member.student.name || member.student.email %> (<%= member.student.email %>)
-                        </option>
-                        <% }) %>
-                </select></label>
-            <button class="btn btn-primary" <%=members.length ? '' : 'disabled' %>><i class="ti ti-send"
-                    aria-hidden="true"></i> Invitar</button>
-        </form>
-        <% if (!members.length) { %>
-            <p class="workflow-muted">El curso no tiene estudiantes inscritos.</p>
-            <% } %>
-                <div class="workflow-table-scroll">
-                    <table class="workflow-table">
-                        <thead>
-                            <tr>
-                                <th>Estudiante</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% assignments.forEach(assignment=> { %><tr>
-                                    <td>
-                                        <%= assignment.student.name || assignment.student.email %>
-                                    </td>
-                                    <td>
-                                        <%= assignment.status==='active' ? 'Acceso activo' :
-                                            assignment.status==='invited' ? 'Invitacion pendiente' : 'Rechazada' %>
-                                    </td>
-                                    <td>
-                                        <form action="/professor/exams/<%= exam.id %>/assignments/delete" method="POST">
-                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" /><input
-                                                type="hidden" name="userId" value="<%= assignment.userId %>" />
-                                            <button class="btn btn-secondary" title="Retirar acceso"
-                                                aria-label="Retirar acceso de <%= assignment.student.name || assignment.student.email %>"><i
-                                                    class="ti ti-unlink" aria-hidden="true"></i></button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <% }) %>
-                                    <% if (!assignments.length) { %>
-                                        <tr>
-                                            <td colspan="3">Sin invitaciones ni accesos.</td>
-                                        </tr>
-                                        <% } %>
-                        </tbody>
-                    </table>
+<%- include('../partials/professor-header') %>
+    <%- include('../partials/exam-workflow', { currentStep: 'access' }) %>
+        <p class="workflow-muted"><i class="ti ti-school" aria-hidden="true"></i>
+            <%= course.name %>
+        </p>
+        <section class="workflow-section" data-exam-activity
+            data-activity-url="/professor/exams/<%= exam.id %>/activity">
+            <div class="activity-heading">
+                <h2>Actividad del examen</h2>
+                <div class="workflow-actions"><span class="workflow-muted"><strong data-activity-count>0</strong>
+                        respondiendo</span>
+                    <button type="button" class="btn btn-secondary" data-activity-refresh title="Actualizar actividad"
+                        aria-label="Actualizar actividad"><i class="ti ti-refresh" aria-hidden="true"></i></button>
                 </div>
-    </section>
-    <section class="workflow-section">
-        <h2>Codigo de acceso</h2>
-        <% if (exam.joinCode) { %><output class="join-code">
-                <%= exam.joinCode %>
-            </output>
-            <% } else { %>
-                <p class="workflow-muted">Codigo desactivado.</p>
+            </div>
+            <p class="workflow-muted" data-activity-status role="status">Cargando actividad...</p>
+            <div class="workflow-table-scroll">
+                <table class="workflow-table">
+                    <thead>
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Estado</th>
+                            <th>Inicio</th>
+                            <th>Tiempo aprox.</th>
+                            <th>Ultima senal</th>
+                        </tr>
+                    </thead>
+                    <tbody data-activity-rows>
+                        <tr>
+                            <td colspan="5">Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="workflow-section">
+            <h2>Invitar a un estudiante</h2>
+            <form action="/professor/exams/<%= exam.id %>/invitations" method="POST" class="workflow-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <label class="form-group">Estudiante inscrito<select name="userId" class="form-input" required>
+                        <option value="">Seleccionar estudiante</option>
+                        <% members.forEach(member=> { %><option value="<%= member.userId %>">
+                                <%= member.student.name || member.student.email %> (<%= member.student.email %>)
+                            </option>
+                            <% }) %>
+                    </select></label>
+                <button class="btn btn-primary" <%=members.length ? '' : 'disabled' %>><i class="ti ti-send"
+                        aria-hidden="true"></i> Invitar</button>
+            </form>
+            <% if (!members.length) { %>
+                <p class="workflow-muted">El curso no tiene estudiantes inscritos.</p>
                 <% } %>
-                    <form action="/professor/exams/<%= exam.id %>/code" method="POST" class="workflow-actions">
-                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                        <button name="action" value="generate" class="btn btn-primary"><i class="ti ti-refresh"
-                                aria-hidden="true"></i>
-                            <%= exam.joinCode ? 'Renovar codigo' : 'Generar codigo' %>
-                        </button>
-                        <% if (exam.joinCode) { %><button name="action" value="disable" class="btn btn-secondary"><i
-                                    class="ti ti-lock" aria-hidden="true"></i> Desactivar</button>
-                            <% } %>
-                    </form>
-    </section>
-    <section class="workflow-section">
-        <h2>Seguridad opcional</h2>
-        <form action="/professor/exams/<%= exam.id %>/security" method="POST" class="workflow-settings">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            <fieldset class="security-modes">
-                <legend>Modo de pantalla</legend>
-                <% [['none', 'Normal' ], ['locked', 'Restringido' ], ['monitored', 'Supervisado' ]].forEach(([value,
-                    label])=> { %>
-                    <label><input type="radio" name="securityMode" value="<%= value %>" <%=exam.securityMode===value
-                            ? 'checked' : '' %> /><span>
-                            <%= label %>
-                        </span></label>
-                    <% }) %>
-            </fieldset>
-            <label class="form-group">Nueva contrasena<input class="form-input" type="password" name="password"
-                    minlength="8" maxlength="72" autocomplete="new-password" /></label>
-            <p class="workflow-muted">
-                <%= exam.passwordHash ? 'Contrasena activa' : 'Sin contrasena' %>
-            </p>
-            <% if (exam.passwordHash) { %><label class="workflow-check"><input type="checkbox" name="removePassword" />
-                    Retirar contrasena</label>
-                <% } %>
-                    <button class="btn btn-primary"><i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar
-                        seguridad</button>
-        </form>
-    </section>
-    <script src="/js/examActivity.js"></script>
-    <%- include('../partials/course-footer') %>
+                    <div class="workflow-table-scroll">
+                        <table class="workflow-table">
+                            <thead>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% assignments.forEach(assignment=> { %><tr>
+                                        <td>
+                                            <%= assignment.student.name || assignment.student.email %>
+                                        </td>
+                                        <td>
+                                            <%= assignment.status==='active' ? 'Acceso activo' :
+                                                assignment.status==='invited' ? 'Invitacion pendiente' : 'Rechazada' %>
+                                        </td>
+                                        <td>
+                                            <form action="/professor/exams/<%= exam.id %>/assignments/delete"
+                                                method="POST">
+                                                <input type="hidden" name="_csrf" value="<%= csrfToken %>" /><input
+                                                    type="hidden" name="userId" value="<%= assignment.userId %>" />
+                                                <button class="btn btn-secondary" title="Retirar acceso"
+                                                    aria-label="Retirar acceso de <%= assignment.student.name || assignment.student.email %>"><i
+                                                        class="ti ti-unlink" aria-hidden="true"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                        <% if (!assignments.length) { %>
+                                            <tr>
+                                                <td colspan="3">Sin invitaciones ni accesos.</td>
+                                            </tr>
+                                            <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+        </section>
+        <section class="workflow-section">
+            <h2>Codigo de acceso</h2>
+            <% if (exam.joinCode) { %><output class="join-code">
+                    <%= exam.joinCode %>
+                </output>
+                <% } else { %>
+                    <p class="workflow-muted">Codigo desactivado.</p>
+                    <% } %>
+                        <form action="/professor/exams/<%= exam.id %>/code" method="POST" class="workflow-actions">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                            <button name="action" value="generate" class="btn btn-primary"><i class="ti ti-refresh"
+                                    aria-hidden="true"></i>
+                                <%= exam.joinCode ? 'Renovar codigo' : 'Generar codigo' %>
+                            </button>
+                            <% if (exam.joinCode) { %><button name="action" value="disable" class="btn btn-secondary"><i
+                                        class="ti ti-lock" aria-hidden="true"></i> Desactivar</button>
+                                <% } %>
+                        </form>
+        </section>
+        <section class="workflow-section">
+            <h2>Seguridad opcional</h2>
+            <form action="/professor/exams/<%= exam.id %>/security" method="POST" class="workflow-settings">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <fieldset class="security-modes">
+                    <legend>Modo de pantalla</legend>
+                    <% [['none', 'Normal' ], ['locked', 'Restringido' ], ['monitored', 'Supervisado' ]].forEach(([value,
+                        label])=> { %>
+                        <label><input type="radio" name="securityMode" value="<%= value %>" <%=exam.securityMode===value
+                                ? 'checked' : '' %> /><span>
+                                <%= label %>
+                            </span></label>
+                        <% }) %>
+                </fieldset>
+                <label class="form-group">Nueva contrasena<input class="form-input" type="password" name="password"
+                        minlength="8" maxlength="72" autocomplete="new-password" /></label>
+                <p class="workflow-muted">
+                    <%= exam.passwordHash ? 'Contrasena activa' : 'Sin contrasena' %>
+                </p>
+                <% if (exam.passwordHash) { %><label class="workflow-check"><input type="checkbox"
+                            name="removePassword" />
+                        Retirar contrasena</label>
+                    <% } %>
+                        <button class="btn btn-primary"><i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar
+                            seguridad</button>
+            </form>
+        </section>
+        <script src="/js/examActivity.js"></script>
+        <%- include('../partials/professor-footer') %>

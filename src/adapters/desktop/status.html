@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MVC Examen</title>
+    <link rel="stylesheet" href="../../../public/css/feedback.css" />
+    <script src="../../../public/js/desktopStatus.js" defer></script>
+</head>
+
+<body class="desktop-status">
+    <header>MVC Examen</header>
+    <main aria-busy="true">
+        <span class="page-feedback-spinner" aria-hidden="true"></span>
+        <h1 id="desktop-status-title">Iniciando aplicación</h1>
+        <p id="desktop-status-message" role="status" aria-live="polite">Conectando con el servicio de datos...</p>
+        <p id="desktop-status-warning" hidden>Si estabas guardando datos, comprueba su estado antes de volver a
+            enviarlos.</p>
+        <button id="desktop-retry" type="button" hidden>Volver a conectar</button>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,286 @@
+.admin-management-page .admin-heading {
+    margin-bottom: 24px;
+}
+
+.admin-management-page .admin-section-heading {
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.admin-toolbar-actions,
+.admin-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-toolbar-actions {
+    margin-left: auto;
+    gap: 16px;
+}
+
+.admin-management-page .admin-filters {
+    flex: 1;
+    margin: 0;
+    gap: 10px;
+}
+
+.admin-management-page .admin-filters select {
+    flex: 0 1 190px;
+    min-height: 42px;
+    font-size: 0.8rem;
+}
+
+.admin-management-page .admin-search {
+    max-width: 380px;
+    min-height: 42px;
+}
+
+.admin-management-page .admin-search input {
+    font-size: 0.8rem;
+}
+
+.admin-management-page .admin-table {
+    min-width: 740px;
+}
+
+.admin-management-page .admin-table td:last-child {
+    min-width: 146px;
+}
+
+.admin-management-page .admin-table th {
+    font-size: 0.72rem;
+}
+
+.admin-management-page .admin-table td {
+    font-size: 0.8rem;
+}
+
+.admin-management-page .admin-table .admin-icon {
+    background: transparent;
+    border-color: transparent;
+    min-height: 36px;
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+}
+
+.admin-management-page .admin-table .admin-icon:hover {
+    background: var(--secondary);
+}
+
+.admin-management-page .admin-status {
+    white-space: normal;
+}
+
+.admin-management-page .admin-status:not(.is-pending):not(.is-complete) {
+    background: var(--secondary);
+    color: var(--text-secondary);
+}
+
+.admin-management-page .admin-section {
+    margin: 24px 0 0;
+    padding: 24px 0;
+}
+
+.admin-management-page .admin-section>h2 {
+    margin-bottom: 20px;
+}
+
+.admin-management-page .admin-section>.admin-filters {
+    margin-bottom: 24px;
+}
+
+.admin-management-page .admin-muted {
+    font-size: 0.72rem;
+}
+
+.admin-management-page .admin-block {
+    margin-top: 5px;
+}
+
+.admin-account-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    padding-block: 12px;
+}
+
+.admin-account-summary dt {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+}
+
+.admin-account-summary dd {
+    font-size: 0.9rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.admin-page .admin-dialog {
+    width: min(600px, calc(100vw - 40px));
+    max-height: calc(100vh - 48px);
+    margin: auto;
+    padding: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    box-shadow: 0 20px 70px #00000030;
+    overflow-y: auto;
+}
+
+.admin-page .admin-dialog-small {
+    width: min(460px, calc(100vw - 40px));
+}
+
+.admin-dialog::backdrop {
+    background: #10151470;
+    backdrop-filter: blur(3px);
+}
+
+.admin-dialog-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.admin-dialog-heading h2 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.admin-dialog .admin-form-grid {
+    margin: 0;
+    gap: 20px;
+}
+
+.admin-dialog input,
+.admin-dialog select,
+.admin-dialog textarea {
+    min-height: 44px;
+}
+
+.admin-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.admin-dialog .admin-form-grid .admin-dialog-actions {
+    margin-top: 4px;
+}
+
+.admin-dialog p {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.admin-dialog-warning {
+    color: var(--text-secondary);
+    margin-top: 12px;
+}
+
+.admin-dialog-status {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    background: var(--secondary);
+    border-radius: 6px;
+}
+
+.admin-dialog-status.is-error {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.admin-dialog-status.is-success {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.admin-page .admin-delete-confirm {
+    background: #ba3535;
+    color: #fff;
+}
+
+.admin-page .admin-delete-confirm:hover {
+    background: #9c2929;
+}
+
+.admin-dialog-finish {
+    display: flex;
+    margin: 24px 0 0 auto;
+}
+
+.admin-dialog [hidden] {
+    display: none !important;
+}
+
+.admin-dialog :disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.admin-dialog [aria-busy="true"] {
+    cursor: progress;
+}
+
+.admin-dialog input:disabled,
+.admin-dialog select:disabled {
+    opacity: 0.7;
+}
+
+.admin-dialog .btn:disabled {
+    transform: none;
+}
+
+.admin-management-page .admin-back {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.admin-management-page .admin-section-heading>h2 {
+    margin: 0;
+}
+
+@media (max-width: 1000px) {
+    .admin-management-page .admin-section-heading {
+        align-items: flex-start;
+    }
+
+    .admin-toolbar-actions {
+        margin-left: 0;
+    }
+
+    .admin-management-page .admin-filters {
+        flex-basis: 100%;
+    }
+
+    .admin-account-summary {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-page .admin-dialog {
+        padding: 20px;
+    }
+
+    .admin-dialog .admin-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .admin-dialog-actions {
+        flex-wrap: wrap;
+    }
+}

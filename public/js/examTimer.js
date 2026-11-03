@@ -52,6 +52,7 @@
         if (navigating || saving || !dirty) return;
         saving = true;
         dirty = false;
+        status.textContent = warned ? "Guardando respuestas. Queda menos de un minuto" : "Guardando respuestas...";
         const body = new URLSearchParams(new FormData(form));
         body.set("_saveAnswers", "on");
         const sentAt = now();
@@ -88,6 +89,7 @@
     form.addEventListener("submit", event => {
         if (saving && !navigating) {
             event.preventDefault();
+            status.textContent = "Guardando respuestas antes de enviar...";
             if (!waitingSubmission) {
                 waitingSubmission = true;
                 pendingSave.then(() => {

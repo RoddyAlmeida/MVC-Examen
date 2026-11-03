@@ -1,131 +1,106 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="/css/styles.css" />
-</head>
-
-<body>
-    <main class="container app-shell" style="max-width: 800px;">
-        <div class="theme-toggle-wrapper"><button id="theme-toggle" class="theme-toggle"
-                aria-label="Cambiar modo de color"><i class="ti ti-moon" aria-hidden="true"></i></button></div>
-        <header class="page-header">
-            <a href="/professor/students/<%= student.id %>" class="btn btn-secondary"
-                style="margin-bottom: 1rem; width: fit-content;"><i class="ti ti-arrow-left" aria-hidden="true"></i>
-                Volver</a>
-            <p class="eyebrow"><i class="ti ti-user" aria-hidden="true"></i>
-                <%= student.name || student.email %>
-            </p>
-            <h1>
-                <%= result.exam ? result.exam.title : 'Examen' %>
-            </h1>
-            <p style="color: var(--text-secondary);">Puntaje: <strong>
-                    <%= result.score %>
-                </strong>/<%= result.total %> · <%= pendingReview ? `${pendingReview} respuestas pendientes de revisión`
-                        : 'Calificación completa' %>
-            </p>
-        </header>
-        <form method="POST" action="/professor/students/<%= student.id %>/exam/<%= result.examId %>/review">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            <div class="question-list">
-                <% questionViews.forEach((view, index)=> { %>
-                    <article class="question-card">
-                        <div class="question-badge" style="margin-bottom: 0.75rem;">Pregunta <%= index + 1 %> · <%=
-                                    view.type.replaceAll('_', ' ' ) %>
+<%- include('../partials/professor-header', { activeSection: 'students' , pageHeading: result.exam ? result.exam.title
+    : 'Revisión del examen' }) %>
+    <header class="professor-review-header">
+        <a href="/professor/students/<%= student.id %>" class="professor-back"><i class="ti ti-arrow-left"
+                aria-hidden="true"></i>
+            <%= student.name || student.email %>
+        </a>
+        <p style="color: var(--text-secondary);">Puntaje: <strong>
+                <%= result.score %>
+            </strong>/<%= result.total %> · <%= pendingReview ? `${pendingReview} respuestas pendientes de revisión`
+                    : 'Calificación completa' %>
+        </p>
+    </header>
+    <form method="POST" action="/professor/students/<%= student.id %>/exam/<%= result.examId %>/review">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <div class="question-list">
+            <% questionViews.forEach((view, index)=> { %>
+                <article class="question-card">
+                    <div class="question-badge" style="margin-bottom: 0.75rem;">Pregunta <%= index + 1 %> · <%=
+                                view.type.replaceAll('_', ' ' ) %>
+                    </div>
+                    <p style="font-weight: 600; margin-bottom: 1rem;">
+                        <%= view.question.prompt %>
+                    </p>
+                    <% if (view.type==='concept' ) { %>
+                        <p class="form-label">Respuesta del estudiante</p>
+                        <div class="panel">
+                            <%= view.answer || 'Sin respuesta' %>
                         </div>
-                        <p style="font-weight: 600; margin-bottom: 1rem;">
-                            <%= view.question.prompt %>
-                        </p>
-                        <% if (view.type==='concept' ) { %>
-                            <p class="form-label">Respuesta del estudiante</p>
-                            <div class="panel">
-                                <%= view.answer || 'Sin respuesta' %>
-                            </div>
-                            <label class="form-label" for="manualScore_<%= view.question.id %>">Calificación
-                                manual</label>
-                            <select class="form-input" id="manualScore_<%= view.question.id %>"
-                                name="manualScore_<%= view.question.id %>">
-                                <option value="" <%=view.manualScore===undefined ? 'selected' : '' %>>Pendiente</option>
-                                <option value="0" <%=String(view.manualScore)==='0' ? 'selected' : '' %>>No acredita · 0
-                                    puntos</option>
-                                <option value="1" <%=String(view.manualScore)==='1' ? 'selected' : '' %>>Acredita · 1
-                                    punto</option>
-                            </select>
-                            <% } else if (view.type==='multiple_choice' ) { %>
-                                <% const legacyAnswerIndex=['A', 'B' , 'C' ].indexOf(String(view.answer)); const
-                                    answerIndex=legacyAnswerIndex>= 0 ? legacyAnswerIndex : Number(view.answer); %>
-                                    <div class="question-list">
-                                        <% view.configuration.options.forEach((option, optionIndex)=> { const text =
-                                            typeof option === 'string' ? option : option.text; %>
-                                            <div class="option-label"
-                                                style="<%= optionIndex === view.configuration.correctIndex ? 'border-color: var(--success); background: var(--success-bg);' : (optionIndex === answerIndex ? 'border-color: var(--danger); background: var(--danger-bg);' : '') %>">
-                                                <span class="option-tag">
-                                                    <%= optionIndex + 1 %>
-                                                </span>
-                                                <%= text %>
-                                                    <% if (optionIndex===view.configuration.correctIndex) { %>
-                                                        <strong>Correcta</strong>
-                                                        <% } %>
-                                                            <% if (optionIndex===answerIndex) { %>
-                                                                <strong>Elegida</strong>
-                                                                <% } %>
-                                            </div>
-                                            <% }) %>
-                                    </div>
-                                    <% } else if (view.type==='true_false' ) { %>
-                                        <p>Respuesta: <strong>
-                                                <%= String(view.answer)==='true' ? 'Verdadero' :
-                                                    String(view.answer)==='false' ? 'Falso' : 'Sin responder' %>
-                                            </strong> · Correcta: <strong>
-                                                <%= view.configuration.correctAnswer ? 'Verdadero' : 'Falso' %>
+                        <label class="form-label" for="manualScore_<%= view.question.id %>">Calificación
+                            manual</label>
+                        <select class="form-input" id="manualScore_<%= view.question.id %>"
+                            name="manualScore_<%= view.question.id %>">
+                            <option value="" <%=view.manualScore===undefined ? 'selected' : '' %>>Pendiente</option>
+                            <option value="0" <%=String(view.manualScore)==='0' ? 'selected' : '' %>>No acredita · 0
+                                puntos</option>
+                            <option value="1" <%=String(view.manualScore)==='1' ? 'selected' : '' %>>Acredita · 1
+                                punto</option>
+                        </select>
+                        <% } else if (view.type==='multiple_choice' ) { %>
+                            <% const legacyAnswerIndex=['A', 'B' , 'C' ].indexOf(String(view.answer)); const
+                                answerIndex=legacyAnswerIndex>= 0 ? legacyAnswerIndex : Number(view.answer); %>
+                                <div class="question-list">
+                                    <% view.configuration.options.forEach((option, optionIndex)=> { const text =
+                                        typeof option === 'string' ? option : option.text; %>
+                                        <div class="option-label"
+                                            style="<%= optionIndex === view.configuration.correctIndex ? 'border-color: var(--success); background: var(--success-bg);' : (optionIndex === answerIndex ? 'border-color: var(--danger); background: var(--danger-bg);' : '') %>">
+                                            <span class="option-tag">
+                                                <%= optionIndex + 1 %>
+                                            </span>
+                                            <%= text %>
+                                                <% if (optionIndex===view.configuration.correctIndex) { %>
+                                                    <strong>Correcta</strong>
+                                                    <% } %>
+                                                        <% if (optionIndex===answerIndex) { %>
+                                                            <strong>Elegida</strong>
+                                                            <% } %>
+                                        </div>
+                                        <% }) %>
+                                </div>
+                                <% } else if (view.type==='true_false' ) { %>
+                                    <p>Respuesta: <strong>
+                                            <%= String(view.answer)==='true' ? 'Verdadero' :
+                                                String(view.answer)==='false' ? 'Falso' : 'Sin responder' %>
+                                        </strong> · Correcta: <strong>
+                                            <%= view.configuration.correctAnswer ? 'Verdadero' : 'Falso' %>
+                                        </strong></p>
+                                    <% } else if (view.type==='fill_text' ) { %>
+                                        <p>Respuesta del estudiante: <strong>
+                                                <%= view.answer || 'Sin responder' %>
                                             </strong></p>
-                                        <% } else if (view.type==='fill_text' ) { %>
-                                            <p>Respuesta del estudiante: <strong>
-                                                    <%= view.answer || 'Sin responder' %>
-                                                </strong></p>
-                                            <p>Respuestas aceptadas: <%= view.configuration.acceptedAnswers.join(', ') %></p>
-              <% } else if (view.type === ' fill_drag') { %>
+                                        <p>Respuestas aceptadas: <%= view.configuration.acceptedAnswers.join(', ') %></p>
+              <% } else if (view.type === "fill_drag") { %>
                                                     <p>Respuesta del estudiante: <strong>
-                                                            <%= view.answer || 'Sin responder' %>
-                                                        </strong> · Correcta: <strong>
-                                                            <%= view.configuration.answer %>
-                                                        </strong></p>
-                                                    <% } else if (view.type==='crossword' ) { %>
-                                                        <ol class="crossword-review-list">
-                                                            <% view.configuration.entries.forEach((entry, wordIndex)=> {
-                                                                %><li>
-                                                                    <%= entry.clue %> · estudiante: <strong>
-                                                                            <%= view.answer?.[wordIndex]
-                                                                                || 'Sin responder' %>
-                                                                        </strong> · correcta: <strong>
-                                                                            <%= entry.answer %>
-                                                                        </strong>
-                                                                </li>
-                                                                <% }) %>
-                                                        </ol>
-                                                        <% } %>
-                                                            <% if (view.type !=='concept' ) { %>
-                                                                <p
-                                                                    style="margin-top: 0.75rem; font-weight: 600; color: var(--<%= view.correct ? 'success' : 'danger' %>);">
-                                                                    <%= view.correct ? 'Correcta' : 'Incorrecta' %>
-                                                                </p>
-                                                                <% } %>
-                    </article>
-                    <% }) %>
-            </div>
-            <% if (questionViews.some((view)=> view.type === 'concept')) { %>
-                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="ti ti-device-floppy"
-                        aria-hidden="true"></i> Guardar revisión</button>
-                <% } %>
-        </form>
-    </main>
-    <script src="/js/themeToggle.js"></script>
-</body>
-
-</html>
+                                                            <%= view.answer || ' Sin responder' %>
+                                                </strong> · Correcta: <strong>
+                                                    <%= view.configuration.answer %>
+                                                </strong></p>
+                                        <% } else if (view.type==='crossword' ) { %>
+                                            <ol class="crossword-review-list">
+                                                <% view.configuration.entries.forEach((entry, wordIndex)=> {
+                                                    %><li>
+                                                        <%= entry.clue %> · estudiante: <strong>
+                                                                <%= view.answer?.[wordIndex] || 'Sin responder' %>
+                                                            </strong> · correcta: <strong>
+                                                                <%= entry.answer %>
+                                                            </strong>
+                                                    </li>
+                                                    <% }) %>
+                                            </ol>
+                                            <% } %>
+                                                <% if (view.type !=='concept' ) { %>
+                                                    <p
+                                                        style="margin-top: 0.75rem; font-weight: 600; color: var(--<%= view.correct ? 'success' : 'danger' %>);">
+                                                        <%= view.correct ? 'Correcta' : 'Incorrecta' %>
+                                                    </p>
+                                                    <% } %>
+                </article>
+                <% }) %>
+        </div>
+        <% if (questionViews.some((view)=> view.type === 'concept')) { %>
+            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;"><i class="ti ti-device-floppy"
+                    aria-hidden="true"></i> Guardar revisión</button>
+            <% } %>
+    </form>
+    <%- include('../partials/professor-footer') %>

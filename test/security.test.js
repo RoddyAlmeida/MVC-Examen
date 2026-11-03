@@ -15,6 +15,7 @@ test("Electron restricts only locked exams and never invalidates or quits a moni
     let unregistered = 0;
     const events = [];
     const ipcMain = new EventEmitter();
+    ipcMain.handle = () => {};
     class BrowserWindow extends EventEmitter {
         constructor(options) {
             assert.equal(options.webPreferences.preload, path.join(__dirname, "../src/adapters/desktop/preload.js"));
@@ -24,7 +25,7 @@ test("Electron restricts only locked exams and never invalidates or quits a moni
             Object.assign(this.webContents, {
                 getURL: () => "http://localhost:3000/student/exams/9/take",
                 setWindowOpenHandler() {},
-                send(channel, data) { events.push({ channel, data }); },
+                send(channel, data) { if (channel === "security-event") events.push({ channel, data }); },
                 async executeJavaScript() { return false; },
             });
         }
@@ -39,6 +40,7 @@ test("Electron restricts only locked exams and never invalidates or quits a moni
         focus() {}
         show() {}
         loadURL() {}
+        loadFile() {}
     }
     const electron = {
         app, BrowserWindow, ipcMain,
@@ -52,6 +54,7 @@ test("Electron restricts only locked exams and never invalidates or quits a moni
         require(name) {
             if (name === "electron") return electron;
             if (name === "path") return path;
+            if (name === "./navigationFeedback") return require("../src/adapters/desktop/navigationFeedback");
             if (name === "../../bootstrap/server") return { async startServer() { return { close(callback) { callback(); } }; } };
             throw new Error(`Unexpected require: ${name}`);
         },
