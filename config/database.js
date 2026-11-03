@@ -42,4 +42,36 @@ const sequelize = new Sequelize({
   logging: false,
 });
 
+const manager = sequelize.connectionManager;
+const acquireConnection = manager.getConnection.bind(manager);
+let reconnecting;
+
+function isClosedStream(error) {
+  if (!error) return false;
+  return error.name === "ClosedError" || error.status === 404 || isClosedStream(error.cause);
+}
+
+manager.getConnection = async function (options) {
+  if (reconnecting) await reconnecting;
+  const connection = await acquireConnection(options);
+  try {
+    await new Promise((resolve, reject) => {
+      connection.get("SELECT 1", (error) => error ? reject(error) : resolve());
+    });
+    return connection;
+  } catch (error) {
+    if (!isClosedStream(error)) throw error;
+    if (!reconnecting) {
+      reconnecting = (async () => {
+        for (const key of Object.keys(manager.connections)) {
+          if (manager.connections[key] === connection) delete manager.connections[key];
+        }
+        await new Promise((resolve) => connection.close(resolve));
+        return acquireConnection(options);
+      })().finally(() => { reconnecting = null; });
+    }
+    return reconnecting;
+  }
+};
+
 module.exports = sequelize;

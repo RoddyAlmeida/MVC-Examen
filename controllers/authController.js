@@ -10,7 +10,8 @@ function renderRegister(req, res) {
 }
 
 async function login(req, res) {
-  const { email, password } = req.body;
+  const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  const { password } = req.body;
   if (!email || !password) {
     return res.render("login", { title: "Iniciar sesión", error: "Correo y contraseña son obligatorios.", registered: false });
   }
@@ -48,7 +49,8 @@ async function login(req, res) {
 }
 
 async function register(req, res) {
-  const { email, password, name } = req.body;
+  const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  const { password, name } = req.body;
   if (!email || !password) {
     return res.render("register", { title: "Crear cuenta", error: "Correo y contraseña son obligatorios." });
   }

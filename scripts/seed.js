@@ -1,8 +1,31 @@
 const bcrypt = require("bcryptjs");
 const { sequelize, Exam, Question, User } = require("../models");
 
+async function seedUsers() {
+  const accounts = [
+    { email: "profesor@pucese.edu.ec", password: "profesor123", role: "profesor", name: "Profesor" },
+    { email: "estudiante@pucese.edu.ec", password: "estudiante123", role: "estudiante", name: "Estudiante" },
+  ];
+
+  for (const account of accounts) {
+    const password = await bcrypt.hash(account.password, 10);
+    await User.findCreateFind({
+      where: { email: account.email },
+      defaults: { ...account, password },
+    });
+  }
+}
+
 async function seed() {
-  await sequelize.sync({ force: true });
+  const usersOnly = process.argv.includes("--users-only");
+  await sequelize.sync({ force: !usersOnly });
+  await seedUsers();
+
+  if (usersOnly) {
+    console.log("Cuentas de prueba disponibles. Las cuentas existentes no se modificaron.");
+    await sequelize.close();
+    return;
+  }
 
   const exam = await Exam.create({
     title: "Examen de Introduccion a HCI",
@@ -53,20 +76,16 @@ async function seed() {
     },
   ]);
 
-  const hashed = await bcrypt.hash("profesor123", 10);
-  await User.create({
-    email: "profesor@pucese.edu.ec",
-    password: hashed,
-    role: "profesor",
-    name: "Profesor",
-  });
-
   console.log("Datos iniciales cargados.");
   await sequelize.close();
 }
 
-seed().catch(async (error) => {
-  console.error("Error durante el seed:", error);
-  await sequelize.close();
-  process.exit(1);
-});
+if (require.main === module) {
+  seed().catch(async (error) => {
+    console.error("Error durante el seed:", error);
+    await sequelize.close();
+    process.exit(1);
+  });
+}
+
+module.exports = { seedUsers };

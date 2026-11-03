@@ -57,6 +57,19 @@ pnpm run seed
 
 **Aviso:** el seed sincroniza la base de datos con `force: true`; elimina las tablas existentes antes de crear los datos de ejemplo.
 
+Para crear solamente las cuentas de prueba sin borrar datos ni modificar cuentas existentes:
+
+```bash
+pnpm run seed -- --users-only
+```
+
+| Rol | Correo | Contraseña |
+| --- | --- | --- |
+| Profesor | <profesor@pucese.edu.ec> | profesor123 |
+| Estudiante | <estudiante@pucese.edu.ec> | estudiante123 |
+
+El login y el registro normalizan el correo a minúsculas y eliminan espacios exteriores. Estas cuentas son solo para pruebas; no las uses en producción.
+
 ### Importar un examen
 
 Desde el panel del profesor, selecciona **Importar examen QTI** y carga un paquete `.zip` de hasta 10 MB. Debe ser un paquete QTI 3 con `imsmanifest.xml` en la raíz y recursos `imsqti_item_xmlv3p0`. Si incluye un recurso de evaluación QTI, se respeta el orden de sus referencias a los ítems. La importación se guarda en una transacción.
