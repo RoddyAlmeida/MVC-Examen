@@ -15,7 +15,7 @@ const QuestionContent = createQuestionContentModel(sequelize);
 const ExamAssignment = createExamAssignmentModel(sequelize);
 const Course = createCourseModel(sequelize);
 
-User.hasOne(Course, { foreignKey: "professorId", as: "course", onDelete: "SET NULL" });
+User.hasMany(Course, { foreignKey: "professorId", as: "courses", onDelete: "SET NULL" });
 Course.belongsTo(User, { foreignKey: "professorId", as: "professor" });
 Course.hasMany(Exam, { foreignKey: "courseId", as: "exams", onDelete: "RESTRICT" });
 Exam.belongsTo(Course, { foreignKey: "courseId", as: "course" });

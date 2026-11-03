@@ -39,10 +39,24 @@ function requireOwnedExam(parameter = "id") {
   };
 }
 
+async function loadCourses(req, res, next) {
+  req.courses = await Course.findAll({ where: { professorId: req.session.userId }, order: [["name", "ASC"]] });
+  if (!req.courses.length) return denied(res, "Necesitas un curso asignado por el administrador para crear o importar examenes.");
+  res.locals.courses = req.courses;
+  next();
+}
+
 async function requireCourse(req, res, next) {
-  const course = await Course.findOne({ where: { professorId: req.session.userId } });
-  if (!course) return denied(res, "Necesitas un curso asignado por el administrador para crear o importar examenes.");
-  req.course = course;
+  if (!req.courses) {
+    req.courses = await Course.findAll({ where: { professorId: req.session.userId }, order: [["name", "ASC"]] });
+  }
+  if (!req.courses.length) return denied(res, "Necesitas un curso asignado por el administrador para crear o importar examenes.");
+  res.locals.courses = req.courses;
+  const selectedId = req.method === "POST" ? req.body.courseId : req.query?.courseId;
+  req.course = selectedId ? req.courses.find(course => course.id === Number(selectedId)) : null;
+  if (selectedId && !req.course) return denied(res, "El curso seleccionado no esta asignado a tu cuenta.");
+  if (req.method === "POST" && !req.course) return denied(res, "Selecciona uno de tus cursos para crear o importar el examen.");
+  if (!selectedId && req.courses.length === 1) req.course = req.courses[0];
   next();
 }
 
@@ -55,4 +69,4 @@ async function requireTeachingStudent(req, res, next) {
   next();
 }
 
-module.exports = { requireRole, requireAssignedExam, requireOwnedExam, requireTeachingStudent, requireCourse };
+module.exports = { requireRole, requireAssignedExam, requireOwnedExam, requireTeachingStudent, requireCourse, loadCourses };

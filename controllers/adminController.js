@@ -60,8 +60,6 @@ async function courseData(body, courseId = null) {
     if (body.professorId) {
         const professor = await findUser(body.professorId);
         if (professor.role !== "profesor") throw new AdminError("El curso solo puede asignarse a un profesor.");
-        const assigned = await Course.findOne({ where: { professorId: professor.id } });
-        if (assigned && assigned.id !== courseId) throw new AdminError("Este profesor ya tiene un curso asignado.");
         professorId = professor.id;
     } else if (!courseId) {
         throw new AdminError("Selecciona un profesor para el nuevo curso.");

@@ -1,10 +1,27 @@
 const { DataTypes } = require("sequelize");
 const { sequelize, Course } = require("../models");
 
+async function removeCourseProfessorUniqueness(database = sequelize) {
+    const query = database.getQueryInterface();
+    const indexes = await query.showIndex("courses");
+    if (!indexes.some(index => index.unique && index.fields.length === 1 && index.fields[0].attribute === "professorId")) return;
+    await database.transaction(async (transaction) => {
+        await database.query("PRAGMA defer_foreign_keys = ON", { transaction });
+        await query.changeColumn("courses", "professorId", {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            unique: false,
+            references: { model: "users", key: "id" },
+            onDelete: "SET NULL",
+        }, { transaction });
+    });
+}
+
 async function initializeDatabase() {
     const query = sequelize.getQueryInterface();
     const tables = await query.showAllTables();
     await Course.sync();
+    await removeCourseProfessorUniqueness();
     if (tables.includes("exams")) {
         const columns = await query.describeTable("exams");
         if (!columns.creatorId) {
@@ -27,4 +44,4 @@ async function initializeDatabase() {
     await sequelize.sync();
 }
 
-module.exports = { initializeDatabase };
+module.exports = { initializeDatabase, removeCourseProfessorUniqueness };

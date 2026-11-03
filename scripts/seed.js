@@ -44,15 +44,13 @@ async function migrateDemoEmails() {
 }
 
 async function seedTemplate(users) {
-  const [course] = await Course.findCreateFind({
-    where: { professorId: users.profesor.id },
-    defaults: { name: "Accesibilidad e interfaces" },
-  });
+  const course = await Course.findOne({ where: { professorId: users.profesor.id }, order: [["id", "ASC"]] })
+    || await Course.create({ professorId: users.profesor.id, name: "Accesibilidad e interfaces" });
   const [exam] = await Exam.findCreateFind({
     where: { title: "Plantilla de todos los tipos de pregunta", creatorId: users.profesor.id },
     defaults: { courseId: course.id, instructions: "Responde todas las preguntas. La respuesta de conceptos requiere revision del profesor." },
   });
-  if (exam.courseId !== course.id) await exam.update({ courseId: course.id });
+  if (!exam.courseId) await exam.update({ courseId: course.id });
 
   for (const input of templateInputs) {
     const normalized = normalizeQuestionInput(input);

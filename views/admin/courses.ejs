@@ -1,5 +1,5 @@
 <%- include('../partials/admin-header') %>
-    <% const available=professors.filter(professor=> !courses.some(course => course.professorId === professor.id)); %>
+    <% const available=professors; %>
         <details class="admin-editor" open>
             <summary><i class="ti ti-plus" aria-hidden="true"></i> Nuevo curso</summary>
             <form action="/admin/courses" method="POST" class="admin-form-grid">
@@ -63,9 +63,7 @@
                                                     maxlength="200" /></label>
                                             <label>Profesor<select name="professorId">
                                                     <option value="">Sin profesor</option>
-                                                    <% professors.filter(professor=> professor.id === course.professorId
-                                                        || available.some(item => item.id ===
-                                                        professor.id)).forEach(professor => { %>
+                                                    <% professors.forEach(professor=> { %>
                                                         <option value="<%= professor.id %>"
                                                             <%=course.professorId===professor.id ? 'selected' : '' %>>
                                                             <%= professor.name || professor.email %>

@@ -1,7 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const professorController = require("../controllers/professorController");
-const { requireOwnedExam, requireTeachingStudent, requireCourse } = require("../middleware/access");
+const { requireOwnedExam, requireTeachingStudent, requireCourse, loadCourses } = require("../middleware/access");
 
 const router = express.Router();
 const uploadQtiPackage = multer({
@@ -18,14 +18,15 @@ function handleQtiUpload(req, res, next) {
         return res.status(400).render("professor/exam-import", {
             title: "Importar examen",
             errors: [{ msg: message }],
-            formData: {},
+            formData: req.body || {},
+            courses: req.courses,
         });
     });
 }
 
 router.get("/dashboard", professorController.dashboard);
 router.get("/exams/import", requireCourse, professorController.renderImportExam);
-router.post("/exams/import", requireCourse, handleQtiUpload, professorController.importExam);
+router.post("/exams/import", loadCourses, handleQtiUpload, requireCourse, professorController.importExam);
 router.get("/exams/create", requireCourse, professorController.renderCreateExam);
 router.post("/exams/create", requireCourse, professorController.createExam);
 router.get("/exams/:id/edit", requireOwnedExam(), professorController.renderEditExam);

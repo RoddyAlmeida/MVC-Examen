@@ -4,17 +4,19 @@ const { parseQtiPackage } = require("../services/examImport");
 const MAX_QUESTIONS_PER_EXAM = 100;
 
 async function dashboard(req, res) {
-  const course = await Course.findOne({ where: { professorId: req.session.userId } });
+  const courses = await Course.findAll({ where: { professorId: req.session.userId }, order: [["name", "ASC"]] });
+  const course = req.query?.courseId ? courses.find(item => item.id === Number(req.query.courseId)) : courses[0] || null;
+  if (req.query?.courseId && !course) return res.status(403).render("errors/generic", { title: "Acceso denegado", message: "El curso seleccionado no esta asignado a tu cuenta." });
   const exams = course ? await Exam.findAll({ where: { courseId: course.id, creatorId: req.session.userId }, order: [["createdAt", "DESC"]] }) : [];
-  res.render("professor/dashboard", { title: course ? course.name : "Mi curso", exams, course });
+  res.render("professor/dashboard", { title: course ? course.name : "Mis cursos", exams, course, courses });
 }
 
 function renderImportExamPage(res, errors = [], formData = {}, status = 200) {
-  return res.status(status).render("professor/exam-import", { title: "Importar examen", errors, formData });
+  return res.status(status).render("professor/exam-import", { title: "Importar examen", errors, formData, courses: res.locals.courses || [] });
 }
 
 function renderImportExam(req, res) {
-  return renderImportExamPage(res);
+  return renderImportExamPage(res, [], { courseId: req.course?.id || "" });
 }
 
 async function importExam(req, res) {
@@ -41,12 +43,12 @@ async function importExam(req, res) {
     });
     res.redirect(`/professor/exams/${exam.id}/questions`);
   } catch (error) {
-    return renderImportExamPage(res, [{ msg: error.message }], {}, 400);
+    return renderImportExamPage(res, [{ msg: error.message }], req.body || {}, 400);
   }
 }
 
 async function renderCreateExam(req, res) {
-  res.render("professor/exam-form", { title: "Crear examen", exam: null, errors: [], course: req.course });
+  res.render("professor/exam-form", { title: "Crear examen", exam: null, errors: [], course: req.course, courses: req.courses });
 }
 
 async function createExam(req, res) {
@@ -55,10 +57,10 @@ async function createExam(req, res) {
   if (!title || !title.trim()) errors.push({ msg: "El título es obligatorio." });
   if (!instructions || !instructions.trim()) errors.push({ msg: "Las instrucciones son obligatorias." });
   if (errors.length > 0) {
-    return res.status(400).render("professor/exam-form", { title: "Crear examen", exam: req.body, errors, course: req.course });
+    return res.status(400).render("professor/exam-form", { title: "Crear examen", exam: req.body, errors, course: req.course, courses: req.courses });
   }
   await Exam.create({ title: title.trim(), instructions: instructions.trim(), creatorId: req.session.userId, courseId: req.course.id });
-  res.redirect("/professor/dashboard");
+  res.redirect(`/professor/dashboard?courseId=${req.course.id}`);
 }
 
 async function renderEditExam(req, res) {
@@ -78,13 +80,13 @@ async function editExam(req, res) {
     return res.status(400).render("professor/exam-form", { title: "Editar examen", exam: { ...req.body, id: exam.id }, errors, course: req.course });
   }
   await exam.update({ title: title.trim(), instructions: instructions.trim() });
-  res.redirect("/professor/dashboard");
+  res.redirect(`/professor/dashboard?courseId=${req.course.id}`);
 }
 
 async function deleteExam(req, res) {
   const exam = await Exam.findByPk(req.params.id);
   if (exam) await exam.destroy();
-  res.redirect("/professor/dashboard");
+  res.redirect(`/professor/dashboard?courseId=${req.course.id}`);
 }
 
 async function findQuestions(examId) {

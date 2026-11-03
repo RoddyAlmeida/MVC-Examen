@@ -6,12 +6,13 @@ const controller = require("../controllers/adminController");
 const { requireRole, requireAssignedExam, requireOwnedExam, requireCourse } = require("../middleware/access");
 const professorController = require("../controllers/professorController");
 const { calculateMetrics } = require("../services/adminMetrics");
-const { initializeDatabase } = require("../services/schemaMigration");
+const { initializeDatabase, removeCourseProfessorUniqueness } = require("../services/schemaMigration");
 const { seedTemplate, templateInputs } = require("../scripts/seed");
 const { QUESTION_TYPES, normalizeQuestionInput } = require("../services/questionService");
 
 function response() {
     return {
+        locals: {},
         statusCode: 200,
         status(code) { this.statusCode = code; return this; },
         render(view, data) { this.view = view; this.data = data; },
@@ -149,6 +150,7 @@ test("schema migration adds missing course and authorship columns without forcin
     context.mock.method(Course, "sync", async (options) => assert.equal(options, undefined));
     context.mock.method(sequelize, "getQueryInterface", () => ({
         async showAllTables() { return ["exams"]; },
+        async showIndex() { return []; },
         async describeTable() { return columns; },
         async addColumn(table, column) { assert.equal(table, "exams"); added.push(column); columns[column] = {}; },
     }));
@@ -164,9 +166,9 @@ test("template covers all types and repeated seeding does not duplicate question
     assert.equal(definitions.filter(item => item.type === "true_false").length, 2);
     const questions = new Map();
     const contents = new Map();
-    context.mock.method(Course, "findCreateFind", async ({ where }) => {
+    context.mock.method(Course, "findOne", async ({ where }) => {
         assert.deepEqual(where, { professorId: 2 });
-        return [{ id: 9 }, false];
+        return { id: 9 };
     });
     context.mock.method(Exam, "findCreateFind", async ({ defaults }) => {
         assert.equal(defaults.courseId, 9);
@@ -190,41 +192,46 @@ test("template covers all types and repeated seeding does not duplicate question
     assert.equal(contents.size, 7);
 });
 
-test("courses require a professor and reject professors already assigned", async (context) => {
+test("courses require a professor and allow several courses for the same professor", async (context) => {
     let role = "estudiante";
-    let assigned = null;
     context.mock.method(User, "findByPk", async () => ({ id: 7, role }));
-    context.mock.method(Course, "findOne", async () => assigned);
     const create = context.mock.method(Course, "create", async (values) => {
         assert.deepEqual(values, { name: "Matematicas", professorId: 7 });
     });
     const req = { body: { name: " Matematicas ", professorId: "7" }, session: {} };
     await assert.rejects(controller.createCourse(req, response()), /solo puede asignarse/);
     role = "profesor";
-    assigned = { id: 2 };
-    await assert.rejects(controller.createCourse(req, response()), /ya tiene un curso/);
-    assigned = null;
     const res = response();
     await controller.createCourse(req, res);
-    assert.equal(create.mock.callCount(), 1);
+    await controller.createCourse(req, res);
+    assert.equal(create.mock.callCount(), 2);
     assert.equal(res.location, "/admin/courses");
     for (const body of [{ name: "", professorId: "7" }, { name: "x".repeat(201), professorId: "7" }, { name: "Curso" }]) {
         await assert.rejects(controller.createCourse({ body, session: {} }, response()), controller.AdminError);
     }
 });
 
-test("course professor uniqueness is enforced by the database, including concurrent creation", async () => {
+test("course migration permits multiple courses per professor and preserves referenced exams", async () => {
     const { Sequelize } = require("sequelize");
-    const database = new Sequelize({ dialect: "sqlite", storage: "file::memory:", dialectModule: require("@libsql/sqlite3"), logging: false });
+    const database = new Sequelize({ dialect: "sqlite", storage: ":memory:", dialectModule: require("sqlite3"), logging: false });
     try {
         const Courses = require("../models/Course")(database);
-        await database.sync();
-        const attempts = await Promise.allSettled([
-            Courses.create({ name: "A", professorId: 7 }),
-            Courses.create({ name: "B", professorId: 7 }),
-        ]);
-        assert.equal(attempts.filter(attempt => attempt.status === "fulfilled").length, 1);
-        assert.equal(attempts.find(attempt => attempt.status === "rejected").reason.name, "SequelizeUniqueConstraintError");
+        await database.query("PRAGMA foreign_keys = ON");
+        await database.query("CREATE TABLE users (id INTEGER PRIMARY KEY)");
+        await database.query("INSERT INTO users VALUES (7)");
+        await database.query("CREATE TABLE courses (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(200) NOT NULL, professorId INTEGER UNIQUE REFERENCES users(id) ON DELETE SET NULL, createdAt DATETIME NOT NULL, updatedAt DATETIME NOT NULL)");
+        const first = await Courses.create({ name: "A", professorId: 7 });
+        await database.query("CREATE TABLE exams (id INTEGER PRIMARY KEY, courseId INTEGER REFERENCES courses(id) ON DELETE RESTRICT)");
+        await database.query("INSERT INTO exams VALUES (1, $courseId)", { bind: { courseId: first.id } });
+        await removeCourseProfessorUniqueness(database);
+        await removeCourseProfessorUniqueness(database);
+        await Courses.create({ name: "B", professorId: 7 });
+        assert.equal(await Courses.count({ where: { professorId: 7 } }), 2);
+        assert.equal((await first.reload()).name, "A");
+        const [exams] = await database.query("SELECT * FROM exams");
+        assert.equal(exams[0].courseId, first.id);
+        const [violations] = await database.query("PRAGMA foreign_key_check");
+        assert.deepEqual(violations, []);
         await Courses.create({ name: "Sin docente A", professorId: null });
         await Courses.create({ name: "Sin docente B", professorId: null });
     } finally {
@@ -269,29 +276,37 @@ test("courses with exams cannot be deleted", async (context) => {
 });
 
 test("professors without a course cannot create or import exams", async (context) => {
-    context.mock.method(Course, "findOne", async ({ where }) => {
+    context.mock.method(Course, "findAll", async ({ where }) => {
         assert.deepEqual(where, { professorId: 7 });
-        return null;
+        return [];
     });
     const res = response();
     await requireCourse({ session: { userId: 7 } }, res, () => assert.fail("Course-less access allowed"));
     assert.equal(res.statusCode, 403);
 });
 
-test("professor exam creation uses the assigned course, not submitted course or creator IDs", async (context) => {
-    context.mock.method(Course, "findOne", async () => ({ id: 3 }));
+test("professor exam creation uses a selected own course and rejects foreign courses", async (context) => {
+    context.mock.method(Course, "findAll", async () => [{ id: 3 }, { id: 4 }]);
     const create = context.mock.method(Exam, "create", async (values) => {
         assert.deepEqual(values, { title: "Examen", instructions: "Resolver", creatorId: 7, courseId: 3 });
     });
-    const req = { session: { userId: 7 }, body: { title: " Examen ", instructions: " Resolver ", courseId: 99, creatorId: 99 } };
-    await requireCourse(req, response(), () => { });
-    await professorController.createExam(req, response());
+    const req = { method: "POST", session: { userId: 7 }, body: { title: " Examen ", instructions: " Resolver ", courseId: 99, creatorId: 99 } };
+    const rejected = response();
+    await requireCourse(req, rejected, () => assert.fail("Foreign course allowed"));
+    assert.equal(rejected.statusCode, 403);
+    delete req.body.courseId;
+    await requireCourse(req, response(), () => assert.fail("Missing course allowed"));
+    req.body.courseId = "3";
+    await requireCourse(req, response(), () => {});
+    const createdResponse = response();
+    await professorController.createExam(req, createdResponse);
+    assert.equal(createdResponse.location, "/professor/dashboard?courseId=3");
     assert.equal(create.mock.callCount(), 1);
 });
 
-test("professor dashboard only queries exams from its assigned course", async (context) => {
-    let course = { id: 3, name: "Curso" };
-    context.mock.method(Course, "findOne", async () => course);
+test("professor dashboard filters its courses and rejects a foreign course", async (context) => {
+    let courses = [{ id: 3, name: "Curso" }, { id: 4, name: "Segundo" }];
+    context.mock.method(Course, "findAll", async () => courses);
     const exams = context.mock.method(Exam, "findAll", async ({ where }) => {
         assert.deepEqual(where, { courseId: 3, creatorId: 7 });
         return [];
@@ -299,7 +314,11 @@ test("professor dashboard only queries exams from its assigned course", async (c
     const res = response();
     await professorController.dashboard({ session: { userId: 7 } }, res);
     assert.equal(res.data.course.id, 3);
-    course = null;
+    assert.equal(res.data.courses.length, 2);
+    const rejected = response();
+    await professorController.dashboard({ session: { userId: 7 }, query: { courseId: "99" } }, rejected);
+    assert.equal(rejected.statusCode, 403);
+    courses = [];
     await professorController.dashboard({ session: { userId: 7 } }, res);
     assert.equal(exams.mock.callCount(), 1);
     assert.deepEqual(res.data.exams, []);
@@ -397,25 +416,52 @@ test("course HTTP workflow migrates legacy exams and preserves assignments on re
     assert.equal((await post("/admin/courses", { name: "Curso", professorId: professor.id }, adminCookie)).status, 403);
     assert.equal((await post("/admin/courses", { name: "Curso", professorId: professor.id, _csrf: csrf }, adminCookie)).status, 302);
     const course = await Course.findOne({ where: { professorId: professor.id } });
-    await post("/admin/courses", { name: "Duplicado", professorId: professor.id, _csrf: csrf }, adminCookie);
-    assert.equal(await Course.count(), 1);
+    await post("/admin/courses", { name: "Segundo", professorId: professor.id, _csrf: csrf }, adminCookie);
+    await post("/admin/courses", { name: "Otro", professorId: replacement.id, _csrf: csrf }, adminCookie);
+    assert.equal(await Course.count(), 3);
+    const secondCourse = await Course.findOne({ where: { name: "Segundo" } });
     await post(`/admin/exams/${legacy.id}/update`, { title: legacy.title, instructions: legacy.instructions, courseId: course.id, _csrf: csrf }, adminCookie);
     assert.equal((await legacy.reload()).courseId, course.id);
-    const invalid = await post("/professor/exams/create", { title: "", instructions: "Resolver" }, professorCookie);
+    const invalid = await post("/professor/exams/create", { title: "", instructions: "Resolver", courseId: course.id }, professorCookie);
     assert.equal(invalid.status, 400);
     assert.match(await invalid.text(), /action="\/professor\/exams\/create"/);
-    assert.equal((await post("/professor/exams/create", { title: "Nuevo", instructions: "Resolver", courseId: 999 }, professorCookie)).status, 302);
+    assert.equal((await post("/professor/exams/create", { title: "Nuevo", instructions: "Resolver", courseId: 999 }, professorCookie)).status, 403);
+    assert.equal((await post("/professor/exams/create", { title: "Nuevo", instructions: "Resolver" }, professorCookie)).status, 403);
+    assert.equal((await post("/professor/exams/create", { title: "Nuevo", instructions: "Resolver", courseId: course.id }, professorCookie)).status, 302);
     const created = await Exam.findOne({ where: { title: "Nuevo" } });
     assert.equal(created.courseId, course.id);
     assert.equal(created.creatorId, professor.id);
+    assert.equal((await post("/professor/exams/create", { title: "Segundo examen", instructions: "Resolver", courseId: secondCourse.id }, professorCookie)).status, 302);
+    const secondPage = await fetch(`${base}/professor/dashboard?courseId=${secondCourse.id}`, { headers: { cookie: professorCookie } });
+    const secondHtml = await secondPage.text();
+    assert.match(secondHtml, /Segundo examen/);
+    assert.doesNotMatch(secondHtml, /<h2[^>]*>\s*Nuevo\s*<\/h2>/);
+    const zip = new (require("yazl").ZipFile)();
+    const chunks = [];
+    const zipBuffer = new Promise(resolve => {
+        zip.outputStream.on("data", chunk => chunks.push(chunk));
+        zip.outputStream.on("end", () => resolve(Buffer.concat(chunks)));
+    });
+    zip.addBuffer(Buffer.from('<manifest><resources><resource identifier="item" type="imsqti_item_xmlv3p0" href="item.xml"><file href="item.xml"/></resource></resources></manifest>'), "imsmanifest.xml");
+    zip.addBuffer(Buffer.from('<qti-assessment-item identifier="item" title="Importado" time-dependent="false"><qti-response-declaration identifier="RESPONSE" cardinality="single" base-type="string"/><qti-item-body><p>Explica</p><qti-extended-text-interaction response-identifier="RESPONSE"/></qti-item-body></qti-assessment-item>'), "item.xml");
+    zip.end();
+    const form = new FormData();
+    form.append("qtiPackage", new Blob([await zipBuffer]), "qti.zip");
+    form.append("courseId", String(secondCourse.id));
+    const imported = await fetch(`${base}/professor/exams/import`, { method: "POST", body: form, headers: { cookie: professorCookie }, redirect: "manual" });
+    assert.equal(imported.status, 302);
+    const importedId = Number(imported.headers.get("location").split("/")[3]);
+    assert.equal((await Exam.findByPk(importedId)).courseId, secondCourse.id);
     assert.equal((await fetch(`${base}/professor/exams/${created.id}/edit`, { headers: { cookie: replacementCookie } })).status, 403);
     for (const path of ["/admin/dashboard", "/admin/exams", "/admin/users", "/professor/dashboard", `/professor/exams/${created.id}/edit`]) {
         assert.equal((await fetch(`${base}${path}`, { headers: { cookie: path.startsWith("/admin") ? adminCookie : professorCookie } })).status, 200, path);
     }
     await post(`/admin/courses/${course.id}/delete`, { _csrf: csrf }, adminCookie);
-    assert.equal(await Course.count(), 1);
+    assert.equal(await Course.count(), 3);
     await post(`/admin/courses/${course.id}/update`, { name: "Renombrado", professorId: replacement.id, _csrf: csrf }, adminCookie);
     assert.equal((await created.reload()).creatorId, replacement.id);
+    const retained = await Exam.findOne({ where: { title: "Segundo examen" } });
+    assert.equal(retained.creatorId, professor.id);
     assert.equal((await fetch(`${base}/professor/exams/${created.id}/edit`, { headers: { cookie: professorCookie } })).status, 403);
     assert.equal((await fetch(`${base}/professor/exams/${created.id}/edit`, { headers: { cookie: replacementCookie } })).status, 200);
     assert.equal((await assignment.reload()).examId, legacy.id);

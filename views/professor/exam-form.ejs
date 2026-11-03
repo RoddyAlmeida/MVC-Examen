@@ -27,9 +27,11 @@
       <h1>
         <%= exam && exam.id ? 'Editar examen' : 'Nuevo examen' %>
       </h1>
-      <p><i class="ti ti-school" aria-hidden="true"></i>
-        <%= course.name %>
-      </p>
+      <% if (course) { %>
+        <p><i class="ti ti-school" aria-hidden="true"></i>
+          <%= course.name %>
+        </p>
+        <% } %>
     </header>
 
     <% if (errors.length> 0) { %>
@@ -49,24 +51,36 @@
 
         <form method="POST" action="/professor/exams/<%= exam && exam.id ? exam.id + '/edit' : 'create' %>"
           class="panel">
-          <div class="form-group">
-            <label for="title" class="form-label">Título del examen</label>
-            <input type="text" id="title" name="title" class="form-input" value="<%= exam ? exam.title : '' %>"
-              placeholder="Ej: Examen de Introducción a HCI" required />
-          </div>
-          <div class="form-group">
-            <label for="instructions" class="form-label">Instrucciones</label>
-            <textarea id="instructions" name="instructions" class="form-input form-textarea" rows="4"
-              placeholder="Describe las indicaciones para el estudiante..."
-              required><%= exam ? exam.instructions : '' %></textarea>
-          </div>
-          <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-            <button type="submit" class="btn btn-primary">
-              <i class="ti ti-device-floppy" aria-hidden="true"></i>
-              <%= exam ? 'Guardar cambios' : 'Crear examen' %>
-            </button>
-            <a href="/professor/dashboard" class="btn btn-secondary">Cancelar</a>
-          </div>
+          <% if (!exam || !exam.id) { %>
+            <div class="form-group">
+              <label for="courseId" class="form-label">Curso</label>
+              <select id="courseId" name="courseId" class="form-input" required>
+                <option value="">Seleccionar curso</option>
+                <% courses.forEach(item=> { %>
+                  <option value="<%= item.id %>" <%=course && course.id===item.id ? 'selected' : '' %>><%= item.name %>
+                  </option>
+                  <% }) %>
+              </select>
+            </div>
+            <% } %>
+              <div class="form-group">
+                <label for="title" class="form-label">Título del examen</label>
+                <input type="text" id="title" name="title" class="form-input" value="<%= exam ? exam.title : '' %>"
+                  placeholder="Ej: Examen de Introducción a HCI" required />
+              </div>
+              <div class="form-group">
+                <label for="instructions" class="form-label">Instrucciones</label>
+                <textarea id="instructions" name="instructions" class="form-input form-textarea" rows="4"
+                  placeholder="Describe las indicaciones para el estudiante..."
+                  required><%= exam ? exam.instructions : '' %></textarea>
+              </div>
+              <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="submit" class="btn btn-primary">
+                  <i class="ti ti-device-floppy" aria-hidden="true"></i>
+                  <%= exam && exam.id ? 'Guardar cambios' : 'Crear examen' %>
+                </button>
+                <a href="/professor/dashboard" class="btn btn-secondary">Cancelar</a>
+              </div>
         </form>
   </main>
   <script src="/js/themeToggle.js"></script>

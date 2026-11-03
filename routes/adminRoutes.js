@@ -43,7 +43,7 @@ router.use((error, req, res, next) => {
     const courses = req.path.startsWith("/courses");
     req.session.adminNotice = {
         kind: "error", message: error.name === "SequelizeUniqueConstraintError"
-            ? (courses ? "Este profesor ya tiene un curso asignado." : "Ya existe una cuenta con ese correo.") : error.message
+            ? (courses ? "No se pudo guardar el curso por un conflicto de datos." : "Ya existe una cuenta con ese correo.") : error.message
     };
     res.redirect(courses ? "/admin/courses" : req.path.startsWith("/exams") ? "/admin/exams" : "/admin/users");
 });
