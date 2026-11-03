@@ -15,7 +15,18 @@ async function login(req, res) {
     return res.render("login", { title: "Iniciar sesión", error: "Correo y contraseña son obligatorios.", registered: false });
   }
 
-  const user = await User.findOne({ where: { email } });
+  let user;
+  try {
+    user = await User.findOne({ where: { email } });
+  } catch (error) {
+    const status = error.parent?.original?.status || error.parent?.status;
+    console.error("Login database lookup failed:", status ? `HTTP ${status}` : error.message);
+    return res.status(503).render("login", {
+      title: "Iniciar sesión",
+      error: "No se pudo consultar la base de datos. Revisa la conexión con Turso e inténtalo de nuevo.",
+      registered: false,
+    });
+  }
   if (!user) {
     return res.render("login", { title: "Iniciar sesión", error: "Correo o contraseña incorrectos.", registered: false });
   }
