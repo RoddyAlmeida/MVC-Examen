@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+
+<body>
+    <main class="container app-shell" style="max-width: 900px;">
+        <div class="theme-toggle-wrapper"><button id="theme-toggle" class="theme-toggle"
+                aria-label="Cambiar modo de color"><i class="ti ti-moon" aria-hidden="true"></i></button></div>
+        <header class="page-header">
+            <a href="/professor/dashboard" class="btn btn-secondary" style="margin-bottom: 1rem; width: fit-content;"><i
+                    class="ti ti-arrow-left" aria-hidden="true"></i> Volver</a>
+            <p class="eyebrow"><i class="ti ti-file-import" aria-hidden="true"></i> Panel del profesor</p>
+            <h1>Importar examen QTI</h1>
+            <p class="lead">Carga un paquete de evaluación interoperable en formato QTI 3.</p>
+        </header>
+        <% if (errors.length) { %>
+            <div class="alert alert-error" role="alert">
+                <ul>
+                    <% errors.forEach((error)=> { %><li>
+                            <%= error.msg %>
+                        </li>
+                        <% }) %>
+                </ul>
+            </div>
+            <% } %>
+                <section class="panel">
+                    <form method="POST" action="/professor/exams/import" enctype="multipart/form-data"
+                        id="examImportForm">
+                        <div class="form-group">
+                            <label class="form-label" for="qtiPackage">Paquete QTI 3 (.zip)</label>
+                            <input id="qtiPackage" name="qtiPackage" class="form-input" type="file"
+                                accept=".zip,application/zip" aria-describedby="importStatus" required>
+                            <p id="importStatus" class="assistive-status" role="status" aria-live="polite">Elige un
+                                paquete ZIP de hasta 10 MB.</p>
+                        </div>
+                        <button type="submit" id="importSubmit" class="btn btn-primary"><i class="ti ti-upload"
+                                aria-hidden="true"></i> Importar paquete QTI</button>
+                    </form>
+                </section>
+                <section class="panel">
+                    <h2>Interacciones admitidas</h2>
+                    <ul class="feature-list">
+                        <li>Selección única, incluida verdadero/falso si las opciones están etiquetadas así.</li>
+                        <li>Respuesta corta mediante <code>textEntryInteraction</code>.</li>
+                        <li>Respuesta desarrollada mediante <code>extendedTextInteraction</code>, pendiente de
+                            corrección manual.</li>
+                    </ul>
+                    <p class="form-help">Se importa un único examen, con hasta 100 ítems y una interacción compatible
+                        por ítem. Se rechazan selecciones múltiples, recursos multimedia y otros tipos para evitar
+                        perder contenido. El crucigrama de esta app no tiene una interacción QTI portátil equivalente.
+                    </p>
+                    <p>QTI 3 es el estándar de 1EdTech para intercambiar preguntas y pruebas. El paquete debe contener
+                        <code>imsmanifest.xml</code> en la raíz y recursos de ítem QTI 3.</p>
+                    <p><a href="https://www.imsglobal.org/spec/qti/v3p0/guide" target="_blank"
+                            rel="noopener noreferrer">Guía oficial QTI 3</a> · <a
+                            href="https://github.com/1EdTech/qti-examples/tree/master/qtiv3-examples/packaging"
+                            target="_blank" rel="noopener noreferrer">Paquetes de ejemplo de 1EdTech</a></p>
+                </section>
+    </main>
+    <script src="/js/themeToggle.js"></script>
+    <script src="/js/examImport.js"></script>
+</body>
+
+</html>

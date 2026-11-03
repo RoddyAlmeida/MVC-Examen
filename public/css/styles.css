@@ -66,14 +66,17 @@ a {
   color: var(--primary);
   text-decoration: none;
 }
+
 a:visited {
   color: var(--primary);
   opacity: 0.8;
 }
+
 .btn:visited {
   color: inherit;
   opacity: 1;
 }
+
 a:hover {
   text-decoration: underline;
 }
@@ -238,16 +241,19 @@ h2 {
 }
 
 /* Lists */
-.feature-list, .step-list {
+.feature-list,
+.step-list {
   padding-left: 1.5rem;
   color: var(--text-secondary);
 }
 
-.feature-list li, .step-list li {
+.feature-list li,
+.step-list li {
   margin-bottom: 0.5rem;
 }
 
-.feature-list strong, .step-list strong {
+.feature-list strong,
+.step-list strong {
   color: var(--text-primary);
 }
 
@@ -686,10 +692,12 @@ h2 {
   pointer-events: none;
   transition: opacity 0.2s ease;
 }
+
 .modal-overlay.modal--open {
   opacity: 1;
   pointer-events: auto;
 }
+
 .modal-box {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -699,16 +707,19 @@ h2 {
   max-width: 480px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
+
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.25rem;
 }
+
 .modal-header h3 {
   margin: 0;
   font-size: 1.15rem;
 }
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -722,6 +733,7 @@ h2 {
     opacity: 0;
     transform: translateY(20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -733,6 +745,7 @@ h2 {
     transform: translateY(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -743,6 +756,7 @@ h2 {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -944,7 +958,9 @@ h2 {
   min-width: 0;
 }
 
-.hidden { display: none !important; }
+.hidden {
+  display: none !important;
+}
 
 .centered-page {
   display: flex;
@@ -1009,18 +1025,203 @@ h2 {
   .exam-card-actions {
     justify-content: flex-end;
   }
+
   .app-shell {
     padding: 1.5rem;
     border-radius: 16px;
     margin-top: 1rem;
   }
-  
+
   .progress-panel {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .score-value {
     font-size: 3rem;
   }
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.question-config {
+  margin-bottom: 1.25rem;
+}
+
+.question-config legend {
+  padding: 0 0.4rem;
+  font-weight: 700;
+}
+
+.form-help {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.8rem;
+}
+
+.choice-option-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.65rem;
+}
+
+.choice-option-row input[type="radio"] {
+  accent-color: var(--primary);
+}
+
+.drag-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.drag-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  background: var(--card-bg);
+  cursor: grab;
+}
+
+.drag-choice:active {
+  cursor: grabbing;
+}
+
+.fill-template {
+  margin: 1rem 0;
+  font-size: 1.1rem;
+}
+
+.drop-answer {
+  display: inline-block;
+  min-width: 10rem;
+  margin: 0 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-bottom: 2px dashed var(--primary);
+  color: var(--primary);
+}
+
+.crossword-layout {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.crossword-grid {
+  max-width: 100%;
+  overflow: auto;
+  padding: 0.25rem;
+}
+
+.crossword-row {
+  display: flex;
+}
+
+.crossword-cell {
+  position: relative;
+  display: block;
+  flex: 0 0 2.15rem;
+  width: 2.15rem;
+  height: 2.15rem;
+  border: 1px solid var(--text-secondary);
+  background: var(--card-bg);
+}
+
+.crossword-cell input {
+  width: 100%;
+  height: 100%;
+  padding: 0.15rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: center;
+  text-transform: uppercase;
+  font: inherit;
+  font-weight: 700;
+}
+
+.crossword-cell input:focus {
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.crossword-cell--blocked {
+  border-color: transparent;
+  background: transparent;
+}
+
+.crossword-number {
+  position: absolute;
+  top: 0;
+  left: 0.15rem;
+  z-index: 1;
+  color: var(--text-secondary);
+  font-size: 0.55rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.crossword-clues {
+  display: grid;
+  gap: 1rem;
+}
+
+.crossword-clues h3 {
+  margin-bottom: 0.35rem;
+  font-size: 1rem;
+}
+
+.crossword-clues ol {
+  padding-left: 1.5rem;
+}
+
+.crossword-clues li {
+  padding: 0.2rem 0;
+}
+
+@media (max-width: 640px) {
+  .crossword-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crossword-grid {
+    max-width: calc(100vw - 5rem);
+  }
+
+  .crossword-cell {
+    flex-basis: 1.8rem;
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+}
+
+.import-example {
+  overflow: auto;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--secondary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.crossword-review-list {
+  padding-left: 1.5rem;
+}
+
+.crossword-review-list li {
+  padding: 0.35rem 0;
 }

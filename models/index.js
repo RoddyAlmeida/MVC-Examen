@@ -3,11 +3,13 @@ const createExamModel = require("./Exam");
 const createQuestionModel = require("./Question");
 const createUserModel = require("./User");
 const createResultModel = require("./Result");
+const createQuestionContentModel = require("./QuestionContent");
 
 const Exam = createExamModel(sequelize);
 const Question = createQuestionModel(sequelize);
 const User = createUserModel(sequelize);
 const Result = createResultModel(sequelize);
+const QuestionContent = createQuestionContentModel(sequelize);
 
 Exam.hasMany(Question, {
   foreignKey: "examId",
@@ -17,6 +19,17 @@ Exam.hasMany(Question, {
 Question.belongsTo(Exam, {
   foreignKey: "examId",
   as: "exam",
+});
+
+Question.hasOne(QuestionContent, {
+  foreignKey: { name: "questionId", allowNull: false },
+  as: "content",
+  onDelete: "CASCADE",
+});
+
+QuestionContent.belongsTo(Question, {
+  foreignKey: "questionId",
+  as: "question",
 });
 
 User.hasMany(Result, {
@@ -43,6 +56,7 @@ module.exports = {
   sequelize,
   Exam,
   Question,
+  QuestionContent,
   User,
   Result,
 };

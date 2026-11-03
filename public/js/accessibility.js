@@ -19,29 +19,37 @@ if (commandStatus && examForm) {
   };
 
   const clearAnswers = () => {
-    const selected = examForm.querySelectorAll('input[type="radio"]:checked');
-    selected.forEach((radio) => {
-      radio.checked = false;
+    examForm.querySelectorAll("[data-question-answer], [data-crossword-cell]").forEach((control) => {
+      if (control.type === "radio") {
+        control.checked = false;
+      } else if (control.tagName === "SELECT") {
+        control.selectedIndex = 0;
+        control.dispatchEvent(new Event("change", { bubbles: true }));
+      } else {
+        control.value = "";
+      }
     });
     updateProgress();
   };
 
   const updateProgress = () => {
     const groups = new Map();
-    const radios = examForm.querySelectorAll('input[type="radio"]');
-    radios.forEach((radio) => {
-      if (!groups.has(radio.name)) {
-        groups.set(radio.name, false);
-      }
-      if (radio.checked) {
-        groups.set(radio.name, true);
+    examForm.querySelectorAll("[data-question-answer], [data-crossword-cell]").forEach((control) => {
+      const questionId = control.dataset.questionAnswer || control.dataset.crosswordCell;
+      if (!groups.has(questionId)) groups.set(questionId, { hasRadios: false, radioChecked: false, fields: [] });
+      const group = groups.get(questionId);
+      if (control.type === "radio") {
+        group.hasRadios = true;
+        group.radioChecked ||= control.checked;
+      } else {
+        group.fields.push(Boolean(control.value.trim()));
       }
     });
 
     const total = groups.size;
     let completed = 0;
-    groups.forEach((isCompleted) => {
-      if (isCompleted) {
+    groups.forEach((group) => {
+      if (group.hasRadios ? group.radioChecked : group.fields.length > 0 && group.fields.every(Boolean)) {
         completed += 1;
       }
     });
@@ -65,6 +73,7 @@ if (commandStatus && examForm) {
     Array.from(examForm.querySelectorAll(`input[type="radio"][name="${radio.name}"]`));
 
   examForm.addEventListener("change", updateProgress);
+  examForm.addEventListener("input", updateProgress);
   updateProgress();
 
   document.addEventListener("keydown", () => {

@@ -13,6 +13,8 @@ Aplicación de exámenes con arquitectura MVC, interfaz EJS y cliente de escrito
 - Cliente Electron que abre la aplicación local en una ventana controlada.
 - Integración con Sequelize y base de datos remota vía Turso configurada mediante `.env`.
 - Scripts separados para desarrollo web, Electron, carga de datos y build de instalador.
+- Hasta 100 preguntas por examen: opción múltiple con cualquier número de opciones, verdadero/falso, completar escrito o arrastrando, conceptos con revisión manual y crucigramas generados desde pistas.
+- Importación de paquetes de evaluación QTI 3 (1EdTech) con una lista explícita de interacciones soportadas.
 
 ## Stack
 
@@ -52,6 +54,20 @@ pnpm run electron
 ```bash
 pnpm run seed
 ```
+
+**Aviso:** el seed sincroniza la base de datos con `force: true`; elimina las tablas existentes antes de crear los datos de ejemplo.
+
+### Importar un examen
+
+Desde el panel del profesor, selecciona **Importar examen QTI** y carga un paquete `.zip` de hasta 10 MB. Debe ser un paquete QTI 3 con `imsmanifest.xml` en la raíz y recursos `imsqti_item_xmlv3p0`. Si incluye un recurso de evaluación QTI, se respeta el orden de sus referencias a los ítems. La importación se guarda en una transacción.
+
+QTI (Question & Test Interoperability) es el estándar de 1EdTech para intercambiar ítems y pruebas entre herramientas de autoría y plataformas de evaluación. Esta app implementa un subconjunto, no afirma conformidad/certificación completa:
+
+- `choiceInteraction` de selección única, incluida verdadero/falso cuando las opciones están etiquetadas como True/False o Verdadero/Falso.
+- `textEntryInteraction` con respuestas correctas declaradas.
+- `extendedTextInteraction`, que queda pendiente de corrección manual.
+
+Se rechazan selección múltiple, interacciones no implementadas e ítems con imágenes o multimedia para evitar perder contenido silenciosamente. El crucigrama de esta app no tiene una interacción QTI portátil equivalente y no se importa. Consulta la [guía oficial QTI 3](https://www.imsglobal.org/spec/qti/v3p0/guide) y los [paquetes de ejemplo de 1EdTech](https://github.com/1EdTech/qti-examples/tree/master/qtiv3-examples/packaging) para crear o exportar el archivo desde una herramienta compatible.
 
 ## Build de Windows
 

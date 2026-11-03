@@ -1,0 +1,55 @@
+(() => {
+    const form = document.getElementById("questionEditor");
+    if (!form) return;
+
+    const typeSelect = document.getElementById("questionType");
+    const optionList = document.getElementById("choiceOptions");
+
+    function updateTypeFields() {
+        form.querySelectorAll("[data-type-fields]").forEach((section) => {
+            const active = section.dataset.typeFields === typeSelect.value;
+            section.hidden = !active;
+            section.querySelectorAll("input, textarea, select, button").forEach((field) => {
+                field.disabled = !active;
+            });
+        });
+    }
+
+    function renumberOptions() {
+        const rows = [...optionList.querySelectorAll(".choice-option-row")];
+        rows.forEach((row, index) => {
+            const radio = row.querySelector('input[type="radio"]');
+            const text = row.querySelector('input[type="text"]');
+            radio.value = String(index);
+            radio.setAttribute("aria-label", `Marcar opción ${index + 1} como correcta`);
+            text.placeholder = `Opción ${index + 1}`;
+            row.querySelector("button").setAttribute("aria-label", `Eliminar opción ${index + 1}`);
+        });
+        optionList.querySelectorAll(".remove-option").forEach((button) => {
+            button.disabled = rows.length <= 2;
+        });
+    }
+
+    document.getElementById("addOption").addEventListener("click", () => {
+        const row = document.createElement("div");
+        row.className = "choice-option-row";
+        row.innerHTML = '<input type="radio" name="correctIndex"><input type="text" name="optionText[]" class="form-input"><button type="button" class="btn btn-secondary remove-option" aria-label="Eliminar opción"><i class="ti ti-x" aria-hidden="true"></i></button>';
+        optionList.append(row);
+        renumberOptions();
+        row.querySelector('input[type="text"]').focus();
+    });
+
+    optionList.addEventListener("click", (event) => {
+        const button = event.target.closest(".remove-option");
+        if (!button || optionList.querySelectorAll(".choice-option-row").length <= 2) return;
+        const row = button.closest(".choice-option-row");
+        const wasCorrect = row.querySelector('input[type="radio"]').checked;
+        row.remove();
+        renumberOptions();
+        if (wasCorrect) optionList.querySelector('input[type="radio"]').checked = true;
+    });
+
+    typeSelect.addEventListener("change", updateTypeFields);
+    updateTypeFields();
+    renumberOptions();
+})();
