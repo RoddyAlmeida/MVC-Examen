@@ -25,8 +25,7 @@
         <p class="eyebrow"><i class="ti ti-users" aria-hidden="true"></i>
           <%= typeof userName !=='undefined' ? userName : 'Estudiante' %>
         </p>
-        <h1>Exámenes disponibles</h1>
-        <p class="lead">Selecciona un examen para comenzar</p>
+        <h1>Mis exámenes</h1>
       </div>
       <div class="header-actions">
         <a href="/logout" class="btn btn-secondary">
@@ -39,7 +38,7 @@
       <section class="panel" style="text-align: center; padding: 3rem;">
         <i class="ti ti-file-off"
           style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
-        <p style="color: var(--text-secondary);">No hay exámenes disponibles en este momento.</p>
+        <p style="color: var(--text-secondary);">No tienes exámenes asignados.</p>
       </section>
       <% } else { %>
         <div class="exam-list">

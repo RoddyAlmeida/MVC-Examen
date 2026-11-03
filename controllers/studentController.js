@@ -1,4 +1,4 @@
-const { Exam, Question, QuestionContent, Result } = require("../models");
+const { Exam, Question, QuestionContent, Result, ExamAssignment } = require("../models");
 const { getQuestionDefinition, gradeQuestion } = require("../services/questionService");
 const { buildCrosswordLayout } = require("../services/crosswordLayout");
 
@@ -41,7 +41,10 @@ function answerIsValid(question, answer) {
 }
 
 async function listExams(req, res) {
-    const exams = await Exam.findAll({ order: [["createdAt", "DESC"]] });
+    const exams = await Exam.findAll({
+        include: [{ model: ExamAssignment, as: "assignments", where: { userId: req.session.userId }, required: true }],
+        order: [["createdAt", "DESC"]],
+    });
     const myResults = await Result.findAll({
         where: { userId: req.session.userId },
         attributes: ["examId", "score", "total", "answers"],

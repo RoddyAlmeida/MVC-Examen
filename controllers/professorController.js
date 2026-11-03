@@ -1,10 +1,10 @@
-const { sequelize, Exam, Question, QuestionContent, User, Result } = require("../models");
+const { sequelize, Exam, Question, QuestionContent, User, Result, ExamAssignment } = require("../models");
 const { getQuestionDefinition, legacyQuestionFields, normalizeAnswer, normalizeQuestionInput } = require("../services/questionService");
 const { parseQtiPackage } = require("../services/examImport");
 const MAX_QUESTIONS_PER_EXAM = 100;
 
 async function dashboard(req, res) {
-  const exams = await Exam.findAll({ order: [["createdAt", "DESC"]] });
+  const exams = await Exam.findAll({ where: { creatorId: req.session.userId }, order: [["createdAt", "DESC"]] });
   res.render("professor/dashboard", { title: "Mis exámenes", exams });
 }
 
@@ -23,7 +23,7 @@ async function importExam(req, res) {
     }
     const examData = await parseQtiPackage(req.file.buffer);
     const exam = await sequelize.transaction(async (transaction) => {
-      const createdExam = await Exam.create({ title: examData.title, instructions: examData.instructions }, { transaction });
+      const createdExam = await Exam.create({ title: examData.title, instructions: examData.instructions, creatorId: req.session.userId }, { transaction });
       for (const questionData of examData.questions) {
         const question = await Question.create({
           examId: createdExam.id,
@@ -56,7 +56,7 @@ async function createExam(req, res) {
   if (errors.length > 0) {
     return res.status(400).render("professor/exam-form", { title: "Crear examen", exam: req.body, errors });
   }
-  await Exam.create({ title: title.trim(), instructions: instructions.trim() });
+  await Exam.create({ title: title.trim(), instructions: instructions.trim(), creatorId: req.session.userId });
   res.redirect("/professor/dashboard");
 }
 
@@ -222,6 +222,10 @@ async function deleteQuestion(req, res) {
 async function listStudents(req, res) {
   const students = await User.findAll({
     where: { role: "estudiante" },
+    include: [{
+      model: ExamAssignment, as: "assignments", required: true,
+      include: [{ model: Exam, as: "exam", where: { creatorId: req.session.userId }, required: true }]
+    }],
     order: [["createdAt", "DESC"]],
   });
   res.render("professor/students", { title: "Estudiantes", students });
@@ -234,7 +238,7 @@ async function viewStudent(req, res) {
 
     const results = await Result.findAll({
       where: { userId: student.id },
-      include: [{ model: Exam, as: "exam" }],
+      include: [{ model: Exam, as: "exam", where: { creatorId: req.session.userId }, required: true }],
       order: [["createdAt", "DESC"]],
     });
     for (const result of results) {
@@ -324,20 +328,6 @@ async function reviewStudentExam(req, res) {
   res.redirect(`/professor/students/${student.id}/exam/${req.params.eid}`);
 }
 
-async function editStudent(req, res) {
-  const student = await User.findByPk(req.params.id);
-  if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
-  const { name, email } = req.body;
-  if (email && email !== student.email) {
-    const existing = await User.findOne({ where: { email } });
-    if (existing) {
-      return res.redirect("/professor/students/" + student.id + "?error=El correo ya está en uso.");
-    }
-  }
-  await student.update({ name: name || null, email: email || student.email });
-  res.redirect("/professor/students/" + student.id);
-}
-
 async function resetStudentExam(req, res) {
   const student = await User.findByPk(req.params.id);
   if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
@@ -345,12 +335,4 @@ async function resetStudentExam(req, res) {
   res.redirect("/professor/students/" + student.id);
 }
 
-async function deleteStudent(req, res) {
-  const student = await User.findByPk(req.params.id);
-  if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
-  await Result.destroy({ where: { userId: student.id } });
-  await student.destroy();
-  res.redirect("/professor/students");
-}
-
-module.exports = { dashboard, renderImportExam, importExam, renderCreateExam, createExam, renderEditExam, editExam, deleteExam, manageQuestions, renderCreateQuestion, createQuestion, renderEditQuestion, editQuestion, deleteQuestion, listStudents, viewStudent, viewStudentExam, reviewStudentExam, editStudent, resetStudentExam, deleteStudent };
+module.exports = { dashboard, renderImportExam, importExam, renderCreateExam, createExam, renderEditExam, editExam, deleteExam, manageQuestions, renderCreateQuestion, createQuestion, renderEditQuestion, editQuestion, deleteQuestion, listStudents, viewStudent, viewStudentExam, reviewStudentExam, resetStudentExam };

@@ -1,0 +1,172 @@
+<%- include('../partials/admin-header') %>
+    <a class="admin-back" href="/admin/users"><i class="ti ti-arrow-left" aria-hidden="true"></i> Usuarios</a>
+    <section class="admin-section">
+        <div class="admin-section-heading">
+            <h2>Cuenta</h2>
+            <% if (user.id !==req.session.userId) { %>
+                <form action="/admin/users/<%= user.id %>/delete" method="POST"
+                    onsubmit="return confirm('Eliminar este usuario, sus asignaciones y sus resultados?')"><input
+                        type="hidden" name="_csrf" value="<%= csrf %>" /><button
+                        class="btn btn-secondary admin-danger"><i class="ti ti-trash" aria-hidden="true"></i> Eliminar
+                        usuario</button></form>
+                <% } %>
+        </div>
+        <form action="/admin/users/<%= user.id %>/update" method="POST" class="admin-form-grid">
+            <input type="hidden" name="_csrf" value="<%= csrf %>" />
+            <label>Nombre<input name="name" value="<%= user.name || '' %>" required maxlength="120" /></label>
+            <label>Correo<input type="email" name="email" value="<%= user.email %>" required maxlength="254" /></label>
+            <label>Rol<select name="role">
+                    <% Object.entries(roles).forEach(([value, label])=> { %><option value="<%= value %>"
+                            <%=user.role===value ? 'selected' : '' %>><%= label %>
+                        </option>
+                        <% }) %>
+                </select></label>
+            <label>Nueva contrasena<input type="password" name="password" minlength="8" maxlength="72"
+                    autocomplete="new-password" placeholder="Sin cambios" /></label>
+            <div class="admin-form-actions"><button class="btn btn-primary"><i class="ti ti-device-floppy"
+                        aria-hidden="true"></i> Guardar cambios</button></div>
+        </form>
+    </section>
+    <% const assigned=assignments.filter(item=> item.userId === user.id); const history = results.filter(item =>
+        item.userId === user.id); %>
+        <% if (user.role==='estudiante' ) { %>
+            <section class="admin-section">
+                <h2>Examenes asignados</h2>
+                <form action="/admin/assignments" method="POST" class="admin-filters">
+                    <input type="hidden" name="_csrf" value="<%= csrf %>" /><input type="hidden" name="userId"
+                        value="<%= user.id %>" />
+                    <select name="examId" required aria-label="Examen para asignar">
+                        <option value="">Seleccionar examen</option>
+                        <% exams.filter(exam=> !assigned.some(item => item.examId === exam.id)).forEach(exam => { %>
+                            <option value="<%= exam.id %>">
+                                <%= exam.title %>
+                            </option>
+                            <% }) %>
+                    </select>
+                    <button class="btn btn-primary"><i class="ti ti-list-check" aria-hidden="true"></i> Asignar
+                        examen</button>
+                </form>
+                <div class="admin-table-scroll">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Examen</th>
+                                <th>Estado</th>
+                                <th>Asignado</th>
+                                <th><span class="sr-only">Acciones</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% assigned.forEach(item=> { const result = history.find(entry => entry.examId ===
+                                item.examId); %><tr>
+                                    <td>
+                                        <%= item.exam?.title || 'Examen eliminado' %>
+                                    </td>
+                                    <td><span class="admin-status <%= result ? 'is-complete' : 'is-pending' %>">
+                                            <%= result ? (pendingReview(result) ? 'Por corregir' : 'Completado' )
+                                                : 'Pendiente' %>
+                                        </span></td>
+                                    <td>
+                                        <%= item.createdAt.toLocaleDateString('es') %>
+                                    </td>
+                                    <td>
+                                        <form action="/admin/assignments/<%= item.id %>/delete" method="POST"
+                                            onsubmit="return confirm('Retirar esta asignacion? Los resultados se conservaran.')">
+                                            <input type="hidden" name="_csrf" value="<%= csrf %>" /><button
+                                                class="btn btn-secondary admin-icon admin-danger"
+                                                title="Retirar asignacion"
+                                                aria-label="Retirar asignacion de <%= item.exam?.title %>"><i
+                                                    class="ti ti-unlink" aria-hidden="true"></i></button></form>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% if (!assigned.length) { %>
+                                        <tr>
+                                            <td colspan="4" class="admin-empty">Sin examenes asignados.</td>
+                                        </tr>
+                                        <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <% } %>
+                <% if (user.role==='profesor' ) { const created=exams.filter(exam=> exam.creatorId === user.id); %>
+                    <section class="admin-section">
+                        <h2>Examenes creados</h2>
+                        <div class="admin-table-scroll">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Examen</th>
+                                        <th>Preguntas</th>
+                                        <th>Asignaciones</th>
+                                        <th>Creado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% created.forEach(exam=> { %><tr>
+                                            <td><a href="/admin/exams?q=<%= encodeURIComponent(exam.title) %>">
+                                                    <%= exam.title %>
+                                                </a></td>
+                                            <td>
+                                                <%= exam.questions.length %>
+                                            </td>
+                                            <td>
+                                                <%= assignments.filter(item=> item.examId === exam.id).length %>
+                                            </td>
+                                            <td>
+                                                <%= exam.createdAt.toLocaleDateString('es') %>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                            <% if (!created.length) { %>
+                                                <tr>
+                                                    <td colspan="4" class="admin-empty">Sin examenes creados.</td>
+                                                </tr>
+                                                <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                    <% } %>
+                        <% if (history.length || user.role==='estudiante' ) { %>
+                            <section class="admin-section">
+                                <h2>Historial de resultados</h2>
+                                <div class="admin-table-scroll">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Examen</th>
+                                                <th>Nota</th>
+                                                <th>Revision pendiente</th>
+                                                <th>Entregado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% history.forEach(result=> { %><tr>
+                                                    <td>
+                                                        <%= result.exam?.title || 'Examen eliminado' %>
+                                                    </td>
+                                                    <td>
+                                                        <%= result.score %> / <%= result.total %>
+                                                    </td>
+                                                    <td>
+                                                        <%= pendingReview(result) %>
+                                                    </td>
+                                                    <td>
+                                                        <%= result.createdAt.toLocaleDateString('es') %>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                                    <% if (!history.length) { %>
+                                                        <tr>
+                                                            <td colspan="4" class="admin-empty">Sin resultados
+                                                                registrados.</td>
+                                                        </tr>
+                                                        <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                            <% } %>
+                                <%- include('../partials/admin-footer') %>

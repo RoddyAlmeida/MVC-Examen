@@ -41,7 +41,9 @@ async function login(req, res) {
   req.session.role = user.role;
   req.session.userName = user.name || user.email;
 
-  if (user.role === "profesor") {
+  if (user.role === "administrador") {
+    res.redirect("/admin/dashboard");
+  } else if (user.role === "profesor") {
     res.redirect("/professor/dashboard");
   } else {
     res.redirect("/student/exams");

@@ -1,10 +1,12 @@
 const path = require("path");
 const express = require("express");
 const session = require("express-session");
-const { sequelize } = require("./models");
+const { initializeDatabase } = require("./services/schemaMigration");
+const { requireRole } = require("./middleware/access");
 const authController = require("./controllers/authController");
 const professorRoutes = require("./routes/professorRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,14 +25,8 @@ app.use(session({
   cookie: { sameSite: "lax" },
 }));
 
-function requireRole(role) {
-  return (req, res, next) => {
-    if (req.session.role === role) return next();
-    res.redirect("/login");
-  };
-}
-
 app.get("/", (req, res) => {
+  if (req.session.role === "administrador") return res.redirect("/admin/dashboard");
   if (req.session.role === "profesor") return res.redirect("/professor/dashboard");
   if (req.session.role === "estudiante") return res.redirect("/student/exams");
   res.redirect("/login");
@@ -50,6 +46,7 @@ app.use((req, res, next) => {
 
 app.use("/professor", requireRole("profesor"), professorRoutes);
 app.use("/student", requireRole("estudiante"), studentRoutes);
+app.use("/admin", requireRole("administrador"), adminRoutes);
 
 app.use((req, res) => {
   res.status(404).render("errors/404", {
@@ -57,8 +54,14 @@ app.use((req, res) => {
   });
 });
 
+app.use((error, req, res, next) => {
+  console.error("Request failed:", error.name);
+  if (res.headersSent) return next(error);
+  res.status(500).render("errors/generic", { title: "Error del servidor", message: "No se pudo completar la operacion. Intentalo de nuevo." });
+});
+
 async function startServer(port = PORT) {
-  await sequelize.sync();
+  await initializeDatabase();
   return app.listen(port, () => {
     console.log(`Servidor activo en http://localhost:${port}`);
   });

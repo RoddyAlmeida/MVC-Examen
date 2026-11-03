@@ -1,0 +1,133 @@
+<%- include('../partials/admin-header') %>
+    <% const professors=users.filter(user=> user.role === 'profesor'); const students = users.filter(user => user.role
+        === 'estudiante'); %>
+        <form class="admin-filters" action="/admin/exams" method="GET"><label class="admin-search"><i
+                    class="ti ti-search" aria-hidden="true"></i><input type="search" name="q" value="<%= query %>"
+                    placeholder="Titulo o autor" aria-label="Buscar examenes" /></label><button
+                class="btn btn-secondary"><i class="ti ti-filter" aria-hidden="true"></i> Filtrar</button></form>
+        <details class="admin-editor">
+            <summary><i class="ti ti-plus" aria-hidden="true"></i> Nuevo examen</summary>
+            <form action="/admin/exams" method="POST" class="admin-form-grid">
+                <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                <label>Titulo<input name="title" required maxlength="200" /></label>
+                <label>Autor<select name="creatorId">
+                        <option value="">Sin autor</option>
+                        <% professors.forEach(user=> { %><option value="<%= user.id %>">
+                                <%= user.name || user.email %>
+                            </option>
+                            <% }) %>
+                    </select></label>
+                <label class="admin-wide">Instrucciones<textarea name="instructions" required
+                        rows="3"></textarea></label>
+                <div class="admin-form-actions"><button class="btn btn-primary"><i class="ti ti-plus"
+                            aria-hidden="true"></i> Crear examen</button></div>
+            </form>
+        </details>
+        <section class="admin-section">
+            <h2>Asignar examen</h2>
+            <form action="/admin/assignments" method="POST" class="admin-filters">
+                <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                <select name="userId" required aria-label="Estudiante">
+                    <option value="">Seleccionar estudiante</option>
+                    <% students.forEach(user=> { %><option value="<%= user.id %>">
+                            <%= user.name || user.email %> (<%= user.email %>)
+                        </option>
+                        <% }) %>
+                </select>
+                <select name="examId" required aria-label="Examen">
+                    <option value="">Seleccionar examen</option>
+                    <% exams.forEach(exam=> { %><option value="<%= exam.id %>">
+                            <%= exam.title %>
+                        </option>
+                        <% }) %>
+                </select>
+                <button class="btn btn-primary"><i class="ti ti-list-check" aria-hidden="true"></i> Asignar</button>
+            </form>
+        </section>
+        <section class="admin-section">
+            <div class="admin-section-heading">
+                <h2>Catalogo</h2><span class="admin-muted">
+                    <%= exams.length %> examenes
+                </span>
+            </div>
+            <div class="admin-table-scroll">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Examen</th>
+                            <th>Autor</th>
+                            <th>Preguntas</th>
+                            <th>Asignaciones</th>
+                            <th>Entregas</th>
+                            <th>Gestion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% exams.forEach(exam=> { const assigned = assignments.filter(item => item.examId === exam.id);
+                            %><tr>
+                                <td><strong>
+                                        <%= exam.title %>
+                                    </strong></td>
+                                <td>
+                                    <% if (exam.creator) { %><a href="/admin/users/<%= exam.creatorId %>">
+                                            <%= exam.creator.name || exam.creator.email %>
+                                        </a>
+                                        <% } else { %><span class="admin-muted">Sin autor</span>
+                                            <% } %>
+                                </td>
+                                <td>
+                                    <%= exam.questions.length %>
+                                </td>
+                                <td>
+                                    <%= assigned.length %>
+                                        <% assigned.forEach(item=> { %><a class="admin-block"
+                                                href="/admin/users/<%= item.userId %>">
+                                                <%= item.student?.name || item.student?.email %>
+                                            </a>
+                                            <% }) %>
+                                </td>
+                                <td>
+                                    <%= results.filter(result=> result.examId === exam.id).length %>
+                                </td>
+                                <td>
+                                    <details class="admin-inline-editor">
+                                        <summary title="Editar examen"><i class="ti ti-edit" aria-hidden="true"></i>
+                                            Editar</summary>
+                                        <form action="/admin/exams/<%= exam.id %>/update" method="POST"
+                                            class="admin-edit-form">
+                                            <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                                            <label>Titulo<input name="title" value="<%= exam.title %>" required
+                                                    maxlength="200" /></label>
+                                            <label>Autor<select name="creatorId">
+                                                    <option value="">Sin autor</option>
+                                                    <% professors.forEach(user=> { %><option value="<%= user.id %>"
+                                                            <%=exam.creatorId===user.id ? 'selected' : '' %>><%=
+                                                                user.name || user.email %>
+                                                        </option>
+                                                        <% }) %>
+                                                </select></label>
+                                            <label>Instrucciones<textarea name="instructions" required
+                                                    rows="3"><%= exam.instructions %></textarea></label>
+                                            <button class="btn btn-primary"><i class="ti ti-device-floppy"
+                                                    aria-hidden="true"></i> Guardar</button>
+                                        </form>
+                                    </details>
+                                    <form action="/admin/exams/<%= exam.id %>/delete" method="POST"
+                                        onsubmit="return confirm('Eliminar este examen, todas sus preguntas, asignaciones y resultados?')">
+                                        <input type="hidden" name="_csrf" value="<%= csrf %>" /><button
+                                            class="btn btn-secondary admin-icon admin-danger" title="Eliminar examen"
+                                            aria-label="Eliminar <%= exam.title %>"><i class="ti ti-trash"
+                                                aria-hidden="true"></i></button></form>
+                                </td>
+                            </tr>
+                            <% }) %>
+                                <% if (!exams.length) { %>
+                                    <tr>
+                                        <td colspan="6" class="admin-empty">No se encontraron examenes.</td>
+                                    </tr>
+                                    <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <%- include('../partials/admin-footer') %>

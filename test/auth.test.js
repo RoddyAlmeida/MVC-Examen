@@ -12,25 +12,26 @@ function response() {
     };
 }
 
-for (const role of ["profesor", "estudiante"]) {
+for (const role of ["profesor", "estudiante", "administrador"]) {
     test(`login normalizes email and starts the ${role} session`, async (context) => {
         const password = await bcrypt.hash("test123", 4);
         context.mock.method(User, "findOne", async ({ where }) => {
-            assert.equal(where.email, `${role}@pucese.edu.ec`);
+            assert.equal(where.email, `${role}@example.com`);
             return { id: 1, role, name: role, password };
         });
-        const req = { body: { email: ` ${role.toUpperCase()}@pucese.edu.ec `, password: "test123" }, session: {} };
+        const req = { body: { email: ` ${role.toUpperCase()}@example.com `, password: "test123" }, session: {} };
         const res = response();
         await login(req, res);
         assert.deepEqual(req.session, { userId: 1, role, userName: role });
-        assert.equal(res.location, role === "profesor" ? "/professor/dashboard" : "/student/exams");
+        const destinations = { profesor: "/professor/dashboard", estudiante: "/student/exams", administrador: "/admin/dashboard" };
+        assert.equal(res.location, destinations[role]);
     });
 }
 
 test("login rejects incorrect passwords without creating a session", async (context) => {
     const password = await bcrypt.hash("test123", 4);
     context.mock.method(User, "findOne", async () => ({ id: 1, role: "profesor", password }));
-    const req = { body: { email: "profesor@pucese.edu.ec", password: "wrong" }, session: {} };
+    const req = { body: { email: "profesor@example.com", password: "wrong" }, session: {} };
     const res = response();
     await login(req, res);
     assert.equal(res.view, "login");
@@ -61,13 +62,13 @@ test("registration stores normalized email and a hashed student password", async
     assert.equal(res.location, "/login?registered=1");
 });
 
-test("seed creates both roles with hashed passwords and preserves existing accounts", async (context) => {
+test("seed creates all three roles with hashed passwords and preserves existing accounts", async (context) => {
     const accounts = new Map();
-    const existingProfessor = { email: "profesor@pucese.edu.ec", password: "existing-hash", role: "profesor" };
+    const existingProfessor = { email: "profesor@example.com", password: "existing-hash", role: "profesor" };
     accounts.set(existingProfessor.email, existingProfessor);
     context.mock.method(User, "findCreateFind", async ({ where, defaults }) => {
         assert.equal(where.email, defaults.email);
-        const plainPassword = defaults.role === "profesor" ? "profesor123" : "estudiante123";
+        const plainPassword = `${defaults.role}123`;
         assert.notEqual(defaults.password, plainPassword);
         assert.equal(await bcrypt.compare(plainPassword, defaults.password), true);
         if (accounts.has(where.email)) return [accounts.get(where.email), false];
@@ -76,7 +77,8 @@ test("seed creates both roles with hashed passwords and preserves existing accou
     });
     await seedUsers();
     await seedUsers();
-    assert.equal(accounts.size, 2);
+    assert.equal(accounts.size, 3);
     assert.equal(accounts.get(existingProfessor.email), existingProfessor);
-    assert.equal(accounts.get("estudiante@pucese.edu.ec").role, "estudiante");
+    assert.equal(accounts.get("estudiante@example.com").role, "estudiante");
+    assert.equal(accounts.get("administrador@example.com").role, "administrador");
 });

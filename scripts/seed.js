@@ -1,81 +1,80 @@
 const bcrypt = require("bcryptjs");
-const { sequelize, Exam, Question, User } = require("../models");
+const { sequelize, Exam, Question, QuestionContent, User, ExamAssignment } = require("../models");
+const { initializeDatabase } = require("../services/schemaMigration");
+const { normalizeQuestionInput, legacyQuestionFields } = require("../services/questionService");
+
+const templateInputs = [
+  { questionType: "multiple_choice", prompt: "Que opcion facilita el uso de una interfaz?", optionText: ["Ocultar etiquetas", "Depender solo del color", "Eliminar el foco", "Usar mensajes ambiguos", "Mostrar etiquetas claras"], correctIndex: "4" },
+  { questionType: "true_false", prompt: "Una etiqueta clara mejora la accesibilidad.", correctBoolean: "true" },
+  { questionType: "true_false", prompt: "El color debe ser el unico medio de transmitir un error.", correctBoolean: "false" },
+  { questionType: "fill_text", prompt: "Completa: la tecla que permite avanzar entre controles es ____.", acceptedAnswers: "Tab\nTabulador" },
+  { questionType: "fill_drag", prompt: "Completa la frase con la opcion adecuada.", fillTemplate: "El {{blank}} visible permite identificar el control seleccionado.", dragAnswer: "foco", dragOptions: "foco\ncolor\nsonido" },
+  { questionType: "concept", prompt: "Explica el concepto de accesibilidad y propone dos mejoras para un formulario." },
+  { questionType: "crossword", prompt: "Completa el crucigrama siguiendo las pistas.", crosswordEntries: "Lugar donde vive una familia | CASA\nHabitacion para recibir visitas | SALA\nRepresentacion de un territorio | MAPA" },
+];
 
 async function seedUsers() {
   const accounts = [
-    { email: "profesor@pucese.edu.ec", password: "profesor123", role: "profesor", name: "Profesor" },
-    { email: "estudiante@pucese.edu.ec", password: "estudiante123", role: "estudiante", name: "Estudiante" },
+    { email: "profesor@example.com", password: "profesor123", role: "profesor", name: "Profesor" },
+    { email: "estudiante@example.com", password: "estudiante123", role: "estudiante", name: "Estudiante" },
+    { email: "administrador@example.com", password: "administrador123", role: "administrador", name: "Administrador" },
   ];
 
+  const users = {};
   for (const account of accounts) {
     const password = await bcrypt.hash(account.password, 10);
-    await User.findCreateFind({
+    const [user] = await User.findCreateFind({
       where: { email: account.email },
       defaults: { ...account, password },
     });
+    if (user.role !== account.role) throw new Error(`La cuenta ${account.email} ya existe con otro rol.`);
+    users[account.role] = user;
   }
+  return users;
+}
+
+async function migrateDemoEmails() {
+  for (const role of ["profesor", "estudiante"]) {
+    const previous = await User.findOne({ where: { email: `${role}@pucese.edu.ec` } });
+    if (!previous) continue;
+    const email = `${role}@example.com`;
+    if (await User.findOne({ where: { email } })) throw new Error(`No se pudo migrar la cuenta de prueba: ${email} ya existe.`);
+    await previous.update({ email });
+  }
+}
+
+async function seedTemplate(users) {
+  const [exam] = await Exam.findCreateFind({
+    where: { title: "Plantilla de todos los tipos de pregunta", creatorId: users.profesor.id },
+    defaults: { instructions: "Responde todas las preguntas. La respuesta de conceptos requiere revision del profesor." },
+  });
+
+  for (const input of templateInputs) {
+    const normalized = normalizeQuestionInput(input);
+    const [question] = await Question.findCreateFind({
+      where: { examId: exam.id, prompt: normalized.prompt },
+      defaults: legacyQuestionFields(normalized.type, normalized.configuration),
+    });
+    await QuestionContent.findCreateFind({
+      where: { questionId: question.id },
+      defaults: { type: normalized.type, configuration: JSON.stringify(normalized.configuration) },
+    });
+  }
+  await ExamAssignment.findCreateFind({ where: { userId: users.estudiante.id, examId: exam.id } });
+  return exam;
 }
 
 async function seed() {
   const usersOnly = process.argv.includes("--users-only");
-  await sequelize.sync({ force: !usersOnly });
-  await seedUsers();
-
-  if (usersOnly) {
-    console.log("Cuentas de prueba disponibles. Las cuentas existentes no se modificaron.");
-    await sequelize.close();
-    return;
+  const preserveData = usersOnly || process.argv.includes("--demo");
+  if (preserveData) {
+    await initializeDatabase();
+    await migrateDemoEmails();
+  } else {
+    await sequelize.sync({ force: true });
   }
-
-  const exam = await Exam.create({
-    title: "Examen de Introduccion a HCI",
-    instructions:
-      "Lee cada pregunta y selecciona una respuesta. Se prioriza una experiencia clara y accesible.",
-  });
-
-  await Question.bulkCreate([
-    {
-      examId: exam.id,
-      prompt: "Que principio reduce la sobrecarga de memoria en la pantalla?",
-      optionA: "Mostrar 30 opciones por bloque",
-      optionB: "Limitar elementos visibles y jerarquizar",
-      optionC: "Ocultar etiquetas y usar abreviaturas",
-      correctOption: "B",
-    },
-    {
-      examId: exam.id,
-      prompt: "Que practica mejora accesibilidad para lectores de pantalla?",
-      optionA: "Etiquetas claras y nombres descriptivos",
-      optionB: "Solo iconos sin texto alternativo",
-      optionC: "Mensajes unicamente por color",
-      correctOption: "A",
-    },
-    {
-      examId: exam.id,
-      prompt: "Como se garantiza independencia del color?",
-      optionA: "Usar rojo y verde exclusivamente",
-      optionB: "Agregar iconos y texto explicativo",
-      optionC: "Quitar mensajes de error",
-      correctOption: "B",
-    },
-    {
-      examId: exam.id,
-      prompt: "Que valida la tecnica Think Aloud?",
-      optionA: "Rendimiento del servidor",
-      optionB: "Dificultades de navegacion del usuario",
-      optionC: "Version de Node instalada",
-      correctOption: "B",
-    },
-    {
-      examId: exam.id,
-      prompt: "Cual opcion apoya flexibilidad de entrada?",
-      optionA: "Control total por teclado y mouse",
-      optionB: "Solo atajos ocultos",
-      optionC: "Desactivar foco visible",
-      correctOption: "A",
-    },
-  ]);
-
+  const users = await seedUsers();
+  if (!usersOnly) await seedTemplate(users);
   console.log("Datos iniciales cargados.");
   await sequelize.close();
 }
@@ -88,4 +87,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { seedUsers };
+module.exports = { seedUsers, seedTemplate, templateInputs, migrateDemoEmails };

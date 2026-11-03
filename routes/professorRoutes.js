@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const professorController = require("../controllers/professorController");
+const { requireOwnedExam, requireTeachingStudent } = require("../middleware/access");
 
 const router = express.Router();
 const uploadQtiPackage = multer({
@@ -27,21 +28,19 @@ router.get("/exams/import", professorController.renderImportExam);
 router.post("/exams/import", handleQtiUpload, professorController.importExam);
 router.get("/exams/create", professorController.renderCreateExam);
 router.post("/exams/create", professorController.createExam);
-router.get("/exams/:id/edit", professorController.renderEditExam);
-router.post("/exams/:id/edit", professorController.editExam);
-router.post("/exams/:id/delete", professorController.deleteExam);
-router.get("/exams/:id/questions", professorController.manageQuestions);
-router.get("/exams/:id/questions/create", professorController.renderCreateQuestion);
-router.post("/exams/:id/questions/create", professorController.createQuestion);
-router.get("/exams/:id/questions/:qid/edit", professorController.renderEditQuestion);
-router.post("/exams/:id/questions/:qid/edit", professorController.editQuestion);
-router.post("/exams/:id/questions/:qid/delete", professorController.deleteQuestion);
+router.get("/exams/:id/edit", requireOwnedExam(), professorController.renderEditExam);
+router.post("/exams/:id/edit", requireOwnedExam(), professorController.editExam);
+router.post("/exams/:id/delete", requireOwnedExam(), professorController.deleteExam);
+router.get("/exams/:id/questions", requireOwnedExam(), professorController.manageQuestions);
+router.get("/exams/:id/questions/create", requireOwnedExam(), professorController.renderCreateQuestion);
+router.post("/exams/:id/questions/create", requireOwnedExam(), professorController.createQuestion);
+router.get("/exams/:id/questions/:qid/edit", requireOwnedExam(), professorController.renderEditQuestion);
+router.post("/exams/:id/questions/:qid/edit", requireOwnedExam(), professorController.editQuestion);
+router.post("/exams/:id/questions/:qid/delete", requireOwnedExam(), professorController.deleteQuestion);
 router.get("/students", professorController.listStudents);
-router.get("/students/:id", professorController.viewStudent);
-router.get("/students/:id/exam/:eid", professorController.viewStudentExam);
-router.post("/students/:id/exam/:eid/review", professorController.reviewStudentExam);
-router.post("/students/:id/edit", professorController.editStudent);
-router.post("/students/:id/reset-exam/:eid", professorController.resetStudentExam);
-router.post("/students/:id/delete", professorController.deleteStudent);
+router.get("/students/:id", requireTeachingStudent, professorController.viewStudent);
+router.get("/students/:id/exam/:eid", requireOwnedExam("eid"), professorController.viewStudentExam);
+router.post("/students/:id/exam/:eid/review", requireOwnedExam("eid"), professorController.reviewStudentExam);
+router.post("/students/:id/reset-exam/:eid", requireOwnedExam("eid"), professorController.resetStudentExam);
 
 module.exports = router;

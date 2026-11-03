@@ -1,0 +1,106 @@
+<%- include('../partials/admin-header') %>
+    <section class="admin-stats" aria-label="Metricas generales">
+        <% const stats=[ ['ti-users', 'Usuarios' , metrics.users, `${metrics.students} estudiantes /
+            ${metrics.professors} profesores / ${metrics.administrators} administradores`], ['ti-notes', 'Examenes' ,
+            metrics.exams, `${metrics.questions} preguntas`], ['ti-list-check', 'Asignaciones' , metrics.assignments,
+            `${metrics.pendingAssignments} pendientes`], ['ti-circle-check', 'Cumplimiento' ,
+            `${metrics.completionRate}%`, `${metrics.completedAssignments} asignaciones completadas`],
+            ['ti-pencil-check', 'Entregas' , metrics.attempts, `${metrics.recentAttempts} en los ultimos 7 dias`],
+            ['ti-clock', 'Revision pendiente' , metrics.pendingAnswers, `${metrics.pendingResults} entregas con revision
+            pendiente`], ['ti-chart-line', 'Nota media final' , metrics.averageScore===null ? '--' :
+            `${metrics.averageScore}%`, 'Solo entregas corregidas' ], ['ti-award', 'Aprobacion (60%)' ,
+            metrics.passRate===null ? '--' : `${metrics.passRate}%`, 'Solo entregas corregidas' ] ]; %>
+            <% stats.forEach(([icon, label, value, detail])=> { %>
+                <div class="admin-stat"><span class="admin-stat-label"><i class="ti <%= icon %>" aria-hidden="true"></i>
+                        <%= label %>
+                    </span><strong>
+                        <%= value %>
+                    </strong><span class="admin-muted">
+                        <%= detail %>
+                    </span></div>
+                <% }) %>
+    </section>
+    <div class="admin-columns">
+        <section class="admin-section">
+            <h2>Seguimiento</h2>
+            <div class="admin-progress-label"><span>Asignaciones completadas</span><strong>
+                    <%= metrics.completedAssignments %> / <%= metrics.assignments %>
+                </strong></div>
+            <meter min="0" max="100" value="<%= metrics.completionRate %>"
+                aria-label="Porcentaje de asignaciones completadas">
+                <%= metrics.completionRate %>%
+            </meter>
+            <dl class="admin-summary">
+                <div>
+                    <dt>Pendientes de entrega</dt>
+                    <dd>
+                        <%= metrics.pendingAssignments %>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Respuestas por corregir</dt>
+                    <dd>
+                        <%= metrics.pendingAnswers %>
+                    </dd>
+                </div>
+            </dl>
+        </section>
+        <section class="admin-section">
+            <h2>Atencion</h2>
+            <a class="admin-attention" href="/admin/users?role=estudiante"><span><i class="ti ti-user-question"
+                        aria-hidden="true"></i> Estudiantes sin asignaciones</span><strong>
+                    <%= metrics.unassignedStudents %>
+                </strong><i class="ti ti-chevron-right" aria-hidden="true"></i></a>
+            <a class="admin-attention" href="/admin/exams"><span><i class="ti ti-notes" aria-hidden="true"></i>
+                    Examenes sin autor</span><strong>
+                    <%= metrics.unownedExams %>
+                </strong><i class="ti ti-chevron-right" aria-hidden="true"></i></a>
+        </section>
+    </div>
+    <section class="admin-section">
+        <div class="admin-section-heading">
+            <h2>Ultimas entregas</h2><span class="admin-muted">
+                <%= results.length %> en total
+            </span>
+        </div>
+        <% if (!results.length) { %>
+            <p class="admin-empty">Sin entregas registradas.</p>
+            <% } else { %>
+                <div class="admin-table-scroll">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Examen</th>
+                                <th>Nota</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% results.slice(0, 10).forEach(result=> { %><tr>
+                                    <td><a href="/admin/users/<%= result.userId %>">
+                                            <%= result.user?.name || result.user?.email || 'Usuario eliminado' %>
+                                        </a></td>
+                                    <td>
+                                        <%= result.exam?.title || 'Examen eliminado' %>
+                                    </td>
+                                    <td>
+                                        <%= result.score %> / <%= result.total %>
+                                    </td>
+                                    <td><span
+                                            class="admin-status <%= pendingReview(result) ? 'is-pending' : 'is-complete' %>">
+                                            <%= pendingReview(result) ? `${pendingReview(result)} por corregir`
+                                                : 'Corregido' %>
+                                        </span></td>
+                                    <td><time datetime="<%= result.createdAt.toISOString() %>">
+                                            <%= result.createdAt.toLocaleDateString('es') %>
+                                        </time></td>
+                                </tr>
+                                <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+                <% } %>
+    </section>
+    <%- include('../partials/admin-footer') %>

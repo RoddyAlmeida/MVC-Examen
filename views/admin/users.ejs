@@ -1,0 +1,95 @@
+<%- include('../partials/admin-header') %>
+    <div class="admin-section-heading">
+        <form method="GET" class="admin-filters" action="/admin/users">
+            <label class="admin-search"><i class="ti ti-search" aria-hidden="true"></i><input type="search" name="q"
+                    value="<%= query %>" placeholder="Nombre o correo" aria-label="Buscar usuarios" /></label>
+            <select name="role" aria-label="Filtrar por rol">
+                <option value="">Todos los roles</option>
+                <% Object.entries(roles).forEach(([value, label])=> { %><option value="<%= value %>" <%=role===value
+                        ? 'selected' : '' %>><%= label %>
+                    </option>
+                    <% }) %>
+            </select>
+            <button class="btn btn-secondary" type="submit"><i class="ti ti-filter" aria-hidden="true"></i>
+                Filtrar</button>
+        </form>
+        <span class="admin-muted">
+            <%= users.length %> usuarios
+        </span>
+    </div>
+    <details class="admin-editor">
+        <summary><i class="ti ti-user-plus" aria-hidden="true"></i> Nuevo usuario</summary>
+        <form action="/admin/users" method="POST" class="admin-form-grid">
+            <input type="hidden" name="_csrf" value="<%= csrf %>" />
+            <label>Nombre<input name="name" required maxlength="120" autocomplete="name" /></label>
+            <label>Correo<input type="email" name="email" required maxlength="254" autocomplete="off" /></label>
+            <label>Rol<select name="role">
+                    <% Object.entries(roles).forEach(([value, label])=> { %><option value="<%= value %>">
+                            <%= label %>
+                        </option>
+                        <% }) %>
+                </select></label>
+            <label>Contrasena<input type="password" name="password" required minlength="8" maxlength="72"
+                    autocomplete="new-password" /></label>
+            <div class="admin-form-actions"><button class="btn btn-primary"><i class="ti ti-user-plus"
+                        aria-hidden="true"></i> Crear usuario</button></div>
+        </form>
+    </details>
+    <div class="admin-table-scroll">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Examenes</th>
+                    <th>Alta</th>
+                    <th><span class="sr-only">Acciones</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% users.forEach(user=> { const assigned = assignments.filter(item => item.userId === user.id); const
+                    created = exams.filter(item => item.creatorId === user.id); %>
+                    <tr>
+                        <td><a class="admin-user-name" href="/admin/users/<%= user.id %>">
+                                <%= user.name || user.email %>
+                            </a><span class="admin-muted admin-block">
+                                <%= user.email %>
+                            </span></td>
+                        <td><span class="admin-status">
+                                <%= roles[user.role] %>
+                            </span></td>
+                        <td>
+                            <% if (user.role==='estudiante' ) { %><strong>
+                                    <%= assigned.length %> asignados
+                                </strong>
+                                <% assigned.forEach(item=> { %><span class="admin-muted admin-block">
+                                        <%= item.exam?.title || 'Examen eliminado' %>
+                                    </span>
+                                    <% }) %>
+                                        <% } else if (user.role==='profesor' ) { %><strong>
+                                                <%= created.length %> creados
+                                            </strong>
+                                            <% created.forEach(exam=> { %><span class="admin-muted admin-block">
+                                                    <%= exam.title %>
+                                                </span>
+                                                <% }) %>
+                                                    <% } else { %><span class="admin-muted">--</span>
+                                                        <% } %>
+                        </td>
+                        <td>
+                            <%= user.createdAt.toLocaleDateString('es') %>
+                        </td>
+                        <td><a class="btn btn-secondary admin-icon" href="/admin/users/<%= user.id %>"
+                                title="Gestionar usuario" aria-label="Gestionar <%= user.name || user.email %>"><i
+                                    class="ti ti-settings" aria-hidden="true"></i></a></td>
+                    </tr>
+                    <% }) %>
+                        <% if (!users.length) { %>
+                            <tr>
+                                <td colspan="5" class="admin-empty">No se encontraron usuarios.</td>
+                            </tr>
+                            <% } %>
+            </tbody>
+        </table>
+    </div>
+    <%- include('../partials/admin-footer') %>

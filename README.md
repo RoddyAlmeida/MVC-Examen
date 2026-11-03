@@ -65,10 +65,30 @@ pnpm run seed -- --users-only
 
 | Rol | Correo | Contraseña |
 | --- | --- | --- |
-| Profesor | <profesor@pucese.edu.ec> | profesor123 |
-| Estudiante | <estudiante@pucese.edu.ec> | estudiante123 |
+| Administrador | <administrador@example.com> | administrador123 |
+| Profesor | <profesor@example.com> | profesor123 |
+| Estudiante | <estudiante@example.com> | estudiante123 |
 
 El login y el registro normalizan el correo a minúsculas y eliminan espacios exteriores. Estas cuentas son solo para pruebas; no las uses en producción.
+
+Para cargar las cuentas y el examen plantilla sin borrar datos:
+
+```bash
+pnpm run seed -- --demo
+```
+
+Este modo migra los correos antiguos de las dos cuentas de prueba conservando sus identificadores y contraseñas. No sobrescribe cuentas existentes y puede repetirse sin duplicar la plantilla ni sus asignaciones.
+
+La plantilla contiene siete preguntas: opción múltiple con cinco opciones, verdadero, falso, completar escrito, completar arrastrando, conceptos con revisión manual y crucigrama. Pertenece al profesor de prueba y se asigna al estudiante de prueba.
+
+### Administración y permisos
+
+- El administrador crea, edita y elimina usuarios, cambia roles, asigna o retira exámenes y gestiona el catálogo y sus autores. No puede eliminar su propia cuenta ni quitarse el rol; debe permanecer al menos un administrador.
+- El detalle de cada estudiante muestra sus asignaciones y resultados; el de cada profesor muestra sus exámenes creados.
+- El dashboard muestra usuarios por rol, exámenes y preguntas, asignaciones completadas y pendientes, entregas de los últimos siete días, revisiones pendientes, nota media y aprobación al 60%. Las métricas de notas excluyen entregas pendientes de corrección manual.
+- Los estudiantes solo acceden a exámenes asignados, incluso mediante URL directa. Los profesores solo gestionan sus propios exámenes y resultados. Los cambios de rol se aplican en la siguiente petición: al dejar de ser estudiante se retiran sus asignaciones y al dejar de ser profesor sus exámenes quedan sin autor, conservando los resultados.
+- Al arrancar se añade la autoría y la tabla de asignaciones sin borrar datos. Los exámenes anteriores quedan sin autor y sin asignaciones hasta que el administrador los configure.
+- Retirar una asignación conserva los resultados. Eliminar un usuario borra sus asignaciones y resultados, pero conserva sus exámenes creados sin autor. Eliminar un examen borra sus preguntas, asignaciones y resultados.
 
 ### Importar un examen
 
