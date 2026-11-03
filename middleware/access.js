@@ -1,4 +1,4 @@
-const { User, Exam, Question, ExamAssignment, Course } = require("../models");
+const { User, Exam, Question, ExamAssignment, Course, CourseEnrollment } = require("../models");
 
 function denied(res, message) {
   return res.status(403).render("errors/generic", { title: "Acceso denegado", message });
@@ -19,8 +19,40 @@ function requireRole(role) {
 }
 
 async function requireAssignedExam(req, res, next) {
-  const assignment = await ExamAssignment.findOne({ where: { userId: req.session.userId, examId: req.params.id } });
+  const assignment = await ExamAssignment.findOne({ where: { userId: req.session.userId, examId: req.params.id, status: "active" } });
   if (!assignment) return denied(res, "Este examen no esta asignado a tu cuenta.");
+  const exam = await Exam.findByPk(req.params.id);
+  if (!exam?.courseId || !await CourseEnrollment.findOne({ where: { userId: req.session.userId, courseId: exam.courseId, status: "active" } })) {
+    return denied(res, "Debes estar inscrito en el curso de este examen.");
+  }
+  req.exam = exam;
+  next();
+}
+
+async function requireOwnedCourse(req, res, next) {
+  const course = await Course.findOne({ where: { id: req.params.id, professorId: req.session.userId } });
+  if (!course) return denied(res, "Este curso no esta asignado a tu cuenta.");
+  req.course = course;
+  next();
+}
+
+async function requireVisibleCourseMembers(req, res, next) {
+  const enrollment = await CourseEnrollment.findOne({
+    where: { userId: req.session.userId, courseId: req.params.id, status: "active" },
+    include: [{ model: Course, as: "course", required: true }],
+  });
+  if (!enrollment) return denied(res, "Debes estar inscrito en este curso para ver sus integrantes.");
+  if (!enrollment.course.membersVisible) return denied(res, "El profesor ha desactivado la lista de integrantes para estudiantes.");
+  req.course = enrollment.course;
+  next();
+}
+
+function requireExamAccess(req, res, next) {
+  const grant = req.session.examAccess?.[req.exam.id];
+  if (!grant || grant.revision !== req.exam.securityRevision || grant.expiresAt < Date.now()) {
+    if (req.method === "GET") return res.redirect(`/student/exams/${req.exam.id}/start`);
+    return denied(res, "Inicia el examen y verifica su contrasena antes de continuar.");
+  }
   next();
 }
 
@@ -32,6 +64,7 @@ function requireOwnedExam(parameter = "id") {
     });
     if (!exam) return denied(res, "Solo puedes gestionar los examenes que has creado.");
     req.course = exam.course;
+    req.exam = exam;
     if (req.params.qid && !await Question.findOne({ where: { id: req.params.qid, examId: exam.id } })) {
       return denied(res, "La pregunta no pertenece a este examen.");
     }
@@ -61,12 +94,12 @@ async function requireCourse(req, res, next) {
 }
 
 async function requireTeachingStudent(req, res, next) {
-  const assignment = await ExamAssignment.findOne({
-    where: { userId: req.params.id },
-    include: [{ model: Exam, as: "exam", where: { creatorId: req.session.userId }, required: true }],
+  const enrollment = await CourseEnrollment.findOne({
+    where: { userId: req.params.id, status: "active" },
+    include: [{ model: Course, as: "course", where: { professorId: req.session.userId }, required: true }],
   });
-  if (!assignment) return denied(res, "Este estudiante no tiene examenes tuyos asignados.");
+  if (!enrollment) return denied(res, "Este estudiante no esta inscrito en tus cursos.");
   next();
 }
 
-module.exports = { requireRole, requireAssignedExam, requireOwnedExam, requireTeachingStudent, requireCourse, loadCourses };
+module.exports = { requireRole, requireAssignedExam, requireOwnedExam, requireTeachingStudent, requireCourse, loadCourses, requireOwnedCourse, requireExamAccess, requireVisibleCourseMembers };

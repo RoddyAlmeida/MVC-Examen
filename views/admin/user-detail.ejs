@@ -31,7 +31,7 @@
         item.userId === user.id); %>
         <% if (user.role==='estudiante' ) { %>
             <section class="admin-section">
-                <h2>Examenes asignados</h2>
+                <h2>Accesos e invitaciones a examenes</h2>
                 <form action="/admin/assignments" method="POST" class="admin-filters">
                     <input type="hidden" name="_csrf" value="<%= csrf %>" /><input type="hidden" name="userId"
                         value="<%= user.id %>" />
@@ -43,8 +43,8 @@
                             </option>
                             <% }) %>
                     </select>
-                    <button class="btn btn-primary"><i class="ti ti-list-check" aria-hidden="true"></i> Asignar
-                        examen</button>
+                    <button class="btn btn-primary"><i class="ti ti-send" aria-hidden="true"></i> Invitar
+                        al examen</button>
                 </form>
                 <div class="admin-table-scroll">
                     <table class="admin-table">
@@ -63,8 +63,9 @@
                                         <%= item.exam?.title || 'Examen eliminado' %>
                                     </td>
                                     <td><span class="admin-status <%= result ? 'is-complete' : 'is-pending' %>">
-                                            <%= result ? (pendingReview(result) ? 'Por corregir' : 'Completado' )
-                                                : 'Pendiente' %>
+                                            <%= result ? (pendingReview(result) ? 'Por corregir' : 'Completado' ) :
+                                                item.status==='invited' ? 'Invitacion pendiente' :
+                                                item.status==='rejected' ? 'Rechazada' : 'Acceso activo' %>
                                         </span></td>
                                     <td>
                                         <%= item.createdAt.toLocaleDateString('es') %>
@@ -76,7 +77,8 @@
                                                 class="btn btn-secondary admin-icon admin-danger"
                                                 title="Retirar asignacion"
                                                 aria-label="Retirar asignacion de <%= item.exam?.title %>"><i
-                                                    class="ti ti-unlink" aria-hidden="true"></i></button></form>
+                                                    class="ti ti-unlink" aria-hidden="true"></i></button>
+                                        </form>
                                     </td>
                                 </tr>
                                 <% }) %>

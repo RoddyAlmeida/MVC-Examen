@@ -8,6 +8,7 @@ function pendingReview(result) {
 }
 
 function calculateMetrics({ users, exams, assignments, results }, now = new Date()) {
+    assignments = assignments.filter(assignment => !assignment.status || assignment.status === "active");
     const completed = new Set(results.map((result) => `${result.userId}:${result.examId}`));
     const completedAssignments = assignments.filter((assignment) => completed.has(`${assignment.userId}:${assignment.examId}`)).length;
     const graded = results.filter((result) => pendingReview(result) === 0 && result.total > 0);

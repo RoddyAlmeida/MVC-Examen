@@ -1,0 +1,85 @@
+<%- include('../partials/course-header') %>
+    <section class="workflow-section">
+        <h2>Visibilidad del curso</h2>
+        <form action="/professor/courses/<%= course.id %>/members/visibility" method="POST" class="workflow-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <label class="workflow-check"><input type="checkbox" name="membersVisible" <%=course.membersVisible
+                    ? 'checked' : '' %> /> Permitir que los estudiantes vean los integrantes</label>
+            <button class="btn btn-primary"><i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar
+                visibilidad</button>
+        </form>
+        <p class="workflow-muted">
+            <%= course.membersVisible ? 'Lista visible para estudiantes inscritos.' : 'Lista privada para estudiantes.'
+                %>
+        </p>
+    </section>
+    <section class="workflow-section">
+        <h2>Invitar estudiante al curso</h2>
+        <form action="/professor/courses/<%= course.id %>/invitations" method="POST" class="workflow-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <label class="form-group">Correo del estudiante<input class="form-input" name="email" type="email" required
+                    maxlength="254" /></label>
+            <button class="btn btn-primary"><i class="ti ti-send" aria-hidden="true"></i> Enviar invitacion</button>
+        </form>
+    </section>
+    <section class="workflow-section">
+        <h2>Integrantes e invitaciones</h2>
+        <div class="workflow-table-scroll">
+            <table class="workflow-table">
+                <thead>
+                    <tr>
+                        <th>Integrante</th>
+                        <th>Rol</th>
+                        <th>Correo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (professor) { %>
+                        <tr>
+                            <td>
+                                <%= professor.name || professor.email %>
+                            </td>
+                            <td><i class="ti ti-school" aria-hidden="true"></i> Profesor</td>
+                            <td>
+                                <%= professor.email %>
+                            </td>
+                            <td>Docente del curso</td>
+                            <td></td>
+                        </tr>
+                        <% } %>
+                            <% enrollments.forEach(enrollment=> { %><tr>
+                                    <td>
+                                        <%= enrollment.student.name || enrollment.student.email %>
+                                    </td>
+                                    <td>Estudiante</td>
+                                    <td>
+                                        <%= enrollment.student.email %>
+                                    </td>
+                                    <td>
+                                        <%= enrollment.status==='active' ? 'Inscrito' : 'Invitacion pendiente' %>
+                                    </td>
+                                    <td>
+                                        <form
+                                            action="/professor/courses/<%= course.id %>/members/<%= enrollment.id %>/delete"
+                                            method="POST"
+                                            onsubmit="return confirm('Retirar la inscripcion y accesos a examenes de este curso? Los resultados se conservaran.')">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                            <button class="btn btn-secondary" title="Retirar inscripcion"
+                                                aria-label="Retirar inscripcion de <%= enrollment.student.name || enrollment.student.email %>"><i
+                                                    class="ti ti-user-minus" aria-hidden="true"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% if (!enrollments.length) { %>
+                                        <tr>
+                                            <td colspan="5">No hay estudiantes inscritos ni invitados.</td>
+                                        </tr>
+                                        <% } %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <%- include('../partials/course-footer') %>

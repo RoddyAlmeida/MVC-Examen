@@ -84,7 +84,7 @@ La plantilla contiene siete preguntas: opción múltiple con cinco opciones, ver
 
 ### Administración y permisos
 
-- El administrador crea, edita y elimina usuarios, cambia roles, asigna o retira exámenes y gestiona cursos y exámenes. No puede eliminar su propia cuenta ni quitarse el rol; debe permanecer al menos un administrador.
+- El administrador crea, edita y elimina usuarios, cambia roles, invita a exámenes y gestiona cursos y exámenes. Puede inscribir directamente a estudiantes en cursos, sin requerir aceptación. No puede eliminar su propia cuenta ni quitarse el rol; debe permanecer al menos un administrador.
 - En **Cursos**, el administrador crea un curso y elige un profesor. Cada curso tiene un solo profesor; un profesor puede tener varios cursos. Puede renombrar o reasignar un curso; solo sus exámenes pasan al nuevo profesor, sin modificar los demás cursos, las asignaciones ni los resultados de estudiantes. Solo se pueden eliminar cursos sin exámenes.
 - Los profesores seleccionan uno de sus cursos para consultar, crear o importar exámenes. Sin cursos no pueden crear ni importar; tampoco gestionar exámenes sin curso o de cursos ajenos. En administración, crear o editar un examen requiere seleccionar un curso con docente, que determina su autor.
 - El detalle de cada estudiante muestra sus asignaciones y resultados; el de cada profesor muestra sus exámenes creados.
@@ -93,8 +93,35 @@ La plantilla contiene siete preguntas: opción múltiple con cinco opciones, ver
 - Al arrancar se añaden la tabla de cursos y las columnas faltantes de autoría y curso sin borrar datos. Los exámenes anteriores conservan sus autores, preguntas, asignaciones y resultados, pero quedan **Sin curso** hasta que el administrador los vincule desde **Exámenes → Editar**.
 - Si la base tiene la restricción anterior de un curso por profesor, el arranque la retira en una transacción, conservando cursos y referencias de exámenes.
 - Al eliminar a un profesor o cambiar su rol, sus cursos quedan sin docente y sus exámenes se conservan sin autor. Reasignar un curso restaura la autoría con el nuevo profesor.
-- La asignación de exámenes a estudiantes sigue siendo individual; su refactorización no forma parte de esta fase.
+- Los accesos anteriores se conservan como activos. Al arrancar se crean las tablas de inscripciones y eventos, se añaden los campos faltantes y se infieren inscripciones desde accesos activos existentes a exámenes con curso. La migración no elimina resultados ni cambia invitaciones pendientes o rechazadas.
 - Retirar una asignación conserva los resultados. Eliminar un usuario borra sus asignaciones y resultados, pero conserva sus exámenes creados sin autor. Eliminar un examen borra sus preguntas, asignaciones y resultados.
+
+### Inscripciones, invitaciones y códigos
+
+- En **Integrantes del curso**, el profesor invita mediante el correo de una cuenta de estudiante registrada. La invitación aparece dentro de la aplicación, en **Mis cursos**, donde el estudiante acepta o rechaza. No se envían correos externos.
+- En **Administración → Cursos**, el administrador puede **Inscribir sin aceptación**, incluso si el estudiante tenía una invitación pendiente o rechazada.
+- En **Acceso y seguridad** de cada examen, el profesor invita a estudiantes inscritos. La invitación aparece en **Mis exámenes** y debe aceptarse; no concede acceso mientras esté pendiente.
+- El profesor puede generar, renovar o desactivar un código aleatorio. El estudiante lo introduce en **Mis exámenes → Unirse con código**. Para aceptar una invitación o utilizar un código es obligatoria una inscripción activa en el curso del examen; también se comprueba al iniciar, resolver y enviar respuestas.
+- Renovar/desactivar un código impide nuevos accesos con ese código, pero no elimina accesos ya aceptados. Retirar la inscripción del curso elimina sus invitaciones y accesos a exámenes, conservando los resultados.
+- Las acciones de profesor y estudiante requieren CSRF. Los intentos de contraseña y código tienen límites por sesión. Las invitaciones y accesos duplicados se evitan mediante restricciones únicas.
+
+### Integrantes y actividad
+
+- **Integrantes del curso** muestra al profesor y los estudiantes, diferenciando las invitaciones pendientes. El profesor controla **Permitir que los estudiantes vean los integrantes**; por defecto está desactivado, también para cursos existentes.
+- Los estudiantes inscritos pueden abrir **Mis cursos → Integrantes** solo si la visibilidad está activada. Su lista incluye al docente y estudiantes activos, sin correos ni invitaciones pendientes. La comprobación se hace en cada petición, incluida la URL directa.
+- En **Acceso y seguridad → Actividad del examen**, el profesor ve quién tiene un intento en curso, su hora de inicio, última señal y duración aproximada. El panel consulta actividad cada 5 segundos y actualiza las duraciones visuales cada segundo.
+- La pantalla de respuestas envía señales de presencia cada 15 segundos, independientemente del modo de seguridad. Sin señales durante más de 45 segundos, con la pestaña oculta o con el retorno del modo restringido activo, el estado cambia a **Sin actividad reciente**.
+- El tiempo es el transcurrido desde el inicio guardado por el servidor; incluye ausencias y no mide pulsaciones ni tiempo efectivo de escritura. Volver a entrar conserva el inicio original. Al enviar las respuestas se cierra el intento; al restablecer un resultado se elimina el registro para empezar otro.
+- No se transmiten respuestas mediante las señales de presencia. Solo el profesor actual del examen puede consultar su actividad, y se excluyen estudiantes sin inscripción o acceso activo. La pérdida de conexión y el control del cliente impiden garantizar presencia exacta.
+
+### Seguridad opcional del examen
+
+- **Contraseña:** se almacena con bcrypt, nunca en texto plano. Se verifica en el servidor antes de mostrar preguntas. Cambiar la contraseña o el modo invalida verificaciones anteriores; conocer el código no evita la contraseña.
+- **Normal:** no fuerza pantalla completa ni registra cambios de ventana.
+- **Restringido:** Electron activa kiosk, recuperación de foco y bloqueos de cierre/navegación durante el examen. En navegador se solicita pantalla completa y se muestra una acción de retorno al salir. Los bloqueos no son absolutos frente al sistema operativo, cierres forzados, extensiones o un cliente manipulado.
+- **Supervisado:** permite salir o cambiar de aplicación y registra avisos de pérdida de foco, ocultación o abandono. Los avisos aparecen en **Notificaciones** del profesor y su contador se consulta cada 15 segundos. Solo el profesor actual del curso puede verlos o marcarlos como leídos.
+- Se informa al estudiante antes de comenzar un examen supervisado/restringido. Los eventos son reportes del cliente, no prueba concluyente de fraude; desactivar JavaScript o perder conexión puede impedir su envío. No se capturan imágenes, vídeo ni contenido de otras aplicaciones.
+- Ningún modo impone automáticamente una nota de cero ni cierra la aplicación por salir. La contraseña puede combinarse con cualquiera de los modos de pantalla.
 
 ### Importar un examen
 

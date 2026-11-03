@@ -51,6 +51,7 @@
 
         <form method="POST" action="/professor/exams/<%= exam && exam.id ? exam.id + '/edit' : 'create' %>"
           class="panel">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
           <% if (!exam || !exam.id) { %>
             <div class="form-group">
               <label for="courseId" class="form-label">Curso</label>

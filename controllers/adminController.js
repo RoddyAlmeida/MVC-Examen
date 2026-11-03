@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
-const { sequelize, User, Exam, Question, QuestionContent, Result, ExamAssignment, Course } = require("../models");
+const { sequelize, User, Exam, Question, QuestionContent, Result, ExamAssignment, Course, CourseEnrollment } = require("../models");
+const { enrollStudent, inviteExam } = require("../services/enrollmentService");
 const { calculateMetrics, pendingReview } = require("../services/adminMetrics");
 
 const roles = { estudiante: "Estudiante", profesor: "Profesor", administrador: "Administrador" };
@@ -50,7 +51,14 @@ async function listCourses(req, res) {
         { model: Exam, as: "exams", attributes: ["id"] }], order: [["name", "ASC"]],
     });
     const professors = await User.findAll({ where: { role: "profesor" }, attributes: ["id", "name", "email"], order: [["name", "ASC"]] });
-    res.render("admin/courses", { title: "Cursos", active: "courses", courses, professors });
+    const students = await User.findAll({ where: { role: "estudiante" }, attributes: ["id", "name", "email"], order: [["name", "ASC"]] });
+    const enrollments = await CourseEnrollment.findAll({ include: [{ model: User, as: "student", attributes: ["id", "name", "email"] }], order: [["createdAt", "DESC"]] });
+    res.render("admin/courses", { title: "Cursos", active: "courses", courses, professors, students, enrollments });
+}
+
+async function forceEnrollment(req, res) {
+    await enrollStudent(Number(req.body.userId), Number(req.body.courseId), "active");
+    notice(req, res, "/admin/courses", "Estudiante inscrito sin requerir aceptacion.");
 }
 
 async function courseData(body, courseId = null) {
@@ -143,7 +151,10 @@ async function updateUser(req, res) {
     await protectAdministrator(user, req.session, account.role);
     if (req.body.password) account.password = await bcrypt.hash(req.body.password, 10);
     await user.update(account);
-    if (account.role !== "estudiante") await ExamAssignment.destroy({ where: { userId: user.id } });
+    if (account.role !== "estudiante") {
+        await ExamAssignment.destroy({ where: { userId: user.id } });
+        await CourseEnrollment.destroy({ where: { userId: user.id } });
+    }
     if (account.role !== "profesor") {
         await Course.update({ professorId: null }, { where: { professorId: user.id } });
         await Exam.update({ creatorId: null }, { where: { creatorId: user.id } });
@@ -163,12 +174,8 @@ async function deleteUser(req, res) {
 }
 
 async function assignExam(req, res) {
-    const student = await findUser(req.body.userId);
-    if (student.role !== "estudiante") throw new AdminError("Solo se pueden asignar examenes a estudiantes.");
-    const exam = await Exam.findByPk(req.body.examId);
-    if (!exam) throw new AdminError("El examen no existe.");
-    await ExamAssignment.findCreateFind({ where: { userId: student.id, examId: exam.id } });
-    notice(req, res, `/admin/users/${student.id}`, "Examen asignado.");
+    await inviteExam(Number(req.body.userId), Number(req.body.examId));
+    notice(req, res, `/admin/users/${Number(req.body.userId)}`, "Invitacion al examen enviada.");
 }
 
 async function unassignExam(req, res) {
@@ -221,6 +228,6 @@ function notice(req, res, path, message) {
 
 module.exports = {
     roles, AdminError, validateAccount, protectAdministrator, dashboard, listUsers, userDetail, listExams,
-    listCourses, createCourse, updateCourse, deleteCourse,
+    listCourses, createCourse, updateCourse, deleteCourse, forceEnrollment,
     createUser, updateUser, deleteUser, assignExam, unassignExam, createExam, updateExam, deleteExam
 };

@@ -26,6 +26,7 @@ router.get("/users", controller.listUsers);
 router.get("/users/:id", controller.userDetail);
 router.get("/exams", controller.listExams);
 router.get("/courses", controller.listCourses);
+router.post("/enrollments", controller.forceEnrollment);
 router.post("/courses", controller.createCourse);
 router.post("/courses/:id/update", controller.updateCourse);
 router.post("/courses/:id/delete", controller.deleteCourse);
@@ -39,8 +40,8 @@ router.post("/exams/:id/update", controller.updateExam);
 router.post("/exams/:id/delete", controller.deleteExam);
 
 router.use((error, req, res, next) => {
-    if (!(error instanceof controller.AdminError) && error.name !== "SequelizeUniqueConstraintError") return next(error);
-    const courses = req.path.startsWith("/courses");
+    if (!(error instanceof controller.AdminError) && error.name !== "SequelizeUniqueConstraintError" && error.name !== "EnrollmentError") return next(error);
+    const courses = req.path.startsWith("/courses") || req.path.startsWith("/enrollments");
     req.session.adminNotice = {
         kind: "error", message: error.name === "SequelizeUniqueConstraintError"
             ? (courses ? "No se pudo guardar el curso por un conflicto de datos." : "Ya existe una cuenta con ese correo.") : error.message

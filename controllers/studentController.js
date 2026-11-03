@@ -1,4 +1,4 @@
-const { Exam, Question, QuestionContent, Result, ExamAssignment } = require("../models");
+const { sequelize, Exam, Question, QuestionContent, Result, ExamAssignment, ExamAttempt, Course, CourseEnrollment } = require("../models");
 const { getQuestionDefinition, gradeQuestion } = require("../services/questionService");
 const { buildCrosswordLayout } = require("../services/crosswordLayout");
 
@@ -42,7 +42,9 @@ function answerIsValid(question, answer) {
 
 async function listExams(req, res) {
     const exams = await Exam.findAll({
-        include: [{ model: ExamAssignment, as: "assignments", where: { userId: req.session.userId }, required: true }],
+        attributes: { exclude: ["passwordHash", "joinCode"] },
+        include: [{ model: ExamAssignment, as: "assignments", where: { userId: req.session.userId, status: "active" }, required: true },
+            { model: Course, as: "course", required: true, include: [{ model: CourseEnrollment, as: "enrollments", where: { userId: req.session.userId, status: "active" }, required: true }] }],
         order: [["createdAt", "DESC"]],
     });
     const myResults = await Result.findAll({
@@ -50,6 +52,7 @@ async function listExams(req, res) {
         attributes: ["examId", "score", "total", "answers"],
     });
     const resultsMap = {};
+    const invitations = await ExamAssignment.findAll({ where: { userId: req.session.userId, status: "invited" }, include: [{ model: Exam, as: "exam", attributes: ["id", "title", "courseId"], include: [{ model: Course, as: "course" }] }] });
     for (const result of myResults) {
         let pendingReview = 0;
         try {
@@ -61,6 +64,7 @@ async function listExams(req, res) {
         title: "Exámenes disponibles",
         exams,
         resultsMap,
+        invitations,
         userName: req.session.userName || "Estudiante",
     });
 }
@@ -86,6 +90,7 @@ async function renderStart(req, res) {
         totalQuestions,
         totalPages,
         maxItems: MAX_ITEMS_PER_SCREEN,
+        startErrors: res.locals.startErrors || [],
     });
 }
 
@@ -116,7 +121,7 @@ async function renderExam(req, res) {
         totalPages,
         totalQuestions,
         errors: [],
-        oldAnswers: req.session.examAnswers || {},
+        oldAnswers: req.session.examAnswersByExam?.[exam.id] || {},
     });
 }
 
@@ -151,7 +156,7 @@ async function submitExam(req, res) {
     }
 
     if (errors.length) {
-        const oldAnswers = { ...(req.session.examAnswers || {}), ...req.body };
+        const oldAnswers = { ...(req.session.examAnswersByExam?.[exam.id] || {}), ...req.body };
         return res.status(400).render("exams/take", {
             title: "Resolver examen",
             exam,
@@ -165,15 +170,17 @@ async function submitExam(req, res) {
         });
     }
 
-    if (!req.session.examAnswers) req.session.examAnswers = {};
-    Object.assign(req.session.examAnswers, req.body);
+    if (!req.session.examAnswersByExam) req.session.examAnswersByExam = {};
+    if (!req.session.examAnswersByExam[exam.id]) req.session.examAnswersByExam[exam.id] = {};
+    const answerFields = Object.fromEntries(Object.entries(req.body).filter(([key]) => key.startsWith("question_")));
+    Object.assign(req.session.examAnswersByExam[exam.id], answerFields);
     if (currentPage < totalPages) return res.redirect(`/student/exams/${exam.id}/take?page=${currentPage + 1}`);
 
     const submittedAnswers = {};
     const manualQuestionIds = [];
     let objectiveScore = 0;
     for (const question of allQuestions) {
-        const answer = extractAnswer(question, req.session.examAnswers);
+        const answer = extractAnswer(question, req.session.examAnswersByExam[exam.id]);
         submittedAnswers[question.id] = answer;
         const grade = gradeQuestion(question, answer);
         if (grade === null) manualQuestionIds.push(question.id);
@@ -182,14 +189,20 @@ async function submitExam(req, res) {
     submittedAnswers._objectiveScore = objectiveScore;
     submittedAnswers._manualScores = {};
     submittedAnswers._pendingManual = manualQuestionIds;
-    await Result.create({
-        userId: req.session.userId,
-        examId: exam.id,
-        score: objectiveScore,
-        total: totalQuestions,
-        answers: JSON.stringify(submittedAnswers),
+    await sequelize.transaction(async transaction => {
+        await Result.create({
+            userId: req.session.userId,
+            examId: exam.id,
+            score: objectiveScore,
+            total: totalQuestions,
+            answers: JSON.stringify(submittedAnswers),
+        }, { transaction });
+        await ExamAttempt.update({ finishedAt: new Date(), connected: false }, {
+            where: { userId: req.session.userId, examId: exam.id }, transaction,
+        });
     });
-    delete req.session.examAnswers;
+    delete req.session.examAnswersByExam[exam.id];
+    delete req.session.examAccess[exam.id];
     res.render("exams/result", {
         title: "Resultados",
         score: objectiveScore,

@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const { sequelize, Course } = require("../models");
+const { sequelize, Course, Exam, ExamAssignment, CourseEnrollment } = require("../models");
 
 async function removeCourseProfessorUniqueness(database = sequelize) {
     const query = database.getQueryInterface();
@@ -21,6 +21,8 @@ async function initializeDatabase() {
     const query = sequelize.getQueryInterface();
     const tables = await query.showAllTables();
     await Course.sync();
+    const courseColumns = await query.describeTable("courses");
+    if (!courseColumns.membersVisible) await query.addColumn("courses", "membersVisible", Course.rawAttributes.membersVisible);
     await removeCourseProfessorUniqueness();
     if (tables.includes("exams")) {
         const columns = await query.describeTable("exams");
@@ -40,8 +42,21 @@ async function initializeDatabase() {
                 onDelete: "RESTRICT",
             });
         }
+        for (const field of ["passwordHash", "securityMode", "securityRevision", "joinCode"]) {
+            if (!columns[field]) await query.addColumn("exams", field, Exam.rawAttributes[field]);
+        }
+    }
+    if (tables.includes("exam_assignments")) {
+        const columns = await query.describeTable("exam_assignments");
+        if (!columns.status) await query.addColumn("exam_assignments", "status", ExamAssignment.rawAttributes.status);
     }
     await sequelize.sync();
+    const assignments = await ExamAssignment.findAll({ where: { status: "active" }, include: [{ model: Exam, as: "exam", attributes: ["courseId"] }] });
+    for (const assignment of assignments) {
+        if (assignment.exam?.courseId) await CourseEnrollment.findCreateFind({
+            where: { userId: assignment.userId, courseId: assignment.exam.courseId }, defaults: { status: "active" },
+        });
+    }
 }
 
 module.exports = { initializeDatabase, removeCourseProfessorUniqueness };

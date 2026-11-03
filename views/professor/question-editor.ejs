@@ -40,6 +40,7 @@
             <% } %>
                 <form method="POST" id="questionEditor"
                     action="<%= editingQuestion ? `/professor/exams/${exam.id}/questions/${editingQuestion.id}/edit` : `/professor/exams/${exam.id}/questions/create` %>">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <div class="form-group">
                         <label for="questionType" class="form-label">Tipo de pregunta</label>
                         <select id="questionType" name="questionType" class="form-input">

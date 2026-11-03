@@ -1,0 +1,52 @@
+<%- include('../partials/course-header') %>
+    <section class="workflow-section">
+        <h2>Actividad de examenes</h2>
+        <div class="workflow-table-scroll">
+            <table class="workflow-table">
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Curso / examen</th>
+                        <th>Evento reportado</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% events.forEach(event=> { %><tr>
+                            <td>
+                                <%= event.student.name || event.student.email %>
+                            </td>
+                            <td><strong>
+                                    <%= event.exam.title %>
+                                </strong><br /><span class="workflow-muted">
+                                    <%= event.exam.course.name %>
+                                </span></td>
+                            <td>
+                                <%= eventTypes[event.type] || event.type %>
+                            </td>
+                            <td>
+                                <%= event.createdAt.toLocaleString('es') %>
+                            </td>
+                            <td>
+                                <% if (!event.readAt) { %>
+                                    <form action="/professor/notifications/<%= event.id %>/read" method="POST">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                        <button class="btn btn-secondary" title="Marcar como leida"
+                                            aria-label="Marcar notificacion como leida"><i class="ti ti-check"
+                                                aria-hidden="true"></i></button>
+                                    </form>
+                                    <% } else { %>Leida<% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                            <% if (!events.length) { %>
+                                <tr>
+                                    <td colspan="5">No hay notificaciones.</td>
+                                </tr>
+                                <% } %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <%- include('../partials/course-footer') %>

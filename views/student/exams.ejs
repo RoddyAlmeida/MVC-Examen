@@ -4,14 +4,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="<%= csrfToken %>" />
   <title>
     <%= title %>
   </title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/enrollment.css" />
 </head>
 
-<body>
+<body class="membership-page professor-course-page">
   <main class="container app-shell" style="max-width: 800px;">
     <div class="theme-toggle-wrapper">
       <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
@@ -28,61 +30,99 @@
         <h1>Mis exámenes</h1>
       </div>
       <div class="header-actions">
+        <a href="/student/courses" class="btn btn-secondary"><i class="ti ti-school" aria-hidden="true"></i> Mis
+          cursos</a>
         <a href="/logout" class="btn btn-secondary">
           <i class="ti ti-logout" aria-hidden="true"></i> Salir
         </a>
       </div>
     </header>
-
-    <% if (exams.length===0) { %>
-      <section class="panel" style="text-align: center; padding: 3rem;">
-        <i class="ti ti-file-off"
-          style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
-        <p style="color: var(--text-secondary);">No tienes exámenes asignados.</p>
-      </section>
-      <% } else { %>
-        <div class="exam-list">
-          <% exams.forEach((exam)=> { %>
-            <% const taken=resultsMap && resultsMap[exam.id] %>
-              <article class="exam-card<%= taken ? ' exam-card-taken' : '' %>">
-                <div class="exam-card-body">
-                  <h2 class="exam-card-title">
-                    <%= exam.title %>
-                  </h2>
-                  <p class="exam-card-desc">
-                    <%= exam.instructions %>
-                  </p>
-                  <p class="exam-card-meta">
-                    <i class="ti ti-calendar" aria-hidden="true"></i> Publicado: <%= exam.createdAt.toLocaleDateString()
-                      %>
-                  </p>
-                  <% if (taken) { %>
-                    <div class="exam-result-inline">
-                      <i class="ti ti-lock" aria-hidden="true"></i>
-                      <span class="result-text">Rendido — <strong>
-                          <%= taken.score %>
-                        </strong>/<%= taken.total %></span>
-                    </div>
-                    <% if (taken.pendingReview> 0) { %>
-                      <p class="exam-card-meta"><i class="ti ti-clock" aria-hidden="true"></i>
-                        <%= taken.pendingReview %> respuesta(s) pendiente(s) de revisión
-                      </p>
-                      <% } %>
-                        <% } %>
-                </div>
-                <% if (taken) { %>
-                  <span class="btn btn-secondary" style="pointer-events: none; opacity: 0.6;">
-                    <i class="ti ti-lock" aria-hidden="true"></i> No disponible
-                  </span>
-                  <% } else { %>
-                    <a href="/student/exams/<%= exam.id %>/start" class="btn btn-primary">
-                      <i class="ti ti-arrow-right" aria-hidden="true"></i> Comenzar
-                    </a>
-                    <% } %>
-              </article>
+    <% if (actionNotice) { %>
+      <div class="alert <%= actionNotice.kind === 'error' ? 'alert-error' : '' %>" role="alert">
+        <%= actionNotice.message %>
+      </div>
+      <% } %>
+        <section class="workflow-section">
+          <h2>Unirse con codigo</h2>
+          <form action="/student/exams/join" method="POST" class="workflow-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <label class="form-group">Codigo del examen<input name="code" class="form-input" required maxlength="12"
+                autocomplete="off" /></label>
+            <button class="btn btn-primary"><i class="ti ti-key" aria-hidden="true"></i> Unirme</button>
+          </form>
+        </section>
+        <% if (invitations.length) { %>
+          <section class="workflow-section">
+            <h2>Invitaciones a examenes</h2>
+            <% invitations.forEach(invitation=> { %>
+              <div class="workflow-section"><strong>
+                  <%= invitation.exam.title %>
+                </strong>
+                <p class="workflow-muted">
+                  <%= invitation.exam.course?.name || 'Sin curso' %>
+                </p>
+                <form action="/student/exams/invitations/<%= invitation.id %>/respond" method="POST"
+                  class="workflow-actions">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <button name="action" value="accept" class="btn btn-primary"><i class="ti ti-check"
+                      aria-hidden="true"></i> Aceptar</button>
+                  <button name="action" value="reject" class="btn btn-secondary"><i class="ti ti-x"
+                      aria-hidden="true"></i> Rechazar</button>
+                </form>
+              </div>
               <% }) %>
-        </div>
-        <% } %>
+          </section>
+          <% } %>
+
+            <% if (exams.length===0) { %>
+              <section class="panel" style="text-align: center; padding: 3rem;">
+                <i class="ti ti-file-off"
+                  style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
+                <p style="color: var(--text-secondary);">No tienes exámenes asignados.</p>
+              </section>
+              <% } else { %>
+                <div class="exam-list">
+                  <% exams.forEach((exam)=> { %>
+                    <% const taken=resultsMap && resultsMap[exam.id] %>
+                      <article class="exam-card<%= taken ? ' exam-card-taken' : '' %>">
+                        <div class="exam-card-body">
+                          <h2 class="exam-card-title">
+                            <%= exam.title %>
+                          </h2>
+                          <p class="exam-card-desc">
+                            <%= exam.instructions %>
+                          </p>
+                          <p class="exam-card-meta">
+                            <i class="ti ti-calendar" aria-hidden="true"></i> Publicado: <%=
+                              exam.createdAt.toLocaleDateString() %>
+                          </p>
+                          <% if (taken) { %>
+                            <div class="exam-result-inline">
+                              <i class="ti ti-lock" aria-hidden="true"></i>
+                              <span class="result-text">Rendido — <strong>
+                                  <%= taken.score %>
+                                </strong>/<%= taken.total %></span>
+                            </div>
+                            <% if (taken.pendingReview> 0) { %>
+                              <p class="exam-card-meta"><i class="ti ti-clock" aria-hidden="true"></i>
+                                <%= taken.pendingReview %> respuesta(s) pendiente(s) de revisión
+                              </p>
+                              <% } %>
+                                <% } %>
+                        </div>
+                        <% if (taken) { %>
+                          <span class="btn btn-secondary" style="pointer-events: none; opacity: 0.6;">
+                            <i class="ti ti-lock" aria-hidden="true"></i> No disponible
+                          </span>
+                          <% } else { %>
+                            <a href="/student/exams/<%= exam.id %>/start" class="btn btn-primary">
+                              <i class="ti ti-arrow-right" aria-hidden="true"></i> Comenzar
+                            </a>
+                            <% } %>
+                      </article>
+                      <% }) %>
+                </div>
+                <% } %>
   </main>
   <script src="/js/themeToggle.js"></script>
 </body>

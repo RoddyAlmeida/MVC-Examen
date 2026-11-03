@@ -68,6 +68,7 @@
                                         <form method="POST"
                                             action="/professor/exams/<%= exam.id %>/questions/<%= question.id %>/delete"
                                             onsubmit="return confirm('¿Eliminar esta pregunta?')">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                                             <button class="btn btn-secondary" style="color: var(--danger);"
                                                 aria-label="Eliminar pregunta <%= index + 1 %>"><i class="ti ti-trash"
                                                     aria-hidden="true"></i></button>

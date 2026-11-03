@@ -21,6 +21,60 @@
                 <% } %>
         </details>
         <section class="admin-section">
+            <h2>Inscribir estudiante directamente</h2>
+            <form action="/admin/enrollments" method="POST" class="admin-filters">
+                <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                <select name="courseId" required aria-label="Curso para inscribir">
+                    <option value="">Seleccionar curso</option>
+                    <% courses.forEach(course=> { %><option value="<%= course.id %>">
+                            <%= course.name %>
+                        </option>
+                        <% }) %>
+                </select>
+                <select name="userId" required aria-label="Estudiante para inscribir">
+                    <option value="">Seleccionar estudiante</option>
+                    <% students.forEach(student=> { %><option value="<%= student.id %>">
+                            <%= student.name || student.email %>
+                        </option>
+                        <% }) %>
+                </select>
+                <button class="btn btn-primary"><i class="ti ti-user-plus" aria-hidden="true"></i> Inscribir sin
+                    aceptacion</button>
+            </form>
+            <div class="admin-table-scroll">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Estudiante</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% enrollments.forEach(enrollment=> { const course = courses.find(item => item.id ===
+                            enrollment.courseId); %><tr>
+                                <td>
+                                    <%= course?.name || 'Curso eliminado' %>
+                                </td>
+                                <td>
+                                    <%= enrollment.student?.name || enrollment.student?.email %>
+                                </td>
+                                <td>
+                                    <%= enrollment.status==='active' ? 'Inscrito' : enrollment.status==='invited'
+                                        ? 'Invitado' : 'Rechazada' %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                                <% if (!enrollments.length) { %>
+                                    <tr>
+                                        <td colspan="3">Sin inscripciones.</td>
+                                    </tr>
+                                    <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="admin-section">
             <div class="admin-section-heading">
                 <h2>Cursos</h2><span class="admin-muted">
                     <%= courses.length %> cursos

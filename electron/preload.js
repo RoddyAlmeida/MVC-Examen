@@ -9,8 +9,8 @@ contextBridge.exposeInMainWorld("examSecurity", {
   closeApp() {
     ipcRenderer.send("close-exam-app");
   },
-  enterFullscreen() {
-    ipcRenderer.send("enter-fullscreen");
+  enterFullscreen(mode = "locked") {
+    ipcRenderer.send("enter-fullscreen", mode);
   },
   exitFullscreen() {
     ipcRenderer.send("exit-fullscreen");

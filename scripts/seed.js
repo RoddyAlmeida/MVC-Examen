@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { sequelize, Exam, Question, QuestionContent, User, ExamAssignment, Course } = require("../models");
+const { sequelize, Exam, Question, QuestionContent, User, ExamAssignment, Course, CourseEnrollment } = require("../models");
 const { initializeDatabase } = require("../services/schemaMigration");
 const { normalizeQuestionInput, legacyQuestionFields } = require("../services/questionService");
 
@@ -64,6 +64,7 @@ async function seedTemplate(users) {
     });
   }
   await ExamAssignment.findCreateFind({ where: { userId: users.estudiante.id, examId: exam.id } });
+  await CourseEnrollment.findCreateFind({ where: { userId: users.estudiante.id, courseId: exam.courseId || course.id }, defaults: { status: "active" } });
   return exam;
 }
 

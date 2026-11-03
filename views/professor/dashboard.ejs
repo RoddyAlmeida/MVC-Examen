@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="<%= csrfToken %>" />
   <title>
     <%= title %>
   </title>
@@ -28,6 +29,8 @@
         </h1>
       </div>
       <div class="header-actions">
+        <a href="/professor/notifications" class="btn btn-secondary"><i class="ti ti-bell" aria-hidden="true"></i>
+          Notificaciones <span data-notification-count></span></a>
         <a href="/professor/students" class="btn btn-secondary">
           <i class="ti ti-users" aria-hidden="true"></i> Estudiantes
         </a>
@@ -44,65 +47,80 @@
             </a>
       </div>
     </header>
-
-    <% if (courses.length) { %>
-      <form action="/professor/dashboard" method="GET" class="form-group">
-        <label for="courseId" class="form-label">Curso</label>
-        <select id="courseId" name="courseId" class="form-input">
-          <% courses.forEach(item=> { %>
-            <option value="<%= item.id %>" <%=course.id===item.id ? 'selected' : '' %>><%= item.name %>
-            </option>
-            <% }) %>
-        </select>
-        <button class="btn btn-secondary"><i class="ti ti-filter" aria-hidden="true"></i> Ver examenes</button>
-      </form>
+    <% if (actionNotice) { %>
+      <div class="alert <%= actionNotice.kind === 'error' ? 'alert-error' : '' %>" role="alert">
+        <%= actionNotice.message %>
+      </div>
       <% } %>
 
-        <% if (!course) { %>
-          <div class="alert" role="status">No tienes un curso asignado. Contacta al administrador.</div>
-          <% } else if (exams.length===0) { %>
-            <section class="panel" style="text-align: center; padding: 3rem;">
-              <i class="ti ti-files-off"
-                style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
-              <p style="color: var(--text-secondary);">Este curso no tiene exámenes todavía.</p>
-            </section>
-            <% } else { %>
-              <div class="exam-list">
-                <% exams.forEach((exam)=> { %>
-                  <article class="exam-card">
-                    <div class="exam-card-body">
-                      <h2 class="exam-card-title">
-                        <%= exam.title %>
-                      </h2>
-                      <p class="exam-card-desc">
-                        <%= exam.instructions %>
-                      </p>
-                      <p class="exam-card-meta">
-                        <i class="ti ti-calendar" aria-hidden="true"></i> Creado: <%=
-                          exam.createdAt.toLocaleDateString() %>
-                      </p>
-                    </div>
-                    <div class="exam-card-actions">
-                      <a href="/professor/exams/<%= exam.id %>/questions" class="btn btn-secondary"
-                        title="Gestionar preguntas">
-                        <i class="ti ti-notes" aria-hidden="true"></i> Preguntas
-                      </a>
-                      <a href="/professor/exams/<%= exam.id %>/edit" class="btn btn-secondary" title="Editar examen">
-                        <i class="ti ti-edit" aria-hidden="true"></i>
-                      </a>
-                      <form action="/professor/exams/<%= exam.id %>/delete" method="POST" style="display: inline;"
-                        onsubmit="return confirm('¿Eliminar este examen y todas sus preguntas?')">
-                        <button class="btn btn-secondary" style="color: var(--danger);" title="Eliminar examen">
-                          <i class="ti ti-trash" aria-hidden="true"></i>
-                        </button>
-                      </form>
-                    </div>
-                  </article>
-                  <% }) %>
-              </div>
+        <% if (courses.length) { %>
+          <form action="/professor/dashboard" method="GET" class="form-group">
+            <label for="courseId" class="form-label">Curso</label>
+            <select id="courseId" name="courseId" class="form-input">
+              <% courses.forEach(item=> { %>
+                <option value="<%= item.id %>" <%=course.id===item.id ? 'selected' : '' %>><%= item.name %>
+                </option>
+                <% }) %>
+            </select>
+            <button class="btn btn-secondary"><i class="ti ti-filter" aria-hidden="true"></i> Ver examenes</button>
+          </form>
+          <% } %>
+
+            <% if (course) { %><a href="/professor/courses/<%= course.id %>/members" class="btn btn-secondary"><i
+                  class="ti ti-users" aria-hidden="true"></i> Integrantes del curso</a>
               <% } %>
+
+                <% if (!course) { %>
+                  <div class="alert" role="status">No tienes un curso asignado. Contacta al administrador.</div>
+                  <% } else if (exams.length===0) { %>
+                    <section class="panel" style="text-align: center; padding: 3rem;">
+                      <i class="ti ti-files-off"
+                        style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
+                      <p style="color: var(--text-secondary);">Este curso no tiene exámenes todavía.</p>
+                    </section>
+                    <% } else { %>
+                      <div class="exam-list">
+                        <% exams.forEach((exam)=> { %>
+                          <article class="exam-card">
+                            <div class="exam-card-body">
+                              <h2 class="exam-card-title">
+                                <%= exam.title %>
+                              </h2>
+                              <p class="exam-card-desc">
+                                <%= exam.instructions %>
+                              </p>
+                              <p class="exam-card-meta">
+                                <i class="ti ti-calendar" aria-hidden="true"></i> Creado: <%=
+                                  exam.createdAt.toLocaleDateString() %>
+                              </p>
+                            </div>
+                            <div class="exam-card-actions">
+                              <a href="/professor/exams/<%= exam.id %>/access" class="btn btn-secondary"><i
+                                  class="ti ti-lock-access" aria-hidden="true"></i> Acceso y seguridad</a>
+                              <a href="/professor/exams/<%= exam.id %>/questions" class="btn btn-secondary"
+                                title="Gestionar preguntas">
+                                <i class="ti ti-notes" aria-hidden="true"></i> Preguntas
+                              </a>
+                              <a href="/professor/exams/<%= exam.id %>/edit" class="btn btn-secondary"
+                                title="Editar examen">
+                                <i class="ti ti-edit" aria-hidden="true"></i>
+                              </a>
+                              <form action="/professor/exams/<%= exam.id %>/delete" method="POST"
+                                style="display: inline;"
+                                onsubmit="return confirm('¿Eliminar este examen y todas sus preguntas?')">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                <button class="btn btn-secondary" style="color: var(--danger);" title="Eliminar examen">
+                                  <i class="ti ti-trash" aria-hidden="true"></i>
+                                </button>
+                              </form>
+                            </div>
+                          </article>
+                          <% }) %>
+                      </div>
+                      <% } %>
   </main>
   <script src="/js/themeToggle.js"></script>
+  <script src="/js/notifications.js"></script>
 </body>
 
 </html>

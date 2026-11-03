@@ -6,6 +6,9 @@ const createResultModel = require("./Result");
 const createQuestionContentModel = require("./QuestionContent");
 const createExamAssignmentModel = require("./ExamAssignment");
 const createCourseModel = require("./Course");
+const createCourseEnrollmentModel = require("./CourseEnrollment");
+const createExamSecurityEventModel = require("./ExamSecurityEvent");
+const createExamAttemptModel = require("./ExamAttempt");
 
 const Exam = createExamModel(sequelize);
 const Question = createQuestionModel(sequelize);
@@ -14,6 +17,24 @@ const Result = createResultModel(sequelize);
 const QuestionContent = createQuestionContentModel(sequelize);
 const ExamAssignment = createExamAssignmentModel(sequelize);
 const Course = createCourseModel(sequelize);
+const CourseEnrollment = createCourseEnrollmentModel(sequelize);
+const ExamSecurityEvent = createExamSecurityEventModel(sequelize);
+const ExamAttempt = createExamAttemptModel(sequelize);
+
+User.hasMany(ExamAttempt, { foreignKey: "userId", as: "examAttempts", onDelete: "CASCADE" });
+ExamAttempt.belongsTo(User, { foreignKey: "userId", as: "student" });
+Exam.hasMany(ExamAttempt, { foreignKey: "examId", as: "attempts", onDelete: "CASCADE" });
+ExamAttempt.belongsTo(Exam, { foreignKey: "examId", as: "exam" });
+
+User.hasMany(ExamSecurityEvent, { foreignKey: "userId", as: "securityEvents", onDelete: "CASCADE" });
+ExamSecurityEvent.belongsTo(User, { foreignKey: "userId", as: "student" });
+Exam.hasMany(ExamSecurityEvent, { foreignKey: "examId", as: "securityEvents", onDelete: "CASCADE" });
+ExamSecurityEvent.belongsTo(Exam, { foreignKey: "examId", as: "exam" });
+
+User.hasMany(CourseEnrollment, { foreignKey: "userId", as: "enrollments", onDelete: "CASCADE" });
+CourseEnrollment.belongsTo(User, { foreignKey: "userId", as: "student" });
+Course.hasMany(CourseEnrollment, { foreignKey: "courseId", as: "enrollments", onDelete: "CASCADE" });
+CourseEnrollment.belongsTo(Course, { foreignKey: "courseId", as: "course" });
 
 User.hasMany(Course, { foreignKey: "professorId", as: "courses", onDelete: "SET NULL" });
 Course.belongsTo(User, { foreignKey: "professorId", as: "professor" });
@@ -77,4 +98,7 @@ module.exports = {
   Result,
   ExamAssignment,
   Course,
+  CourseEnrollment,
+  ExamSecurityEvent,
+  ExamAttempt,
 };

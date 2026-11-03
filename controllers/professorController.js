@@ -1,4 +1,4 @@
-const { sequelize, Exam, Question, QuestionContent, User, Result, ExamAssignment, Course } = require("../models");
+const { sequelize, Exam, Question, QuestionContent, User, Result, ExamAssignment, ExamAttempt, Course, CourseEnrollment } = require("../models");
 const { getQuestionDefinition, legacyQuestionFields, normalizeAnswer, normalizeQuestionInput } = require("../services/questionService");
 const { parseQtiPackage } = require("../services/examImport");
 const MAX_QUESTIONS_PER_EXAM = 100;
@@ -226,8 +226,8 @@ async function listStudents(req, res) {
   const students = await User.findAll({
     where: { role: "estudiante" },
     include: [{
-      model: ExamAssignment, as: "assignments", required: true,
-      include: [{ model: Exam, as: "exam", where: { creatorId: req.session.userId }, required: true }]
+      model: CourseEnrollment, as: "enrollments", where: { status: "active" }, required: true,
+      include: [{ model: Course, as: "course", where: { professorId: req.session.userId }, required: true }]
     }],
     order: [["createdAt", "DESC"]],
   });
@@ -334,7 +334,10 @@ async function reviewStudentExam(req, res) {
 async function resetStudentExam(req, res) {
   const student = await User.findByPk(req.params.id);
   if (!student || student.role !== "estudiante") return res.redirect("/professor/students");
-  await Result.destroy({ where: { userId: student.id, examId: req.params.eid } });
+  await sequelize.transaction(async transaction => {
+    await Result.destroy({ where: { userId: student.id, examId: req.params.eid }, transaction });
+    await ExamAttempt.destroy({ where: { userId: student.id, examId: req.params.eid }, transaction });
+  });
   res.redirect("/professor/students/" + student.id);
 }
 

@@ -25,7 +25,7 @@
             </form>
         </details>
         <section class="admin-section">
-            <h2>Asignar examen</h2>
+            <h2>Invitar al examen</h2>
             <form action="/admin/assignments" method="POST" class="admin-filters">
                 <input type="hidden" name="_csrf" value="<%= csrf %>" />
                 <select name="userId" required aria-label="Estudiante">
@@ -42,7 +42,7 @@
                         </option>
                         <% }) %>
                 </select>
-                <button class="btn btn-primary"><i class="ti ti-list-check" aria-hidden="true"></i> Asignar</button>
+                <button class="btn btn-primary"><i class="ti ti-send" aria-hidden="true"></i> Invitar</button>
             </form>
         </section>
         <section class="admin-section">

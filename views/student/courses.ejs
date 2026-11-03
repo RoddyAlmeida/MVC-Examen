@@ -1,0 +1,58 @@
+<%- include('../partials/course-header') %>
+    <section class="workflow-section">
+        <h2>Cursos e invitaciones</h2>
+        <div class="workflow-table-scroll">
+            <table class="workflow-table">
+                <thead>
+                    <tr>
+                        <th>Curso</th>
+                        <th>Profesor</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% enrollments.forEach(enrollment=> { %>
+                        <tr>
+                            <td><strong>
+                                    <%= enrollment.course.name %>
+                                </strong></td>
+                            <td>
+                                <%= enrollment.course.professor?.name || enrollment.course.professor?.email
+                                    || 'Sin profesor' %>
+                            </td>
+                            <td>
+                                <%= enrollment.status==='active' ? 'Inscrito' : 'Invitacion pendiente' %>
+                            </td>
+                            <td>
+                                <% if (enrollment.status==='invited' ) { %>
+                                    <form action="/student/courses/invitations/<%= enrollment.id %>/respond"
+                                        method="POST" class="workflow-actions">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                        <button name="action" value="accept" class="btn btn-primary"><i
+                                                class="ti ti-check" aria-hidden="true"></i> Aceptar</button>
+                                        <button name="action" value="reject" class="btn btn-secondary"><i
+                                                class="ti ti-x" aria-hidden="true"></i> Rechazar</button>
+                                    </form>
+                                    <% } else { %><a href="/student/exams" class="btn btn-secondary"><i
+                                                class="ti ti-notes" aria-hidden="true"></i> Examenes</a>
+                                        <% if (enrollment.course.membersVisible) { %>
+                                            <a href="/student/courses/<%= enrollment.courseId %>/members"
+                                                class="btn btn-secondary"><i class="ti ti-users" aria-hidden="true"></i>
+                                                Integrantes</a>
+                                            <% } else { %><span class="workflow-muted">Integrantes privados</span>
+                                                <% } %>
+                                                    <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                            <% if (!enrollments.length) { %>
+                                <tr>
+                                    <td colspan="4">No tienes cursos ni invitaciones pendientes.</td>
+                                </tr>
+                                <% } %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <%- include('../partials/course-footer') %>

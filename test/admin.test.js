@@ -1,7 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const bcrypt = require("bcryptjs");
-const { User, Exam, Question, QuestionContent, ExamAssignment, Result, sequelize, Course } = require("../models");
+const { User, Exam, Question, QuestionContent, ExamAssignment, Result, sequelize, Course, CourseEnrollment } = require("../models");
+const { EnrollmentError } = require("../services/enrollmentService");
 const controller = require("../controllers/adminController");
 const { requireRole, requireAssignedExam, requireOwnedExam, requireCourse } = require("../middleware/access");
 const professorController = require("../controllers/professorController");
@@ -50,7 +51,7 @@ test("role checks refresh existing sessions and revoke old permissions", async (
 
 test("assignment guard rejects unassigned exams and checks student identity", async (context) => {
     context.mock.method(ExamAssignment, "findOne", async ({ where }) => {
-        assert.deepEqual(where, { userId: 7, examId: "3" });
+        assert.deepEqual(where, { userId: 7, examId: "3", status: "active" });
         return null;
     });
     const res = response();
@@ -75,13 +76,15 @@ test("exam ownership also rejects questions from another exam", async (context) 
 test("only students receive assignments and duplicates use the unique lookup", async (context) => {
     let role = "profesor";
     context.mock.method(User, "findByPk", async () => ({ id: 7, role }));
-    context.mock.method(Exam, "findByPk", async () => ({ id: 3 }));
-    const lookup = context.mock.method(ExamAssignment, "findCreateFind", async ({ where }) => {
+    context.mock.method(Exam, "findByPk", async () => ({ id: 3, courseId: 9 }));
+    context.mock.method(CourseEnrollment, "findOne", async () => ({ status: "active" }));
+    const lookup = context.mock.method(ExamAssignment, "findCreateFind", async ({ where, defaults }) => {
         assert.deepEqual(where, { userId: 7, examId: 3 });
+        assert.equal(defaults.status, "invited");
         return [{ id: 1 }, false];
     });
     const req = { body: { userId: "7", examId: "3" }, session: {} };
-    await assert.rejects(controller.assignExam(req, response()), controller.AdminError);
+    await assert.rejects(controller.assignExam(req, response()), EnrollmentError);
     assert.equal(lookup.mock.callCount(), 0);
     role = "estudiante";
     const res = response();
@@ -103,6 +106,7 @@ test("role changes clear incompatible assignments and authorship without deletin
     const user = { id: 7, role: "profesor", async update(account) { Object.assign(this, account); } };
     context.mock.method(User, "findByPk", async () => user);
     const assignments = context.mock.method(ExamAssignment, "destroy", async () => 0);
+    context.mock.method(CourseEnrollment, "destroy", async () => 0);
     context.mock.method(Course, "update", async (values, options) => {
         assert.deepEqual(values, { professorId: null });
         assert.deepEqual(options.where, { professorId: 7 });
@@ -151,13 +155,14 @@ test("schema migration adds missing course and authorship columns without forcin
     context.mock.method(sequelize, "getQueryInterface", () => ({
         async showAllTables() { return ["exams"]; },
         async showIndex() { return []; },
-        async describeTable() { return columns; },
+        async describeTable(table) { return table === "courses" ? { membersVisible: {} } : columns; },
         async addColumn(table, column) { assert.equal(table, "exams"); added.push(column); columns[column] = {}; },
     }));
     context.mock.method(sequelize, "sync", async (options) => assert.equal(options, undefined));
+    context.mock.method(ExamAssignment, "findAll", async () => []);
     await initializeDatabase();
     await initializeDatabase();
-    assert.deepEqual(added, ["creatorId", "courseId"]);
+    assert.deepEqual(added, ["creatorId", "courseId", "passwordHash", "securityMode", "securityRevision", "joinCode"]);
 });
 
 test("template covers all types and repeated seeding does not duplicate questions", async (context) => {
@@ -186,6 +191,7 @@ test("template covers all types and repeated seeding does not duplicate question
         assert.deepEqual(where, { userId: 7, examId: 3 });
         return [{ id: 1 }, false];
     });
+    context.mock.method(CourseEnrollment, "findCreateFind", async () => [{ id: 1 }, false]);
     await seedTemplate({ profesor: { id: 2 }, estudiante: { id: 7 } });
     await seedTemplate({ profesor: { id: 2 }, estudiante: { id: 7 } });
     assert.equal(questions.size, 7);
@@ -219,8 +225,10 @@ test("course migration permits multiple courses per professor and preserves refe
         await database.query("PRAGMA foreign_keys = ON");
         await database.query("CREATE TABLE users (id INTEGER PRIMARY KEY)");
         await database.query("INSERT INTO users VALUES (7)");
-        await database.query("CREATE TABLE courses (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(200) NOT NULL, professorId INTEGER UNIQUE REFERENCES users(id) ON DELETE SET NULL, createdAt DATETIME NOT NULL, updatedAt DATETIME NOT NULL)");
+        await database.query("CREATE TABLE courses (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(200) NOT NULL, professorId INTEGER UNIQUE REFERENCES users(id) ON DELETE SET NULL, membersVisible BOOLEAN NOT NULL DEFAULT 0, createdAt DATETIME NOT NULL, updatedAt DATETIME NOT NULL)");
         const first = await Courses.create({ name: "A", professorId: 7 });
+        assert.equal(first.membersVisible, false);
+        await first.update({ membersVisible: true });
         await database.query("CREATE TABLE exams (id INTEGER PRIMARY KEY, courseId INTEGER REFERENCES courses(id) ON DELETE RESTRICT)");
         await database.query("INSERT INTO exams VALUES (1, $courseId)", { bind: { courseId: first.id } });
         await removeCourseProfessorUniqueness(database);
@@ -228,6 +236,7 @@ test("course migration permits multiple courses per professor and preserves refe
         await Courses.create({ name: "B", professorId: 7 });
         assert.equal(await Courses.count({ where: { professorId: 7 } }), 2);
         assert.equal((await first.reload()).name, "A");
+        assert.equal(first.membersVisible, true);
         const [exams] = await database.query("SELECT * FROM exams");
         assert.equal(exams[0].courseId, first.id);
         const [violations] = await database.query("PRAGMA foreign_key_check");
@@ -384,12 +393,15 @@ test("course HTTP workflow migrates legacy exams and preserves assignments on re
     await sequelize.query('INSERT INTO exams (title, instructions, creatorId, createdAt, updatedAt) VALUES ($title, $instructions, $creator, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)', {
         bind: { title: "Anterior", instructions: "Conservar", creator: professor.id },
     });
+    await sequelize.query('CREATE TABLE exam_assignments (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL REFERENCES users(id), examId INTEGER NOT NULL REFERENCES exams(id), createdAt DATETIME NOT NULL, updatedAt DATETIME NOT NULL, UNIQUE(userId, examId))');
+    await sequelize.query('INSERT INTO exam_assignments (userId, examId, createdAt, updatedAt) VALUES ($student, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)', { bind: { student: student.id } });
     await initializeDatabase();
     await initializeDatabase();
     const legacy = await Exam.findOne({ where: { title: "Anterior" } });
     assert.equal(legacy.courseId, null);
     assert.equal(legacy.creatorId, professor.id);
-    const assignment = await ExamAssignment.create({ examId: legacy.id, userId: student.id });
+    const assignment = await ExamAssignment.findOne({ where: { examId: legacy.id, userId: student.id } });
+    assert.equal(assignment.status, "active");
     const result = await Result.create({ examId: legacy.id, userId: student.id, score: 1, total: 1, answers: "{}" });
     const { app } = require("../app");
     const server = await new Promise(resolve => { const listening = app.listen(0, "127.0.0.1", () => resolve(listening)); });
@@ -401,6 +413,10 @@ test("course HTTP workflow migrates legacy exams and preserves assignments on re
         return reply.headers.get("set-cookie").split(";")[0];
     }
     async function post(path, body, cookie) {
+        if (path.startsWith("/professor")) {
+            const page = await fetch(`${base}/professor/dashboard`, { headers: { cookie } });
+            body = { ...body, _csrf: (await page.text()).match(/name="csrf-token" content="([^"]+)"/)[1] };
+        }
         return fetch(`${base}${path}`, { method: "POST", body: new URLSearchParams(body), headers: { cookie }, redirect: "manual" });
     }
     const adminCookie = await login(admin);
@@ -448,6 +464,8 @@ test("course HTTP workflow migrates legacy exams and preserves assignments on re
     const form = new FormData();
     form.append("qtiPackage", new Blob([await zipBuffer]), "qti.zip");
     form.append("courseId", String(secondCourse.id));
+    const importPage = await fetch(`${base}/professor/dashboard`, { headers: { cookie: professorCookie } });
+    form.append("_csrf", (await importPage.text()).match(/name="csrf-token" content="([^"]+)"/)[1]);
     const imported = await fetch(`${base}/professor/exams/import`, { method: "POST", body: form, headers: { cookie: professorCookie }, redirect: "manual" });
     assert.equal(imported.status, 302);
     const importedId = Number(imported.headers.get("location").split("/")[3]);

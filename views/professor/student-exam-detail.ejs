@@ -32,6 +32,7 @@
             </p>
         </header>
         <form method="POST" action="/professor/students/<%= student.id %>/exam/<%= result.examId %>/review">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
             <div class="question-list">
                 <% questionViews.forEach((view, index)=> { %>
                     <article class="question-card">

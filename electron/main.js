@@ -7,8 +7,19 @@ const EXAM_URL = `http://localhost:${EXAM_PORT}/login`;
 let mainWindow;
 let httpServer;
 let powerSaveId;
-let examLeaveTimer = null;
-const LEAVE_TIMEOUT_MS = 2000;
+let examMode = "none";
+
+function setExamMode(mode) {
+  examMode = mode;
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const locked = mode === "locked";
+  mainWindow.setKiosk(locked);
+  mainWindow.setAlwaysOnTop(locked, "screen-saver");
+  mainWindow.setSkipTaskbar(locked);
+  mainWindow.setFullScreen(locked);
+  if (locked) { registerBlockedShortcuts(); mainWindow.focus(); }
+  else globalShortcut.unregisterAll();
+}
 
 function isAllowedUrl(url) {
   try {
@@ -75,11 +86,16 @@ function createMainWindow() {
     if (!isAllowedUrl(url)) {
       event.preventDefault();
       shell.beep();
+      return;
+    }
+    if (examMode === "locked" && new URL(url).pathname !== new URL(mainWindow.webContents.getURL()).pathname) {
+      event.preventDefault();
+      mainWindow.webContents.send("security-event", { type: "left" });
     }
   });
 
   mainWindow.webContents.on("before-input-event", (event, input) => {
-    if (input.type === "keyDown" && ["Escape", "F11"].includes(input.key)) {
+    if (examMode === "locked" && input.type === "keyDown" && ["Escape", "F11"].includes(input.key)) {
       event.preventDefault();
     }
   });
@@ -96,55 +112,36 @@ function createMainWindow() {
   });
 
   mainWindow.on("blur", () => {
-    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+    if (examMode !== "none" && mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
       // Intentar forzar el foco si estamos en modo kiosk para dificultar el Alt+Tab
       if (mainWindow.isKiosk()) {
         mainWindow.focus();
       }
 
       mainWindow.webContents.send("security-event", { type: "left" });
-      if (examLeaveTimer === null) {
-        examLeaveTimer = setTimeout(function () {
-          mainWindow.webContents.send("security-event", { type: "failed" });
-          examLeaveTimer = null;
-        }, LEAVE_TIMEOUT_MS);
-      }
     }
   });
 
   mainWindow.on("focus", () => {
-    mainWindow.webContents.send("security-event", { type: "returned" });
-    if (examLeaveTimer !== null) {
-      clearTimeout(examLeaveTimer);
-      examLeaveTimer = null;
-    }
+    if (examMode !== "none") mainWindow.webContents.send("security-event", { type: "returned" });
+  });
+
+  mainWindow.on("close", event => { if (examMode === "locked") { event.preventDefault(); shell.beep(); } });
+  mainWindow.webContents.on("did-finish-load", async () => {
+    const active = await mainWindow.webContents.executeJavaScript('Boolean(document.querySelector("[data-exam-session]"))');
+    if (!active) setExamMode("none");
   });
 
   ipcMain.on("close-exam-app", () => {
-    app.exit(0);
+    if (examMode !== "locked") app.quit();
   });
 
-  ipcMain.on("enter-fullscreen", () => {
-    if (mainWindow) {
-      mainWindow.setFullScreen(true);
-      mainWindow.setKiosk(true);
-      // Forzar por encima de todo, incluso de la barra de tareas
-      // El nivel 'screen-saver' es el más alto en macOS/Windows
-      mainWindow.setAlwaysOnTop(true, "screen-saver");
-      mainWindow.setSkipTaskbar(true);
-
-      // Asegurar que recupere el foco
-      mainWindow.focus();
-    }
+  ipcMain.on("enter-fullscreen", (event, mode) => {
+    if (event.sender === mainWindow.webContents && ["locked", "monitored"].includes(mode) && /\/student\/exams\/\d+\/take$/.test(new URL(event.sender.getURL()).pathname)) setExamMode(mode);
   });
 
   ipcMain.on("exit-fullscreen", () => {
-    if (mainWindow) {
-      mainWindow.setKiosk(false);
-      mainWindow.setAlwaysOnTop(false);
-      mainWindow.setSkipTaskbar(false);
-      mainWindow.setFullScreen(false);
-    }
+    setExamMode("none");
   });
 
   mainWindow.loadURL(EXAM_URL);
@@ -155,7 +152,6 @@ async function bootstrapElectron() {
   httpServer = await startServer(EXAM_PORT);
 
   powerSaveId = powerSaveBlocker.start("prevent-display-sleep");
-  registerBlockedShortcuts();
   createMainWindow();
 }
 
@@ -178,6 +174,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("before-quit", (event) => {
+  if (examMode === "locked") { event.preventDefault(); shell.beep(); return; }
   if (httpServer) {
     event.preventDefault();
     httpServer.close(() => {

@@ -92,6 +92,7 @@
                   </a>
                   <form method="POST" action="/professor/students/<%= student.id %>/reset-exam/<%= r.examId %>"
                     onsubmit="return confirm('¿Resetear este resultado? El estudiante podrá volver a rendir el examen.');">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <button class="btn btn-secondary" style="color: var(--danger);">
                       <i class="ti ti-refresh"></i> Reset
                     </button>

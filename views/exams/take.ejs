@@ -12,7 +12,9 @@
 </head>
 
 <body>
-    <main class="container app-shell"
+    <main class="container app-shell" data-exam-session data-exam-id="<%= exam.id %>"
+        data-security-mode="<%= exam.securityMode %>" data-security-token="<%= req.session.examAccess[exam.id].token %>"
+        data-csrf-token="<%= csrfToken %>"
         data-page-read="Has iniciado el examen. Usa tabulación para recorrer preguntas y espacio para seleccionar opciones.">
         <div class="theme-toggle-wrapper">
             <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color"><i class="ti ti-moon"
@@ -63,6 +65,7 @@
             </div>
             <% } %>
                 <form action="/student/exams/<%= exam.id %>/take?page=<%= currentPage %>" method="POST" id="examForm">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <% questionViews.forEach((view, index)=> {
                         const question = view.question;
                         const answerKey = `question_${question.id}`;
@@ -220,6 +223,7 @@
     <script src="/js/accessibility.js"></script>
     <script src="/js/examInteractions.js"></script>
     <script src="/js/examSecurity.js"></script>
+    <script src="/js/examPresence.js"></script>
 </body>
 
 </html>

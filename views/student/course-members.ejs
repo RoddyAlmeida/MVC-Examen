@@ -1,0 +1,37 @@
+<%- include('../partials/course-header') %>
+    <section class="workflow-section">
+        <h2>Integrantes del curso</h2>
+        <div class="workflow-table-scroll">
+            <table class="workflow-table workflow-roster">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Rol</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (professor) { %>
+                        <tr>
+                            <td>
+                                <%= professor.name || 'Profesor' %>
+                            </td>
+                            <td><i class="ti ti-school" aria-hidden="true"></i> Profesor</td>
+                        </tr>
+                        <% } %>
+                            <% enrollments.forEach(enrollment=> { %><tr>
+                                    <td>
+                                        <%= enrollment.student.name || 'Estudiante' %>
+                                    </td>
+                                    <td>Estudiante</td>
+                                </tr>
+                                <% }) %>
+                                    <% if (!professor && !enrollments.length) { %>
+                                        <tr>
+                                            <td colspan="2">No hay integrantes.</td>
+                                        </tr>
+                                        <% } %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <%- include('../partials/course-footer') %>

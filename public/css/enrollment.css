@@ -1,0 +1,183 @@
+.workflow-shell {
+    max-width: 1100px;
+}
+
+.membership-page h1 {
+    font-size: 1.8rem;
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+}
+
+.workflow-header {
+    padding-right: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.workflow-header .eyebrow {
+    letter-spacing: 0;
+}
+
+.workflow-section {
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.workflow-section h2 {
+    font-size: 1.2rem;
+    letter-spacing: 0;
+    margin-bottom: 1rem;
+}
+
+.workflow-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    align-items: center;
+}
+
+.workflow-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+}
+
+.workflow-form .form-group {
+    flex: 1 1 260px;
+    min-width: 0;
+    margin: 0;
+}
+
+.workflow-settings {
+    max-width: 640px;
+    display: grid;
+    gap: 1rem;
+}
+
+.workflow-muted {
+    color: var(--text-secondary);
+    overflow-wrap: anywhere;
+}
+
+.workflow-table-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.workflow-table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: .9rem;
+}
+
+.workflow-table th,
+.workflow-table td {
+    padding: .85rem .65rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.workflow-table th {
+    font-size: .8rem;
+    background: var(--secondary);
+    color: var(--text-secondary);
+}
+
+.workflow-roster {
+    min-width: 0;
+}
+
+.workflow-roster td:last-child {
+    width: 130px;
+}
+
+.activity-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+
+.activity-heading h2 {
+    margin-bottom: 0;
+}
+
+.activity-heading [data-activity-refresh] {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    flex: 0 0 40px;
+}
+
+.activity-duration {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.join-code {
+    display: block;
+    font-family: monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 1rem 0;
+    overflow-wrap: anywhere;
+}
+
+.security-modes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    border: 0;
+    padding: 0;
+}
+
+.security-modes legend {
+    font-weight: 600;
+    margin-bottom: .65rem;
+}
+
+.security-modes label {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .6rem .8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.security-modes label:has(:checked) {
+    border-color: var(--primary);
+    background: var(--secondary);
+}
+
+.workflow-check {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+}
+
+.membership-page .btn {
+    border-radius: 6px;
+    white-space: normal;
+}
+
+.workflow-section .alert {
+    margin: 1rem 0;
+}
+
+@media (max-width: 600px) {
+    .workflow-form>.btn {
+        width: 100%;
+    }
+
+    .workflow-header {
+        padding-right: 0;
+        padding-top: 2rem;
+    }
+}
