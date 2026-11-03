@@ -5,6 +5,7 @@ const createUserModel = require("./User");
 const createResultModel = require("./Result");
 const createQuestionContentModel = require("./QuestionContent");
 const createExamAssignmentModel = require("./ExamAssignment");
+const createCourseModel = require("./Course");
 
 const Exam = createExamModel(sequelize);
 const Question = createQuestionModel(sequelize);
@@ -12,6 +13,12 @@ const User = createUserModel(sequelize);
 const Result = createResultModel(sequelize);
 const QuestionContent = createQuestionContentModel(sequelize);
 const ExamAssignment = createExamAssignmentModel(sequelize);
+const Course = createCourseModel(sequelize);
+
+User.hasOne(Course, { foreignKey: "professorId", as: "course", onDelete: "SET NULL" });
+Course.belongsTo(User, { foreignKey: "professorId", as: "professor" });
+Course.hasMany(Exam, { foreignKey: "courseId", as: "exams", onDelete: "RESTRICT" });
+Exam.belongsTo(Course, { foreignKey: "courseId", as: "course" });
 
 User.hasMany(Exam, { foreignKey: "creatorId", as: "createdExams", onDelete: "SET NULL" });
 Exam.belongsTo(User, { foreignKey: "creatorId", as: "creator" });
@@ -69,4 +76,5 @@ module.exports = {
   User,
   Result,
   ExamAssignment,
+  Course,
 };

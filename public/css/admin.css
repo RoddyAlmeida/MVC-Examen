@@ -35,6 +35,7 @@
 .admin-nav {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 1.25rem;
 }
 
@@ -222,6 +223,10 @@
     width: 100%;
     font-size: .875rem;
     text-align: left;
+}
+
+.admin-course-table {
+    min-width: 640px;
 }
 
 .admin-table th {

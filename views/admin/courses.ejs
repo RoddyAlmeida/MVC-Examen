@@ -1,0 +1,99 @@
+<%- include('../partials/admin-header') %>
+    <% const available=professors.filter(professor=> !courses.some(course => course.professorId === professor.id)); %>
+        <details class="admin-editor" open>
+            <summary><i class="ti ti-plus" aria-hidden="true"></i> Nuevo curso</summary>
+            <form action="/admin/courses" method="POST" class="admin-form-grid">
+                <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                <label>Nombre del curso<input name="name" required maxlength="200" /></label>
+                <label>Profesor<select name="professorId" required>
+                        <option value="">Seleccionar profesor</option>
+                        <% available.forEach(professor=> { %>
+                            <option value="<%= professor.id %>">
+                                <%= professor.name || professor.email %>
+                            </option>
+                            <% }) %>
+                    </select></label>
+                <div class="admin-form-actions"><button class="btn btn-primary" <%=available.length ? '' : 'disabled'
+                        %>><i class="ti ti-plus" aria-hidden="true"></i> Crear curso</button></div>
+            </form>
+            <% if (!available.length) { %>
+                <p class="admin-muted">No hay profesores disponibles.</p>
+                <% } %>
+        </details>
+        <section class="admin-section">
+            <div class="admin-section-heading">
+                <h2>Cursos</h2><span class="admin-muted">
+                    <%= courses.length %> cursos
+                </span>
+            </div>
+            <div class="admin-table-scroll">
+                <table class="admin-table admin-course-table">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Profesor</th>
+                            <th>Examenes</th>
+                            <th>Gestion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% courses.forEach(course=> { %>
+                            <tr>
+                                <td><strong>
+                                        <%= course.name %>
+                                    </strong></td>
+                                <td>
+                                    <% if (course.professor) { %><a href="/admin/users/<%= course.professorId %>">
+                                            <%= course.professor.name || course.professor.email %>
+                                        </a>
+                                        <% } else { %><span class="admin-muted">Sin profesor</span>
+                                            <% } %>
+                                </td>
+                                <td>
+                                    <%= course.exams.length %>
+                                </td>
+                                <td>
+                                    <details class="admin-inline-editor">
+                                        <summary title="Editar curso"><i class="ti ti-edit" aria-hidden="true"></i>
+                                            Editar</summary>
+                                        <form action="/admin/courses/<%= course.id %>/update" method="POST"
+                                            class="admin-edit-form">
+                                            <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                                            <label>Nombre<input name="name" value="<%= course.name %>" required
+                                                    maxlength="200" /></label>
+                                            <label>Profesor<select name="professorId">
+                                                    <option value="">Sin profesor</option>
+                                                    <% professors.filter(professor=> professor.id === course.professorId
+                                                        || available.some(item => item.id ===
+                                                        professor.id)).forEach(professor => { %>
+                                                        <option value="<%= professor.id %>"
+                                                            <%=course.professorId===professor.id ? 'selected' : '' %>>
+                                                            <%= professor.name || professor.email %>
+                                                        </option>
+                                                        <% }) %>
+                                                </select></label>
+                                            <button class="btn btn-primary"><i class="ti ti-device-floppy"
+                                                    aria-hidden="true"></i> Guardar</button>
+                                        </form>
+                                    </details>
+                                    <form action="/admin/courses/<%= course.id %>/delete" method="POST"
+                                        onsubmit="return confirm('Eliminar este curso?')">
+                                        <input type="hidden" name="_csrf" value="<%= csrf %>" />
+                                        <button class="btn btn-secondary admin-icon admin-danger"
+                                            title="<%= course.exams.length ? 'El curso tiene examenes' : 'Eliminar curso' %>"
+                                            aria-label="Eliminar <%= course.name %>" <%=course.exams.length ? 'disabled'
+                                            : '' %>><i class="ti ti-trash" aria-hidden="true"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <% }) %>
+                                <% if (!courses.length) { %>
+                                    <tr>
+                                        <td colspan="4" class="admin-empty">No hay cursos registrados.</td>
+                                    </tr>
+                                    <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <%- include('../partials/admin-footer') %>

@@ -136,6 +136,41 @@ test("QTI 3 package follows test item order and imports atomically as one exam",
     assert.deepEqual(imported.questions.map((question) => question.prompt), ["Second question", "First question"]);
 });
 
+test("QTI controller imports into the professor assigned course", async (context) => {
+    const { sequelize, Exam, Question, QuestionContent } = require("../models");
+    const controller = require("../controllers/professorController");
+    const xml = qtiItem({
+        prompt: "Choose",
+        interaction: { correct: "A", xml: '<qti-choice-interaction response-identifier="RESPONSE" max-choices="1"><qti-simple-choice identifier="A">Yes</qti-simple-choice><qti-simple-choice identifier="B">No</qti-simple-choice></qti-choice-interaction>' },
+        responseDeclaration: 'cardinality="single" base-type="identifier"',
+    });
+    const buffer = await createQtiZip({
+        "imsmanifest.xml": '<manifest><resources><resource identifier="item" type="imsqti_item_xmlv3p0" href="item.xml"><file href="item.xml"/></resource></resources></manifest>',
+        "item.xml": xml,
+    });
+    const transaction = {};
+    context.mock.method(sequelize, "transaction", async callback => callback(transaction));
+    context.mock.method(Exam, "create", async (values, options) => {
+        assert.equal(values.courseId, 3);
+        assert.equal(values.creatorId, 7);
+        assert.equal(options.transaction, transaction);
+        return { id: 9 };
+    });
+    context.mock.method(Question, "create", async (values, options) => {
+        assert.equal(values.examId, 9);
+        assert.equal(options.transaction, transaction);
+        return { id: 10 };
+    });
+    context.mock.method(QuestionContent, "create", async (values, options) => {
+        assert.equal(values.questionId, 10);
+        assert.equal(options.transaction, transaction);
+    });
+    await controller.importExam({ session: { userId: 7 }, course: { id: 3 }, file: { originalname: "qti.zip", buffer } }, {
+        redirect(path) { assert.equal(path, "/professor/exams/9/questions"); },
+        status() { assert.fail("Import failed"); },
+    });
+});
+
 test("QTI import rejects unsupported interactions and multimedia", () => {
     const customInteraction = `<qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="custom" title="Custom" time-dependent="false"><qti-response-declaration identifier="RESPONSE" cardinality="single" base-type="string"/><qti-item-body><p>Prompt</p><qti-gap-match-interaction response-identifier="RESPONSE"/></qti-item-body></qti-assessment-item>`;
     assert.throws(() => questionFromItem(customInteraction, "custom.xml"), /no está soportada/);

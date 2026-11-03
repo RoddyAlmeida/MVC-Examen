@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { sequelize, Exam, Question, QuestionContent, User, ExamAssignment } = require("../models");
+const { sequelize, Exam, Question, QuestionContent, User, ExamAssignment, Course } = require("../models");
 const { initializeDatabase } = require("../services/schemaMigration");
 const { normalizeQuestionInput, legacyQuestionFields } = require("../services/questionService");
 
@@ -44,10 +44,15 @@ async function migrateDemoEmails() {
 }
 
 async function seedTemplate(users) {
+  const [course] = await Course.findCreateFind({
+    where: { professorId: users.profesor.id },
+    defaults: { name: "Accesibilidad e interfaces" },
+  });
   const [exam] = await Exam.findCreateFind({
     where: { title: "Plantilla de todos los tipos de pregunta", creatorId: users.profesor.id },
-    defaults: { instructions: "Responde todas las preguntas. La respuesta de conceptos requiere revision del profesor." },
+    defaults: { courseId: course.id, instructions: "Responde todas las preguntas. La respuesta de conceptos requiere revision del profesor." },
   });
+  if (exam.courseId !== course.id) await exam.update({ courseId: course.id });
 
   for (const input of templateInputs) {
     const normalized = normalizeQuestionInput(input);

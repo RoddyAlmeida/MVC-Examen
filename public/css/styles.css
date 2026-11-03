@@ -1,5 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+.professor-course-page .page-header {
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.professor-course-page .page-header>div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.professor-course-page .header-actions {
+  flex-wrap: wrap;
+}
+
+.professor-course-page h1 {
+  font-size: 1.8rem;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
 :root {
   /* Light Theme Variables */
   --bg-color: #f0f4f8;

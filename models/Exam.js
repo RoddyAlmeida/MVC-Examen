@@ -4,6 +4,10 @@ module.exports = (sequelize) => {
   const Exam = sequelize.define(
     "Exam",
     {
+      courseId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
       creatorId: {
         type: DataTypes.INTEGER,
         allowNull: true,

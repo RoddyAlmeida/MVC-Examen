@@ -1,19 +1,20 @@
 <%- include('../partials/admin-header') %>
-    <% const professors=users.filter(user=> user.role === 'profesor'); const students = users.filter(user => user.role
+    <% const assignedCourses=courses.filter(course=> course.professorId); const students = users.filter(user =>
+        user.role
         === 'estudiante'); %>
         <form class="admin-filters" action="/admin/exams" method="GET"><label class="admin-search"><i
                     class="ti ti-search" aria-hidden="true"></i><input type="search" name="q" value="<%= query %>"
-                    placeholder="Titulo o autor" aria-label="Buscar examenes" /></label><button
+                    placeholder="Titulo, curso o autor" aria-label="Buscar examenes" /></label><button
                 class="btn btn-secondary"><i class="ti ti-filter" aria-hidden="true"></i> Filtrar</button></form>
         <details class="admin-editor">
             <summary><i class="ti ti-plus" aria-hidden="true"></i> Nuevo examen</summary>
             <form action="/admin/exams" method="POST" class="admin-form-grid">
                 <input type="hidden" name="_csrf" value="<%= csrf %>" />
                 <label>Titulo<input name="title" required maxlength="200" /></label>
-                <label>Autor<select name="creatorId">
-                        <option value="">Sin autor</option>
-                        <% professors.forEach(user=> { %><option value="<%= user.id %>">
-                                <%= user.name || user.email %>
+                <label>Curso<select name="courseId" required>
+                        <option value="">Seleccionar curso</option>
+                        <% assignedCourses.forEach(course=> { %><option value="<%= course.id %>">
+                                <%= course.name %> (<%= course.professor?.name || course.professor?.email %>)
                             </option>
                             <% }) %>
                     </select></label>
@@ -55,6 +56,7 @@
                     <thead>
                         <tr>
                             <th>Examen</th>
+                            <th>Curso</th>
                             <th>Autor</th>
                             <th>Preguntas</th>
                             <th>Asignaciones</th>
@@ -68,6 +70,9 @@
                                 <td><strong>
                                         <%= exam.title %>
                                     </strong></td>
+                                <td>
+                                    <%= exam.course?.name || 'Sin curso' %>
+                                </td>
                                 <td>
                                     <% if (exam.creator) { %><a href="/admin/users/<%= exam.creatorId %>">
                                             <%= exam.creator.name || exam.creator.email %>
@@ -98,11 +103,13 @@
                                             <input type="hidden" name="_csrf" value="<%= csrf %>" />
                                             <label>Titulo<input name="title" value="<%= exam.title %>" required
                                                     maxlength="200" /></label>
-                                            <label>Autor<select name="creatorId">
-                                                    <option value="">Sin autor</option>
-                                                    <% professors.forEach(user=> { %><option value="<%= user.id %>"
-                                                            <%=exam.creatorId===user.id ? 'selected' : '' %>><%=
-                                                                user.name || user.email %>
+                                            <label>Curso<select name="courseId" required>
+                                                    <option value="">Seleccionar curso</option>
+                                                    <% assignedCourses.forEach(course=> { %><option
+                                                            value="<%= course.id %>" <%=exam.courseId===course.id
+                                                            ? 'selected' : '' %>><%= course.name %> (<%=
+                                                                    course.professor?.name || course.professor?.email %>
+                                                                    )
                                                         </option>
                                                         <% }) %>
                                                 </select></label>
@@ -117,13 +124,14 @@
                                         <input type="hidden" name="_csrf" value="<%= csrf %>" /><button
                                             class="btn btn-secondary admin-icon admin-danger" title="Eliminar examen"
                                             aria-label="Eliminar <%= exam.title %>"><i class="ti ti-trash"
-                                                aria-hidden="true"></i></button></form>
+                                                aria-hidden="true"></i></button>
+                                    </form>
                                 </td>
                             </tr>
                             <% }) %>
                                 <% if (!exams.length) { %>
                                     <tr>
-                                        <td colspan="6" class="admin-empty">No se encontraron examenes.</td>
+                                        <td colspan="7" class="admin-empty">No se encontraron examenes.</td>
                                     </tr>
                                     <% } %>
                     </tbody>

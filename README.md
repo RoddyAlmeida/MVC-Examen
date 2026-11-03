@@ -15,6 +15,7 @@ Aplicación de exámenes con arquitectura MVC, interfaz EJS y cliente de escrito
 - Scripts separados para desarrollo web, Electron, carga de datos y build de instalador.
 - Hasta 100 preguntas por examen: opción múltiple con cualquier número de opciones, verdadero/falso, completar escrito o arrastrando, conceptos con revisión manual y crucigramas generados desde pistas.
 - Importación de paquetes de evaluación QTI 3 (1EdTech) con una lista explícita de interacciones soportadas.
+- Cursos creados por el administrador, con un único curso por profesor y exámenes vinculados al curso.
 
 ## Stack
 
@@ -79,15 +80,19 @@ pnpm run seed -- --demo
 
 Este modo migra los correos antiguos de las dos cuentas de prueba conservando sus identificadores y contraseñas. No sobrescribe cuentas existentes y puede repetirse sin duplicar la plantilla ni sus asignaciones.
 
-La plantilla contiene siete preguntas: opción múltiple con cinco opciones, verdadero, falso, completar escrito, completar arrastrando, conceptos con revisión manual y crucigrama. Pertenece al profesor de prueba y se asigna al estudiante de prueba.
+La plantilla contiene siete preguntas: opción múltiple con cinco opciones, verdadero, falso, completar escrito, completar arrastrando, conceptos con revisión manual y crucigrama. Pertenece al curso del profesor de prueba y se asigna al estudiante de prueba. Si el profesor no tiene curso, el seed crea «Accesibilidad e interfaces»; si ya tiene uno, lo reutiliza.
 
 ### Administración y permisos
 
-- El administrador crea, edita y elimina usuarios, cambia roles, asigna o retira exámenes y gestiona el catálogo y sus autores. No puede eliminar su propia cuenta ni quitarse el rol; debe permanecer al menos un administrador.
+- El administrador crea, edita y elimina usuarios, cambia roles, asigna o retira exámenes y gestiona cursos y exámenes. No puede eliminar su propia cuenta ni quitarse el rol; debe permanecer al menos un administrador.
+- En **Cursos**, el administrador crea un curso y elige un profesor disponible. Cada profesor tiene como máximo un curso. Puede renombrar o reasignar el curso; sus exámenes pasan al nuevo profesor sin modificar asignaciones ni resultados de estudiantes. Solo se pueden eliminar cursos sin exámenes.
+- Los profesores crean e importan exámenes dentro de su curso asignado. Sin curso no pueden crear ni importar; tampoco gestionar exámenes sin curso o de otro curso. En administración, crear o editar un examen requiere seleccionar un curso con docente, que determina su autor.
 - El detalle de cada estudiante muestra sus asignaciones y resultados; el de cada profesor muestra sus exámenes creados.
 - El dashboard muestra usuarios por rol, exámenes y preguntas, asignaciones completadas y pendientes, entregas de los últimos siete días, revisiones pendientes, nota media y aprobación al 60%. Las métricas de notas excluyen entregas pendientes de corrección manual.
 - Los estudiantes solo acceden a exámenes asignados, incluso mediante URL directa. Los profesores solo gestionan sus propios exámenes y resultados. Los cambios de rol se aplican en la siguiente petición: al dejar de ser estudiante se retiran sus asignaciones y al dejar de ser profesor sus exámenes quedan sin autor, conservando los resultados.
-- Al arrancar se añade la autoría y la tabla de asignaciones sin borrar datos. Los exámenes anteriores quedan sin autor y sin asignaciones hasta que el administrador los configure.
+- Al arrancar se añaden la tabla de cursos y las columnas faltantes de autoría y curso sin borrar datos. Los exámenes anteriores conservan sus autores, preguntas, asignaciones y resultados, pero quedan **Sin curso** hasta que el administrador los vincule desde **Exámenes → Editar**.
+- Al eliminar a un profesor o cambiar su rol, su curso queda sin docente y sus exámenes se conservan sin autor. Reasignar el curso restaura la autoría con el nuevo profesor.
+- La asignación de exámenes a estudiantes sigue siendo individual; su refactorización no forma parte de esta fase.
 - Retirar una asignación conserva los resultados. Eliminar un usuario borra sus asignaciones y resultados, pero conserva sus exámenes creados sin autor. Eliminar un examen borra sus preguntas, asignaciones y resultados.
 
 ### Importar un examen

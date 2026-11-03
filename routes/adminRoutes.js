@@ -25,6 +25,10 @@ router.get("/dashboard", controller.dashboard);
 router.get("/users", controller.listUsers);
 router.get("/users/:id", controller.userDetail);
 router.get("/exams", controller.listExams);
+router.get("/courses", controller.listCourses);
+router.post("/courses", controller.createCourse);
+router.post("/courses/:id/update", controller.updateCourse);
+router.post("/courses/:id/delete", controller.deleteCourse);
 router.post("/users", controller.createUser);
 router.post("/users/:id/update", controller.updateUser);
 router.post("/users/:id/delete", controller.deleteUser);
@@ -36,8 +40,12 @@ router.post("/exams/:id/delete", controller.deleteExam);
 
 router.use((error, req, res, next) => {
     if (!(error instanceof controller.AdminError) && error.name !== "SequelizeUniqueConstraintError") return next(error);
-    req.session.adminNotice = { kind: "error", message: error.name === "SequelizeUniqueConstraintError" ? "Ya existe una cuenta con ese correo." : error.message };
-    res.redirect(req.path.startsWith("/exams") ? "/admin/exams" : "/admin/users");
+    const courses = req.path.startsWith("/courses");
+    req.session.adminNotice = {
+        kind: "error", message: error.name === "SequelizeUniqueConstraintError"
+            ? (courses ? "Este profesor ya tiene un curso asignado." : "Ya existe una cuenta con ese correo.") : error.message
+    };
+    res.redirect(courses ? "/admin/courses" : req.path.startsWith("/exams") ? "/admin/exams" : "/admin/users");
 });
 
 module.exports = router;

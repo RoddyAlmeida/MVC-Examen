@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 
-<body>
+<body class="professor-course-page">
   <main class="container app-shell" style="max-width: 900px;">
     <div class="theme-toggle-wrapper">
       <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
@@ -23,64 +23,70 @@
       style="display: flex; justify-content: space-between; align-items: flex-start; padding-right: 3rem; padding-top: 1.5rem;">
       <div>
         <p class="eyebrow"><i class="ti ti-user-plus" aria-hidden="true"></i> Panel del Profesor</p>
-        <h1>Mis exámenes</h1>
+        <h1>
+          <%= course ? course.name : 'Mi curso' %>
+        </h1>
       </div>
       <div class="header-actions">
         <a href="/professor/students" class="btn btn-secondary">
           <i class="ti ti-users" aria-hidden="true"></i> Estudiantes
         </a>
-        <a href="/professor/exams/create" class="btn btn-primary">
-          <i class="ti ti-plus" aria-hidden="true"></i> Nuevo examen
-        </a>
-        <a href="/professor/exams/import" class="btn btn-secondary">
-          <i class="ti ti-file-import" aria-hidden="true"></i> Importar examen
-        </a>
-        <a href="/logout" class="btn btn-secondary">
-          <i class="ti ti-logout" aria-hidden="true"></i> Salir
-        </a>
+        <% if (course) { %>
+          <a href="/professor/exams/create" class="btn btn-primary">
+            <i class="ti ti-plus" aria-hidden="true"></i> Nuevo examen
+          </a>
+          <a href="/professor/exams/import" class="btn btn-secondary">
+            <i class="ti ti-file-import" aria-hidden="true"></i> Importar examen
+          </a>
+          <% } %>
+            <a href="/logout" class="btn btn-secondary">
+              <i class="ti ti-logout" aria-hidden="true"></i> Salir
+            </a>
       </div>
     </header>
 
-    <% if (exams.length===0) { %>
-      <section class="panel" style="text-align: center; padding: 3rem;">
-        <i class="ti ti-files-off"
-          style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
-        <p style="color: var(--text-secondary);">No hay exámenes todavía. Crea tu primer examen.</p>
-      </section>
-      <% } else { %>
-        <div class="exam-list">
-          <% exams.forEach((exam)=> { %>
-            <article class="exam-card">
-              <div class="exam-card-body">
-                <h2 class="exam-card-title">
-                  <%= exam.title %>
-                </h2>
-                <p class="exam-card-desc">
-                  <%= exam.instructions %>
-                </p>
-                <p class="exam-card-meta">
-                  <i class="ti ti-calendar" aria-hidden="true"></i> Creado: <%= exam.createdAt.toLocaleDateString() %>
-                </p>
-              </div>
-              <div class="exam-card-actions">
-                <a href="/professor/exams/<%= exam.id %>/questions" class="btn btn-secondary"
-                  title="Gestionar preguntas">
-                  <i class="ti ti-notes" aria-hidden="true"></i> Preguntas
-                </a>
-                <a href="/professor/exams/<%= exam.id %>/edit" class="btn btn-secondary" title="Editar examen">
-                  <i class="ti ti-edit" aria-hidden="true"></i>
-                </a>
-                <form action="/professor/exams/<%= exam.id %>/delete" method="POST" style="display: inline;"
-                  onsubmit="return confirm('¿Eliminar este examen y todas sus preguntas?')">
-                  <button class="btn btn-secondary" style="color: var(--danger);" title="Eliminar examen">
-                    <i class="ti ti-trash" aria-hidden="true"></i>
-                  </button>
-                </form>
-              </div>
-            </article>
-            <% }) %>
-        </div>
-        <% } %>
+    <% if (!course) { %>
+      <div class="alert" role="status">No tienes un curso asignado. Contacta al administrador.</div>
+      <% } else if (exams.length===0) { %>
+        <section class="panel" style="text-align: center; padding: 3rem;">
+          <i class="ti ti-files-off"
+            style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem; display: block;"></i>
+          <p style="color: var(--text-secondary);">Este curso no tiene exámenes todavía.</p>
+        </section>
+        <% } else { %>
+          <div class="exam-list">
+            <% exams.forEach((exam)=> { %>
+              <article class="exam-card">
+                <div class="exam-card-body">
+                  <h2 class="exam-card-title">
+                    <%= exam.title %>
+                  </h2>
+                  <p class="exam-card-desc">
+                    <%= exam.instructions %>
+                  </p>
+                  <p class="exam-card-meta">
+                    <i class="ti ti-calendar" aria-hidden="true"></i> Creado: <%= exam.createdAt.toLocaleDateString() %>
+                  </p>
+                </div>
+                <div class="exam-card-actions">
+                  <a href="/professor/exams/<%= exam.id %>/questions" class="btn btn-secondary"
+                    title="Gestionar preguntas">
+                    <i class="ti ti-notes" aria-hidden="true"></i> Preguntas
+                  </a>
+                  <a href="/professor/exams/<%= exam.id %>/edit" class="btn btn-secondary" title="Editar examen">
+                    <i class="ti ti-edit" aria-hidden="true"></i>
+                  </a>
+                  <form action="/professor/exams/<%= exam.id %>/delete" method="POST" style="display: inline;"
+                    onsubmit="return confirm('¿Eliminar este examen y todas sus preguntas?')">
+                    <button class="btn btn-secondary" style="color: var(--danger);" title="Eliminar examen">
+                      <i class="ti ti-trash" aria-hidden="true"></i>
+                    </button>
+                  </form>
+                </div>
+              </article>
+              <% }) %>
+          </div>
+          <% } %>
   </main>
   <script src="/js/themeToggle.js"></script>
 </body>

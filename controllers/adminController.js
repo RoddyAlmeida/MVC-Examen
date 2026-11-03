@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { User, Exam, Question, QuestionContent, Result, ExamAssignment } = require("../models");
+const { sequelize, User, Exam, Question, QuestionContent, Result, ExamAssignment, Course } = require("../models");
 const { calculateMetrics, pendingReview } = require("../services/adminMetrics");
 
 const roles = { estudiante: "Estudiante", profesor: "Profesor", administrador: "Administrador" };
@@ -21,10 +21,11 @@ function validateAccount(body, creating = true) {
 }
 
 async function loadData() {
-    const [users, exams, assignments, results] = await Promise.all([
+    const [users, exams, assignments, results, courses] = await Promise.all([
         User.findAll({ attributes: { exclude: ["password"] }, order: [["name", "ASC"]] }),
         Exam.findAll({
             include: [{ model: User, as: "creator", attributes: ["id", "name", "email"] },
+            { model: Course, as: "course" },
             { model: Question, as: "questions", attributes: ["id"] }], order: [["createdAt", "DESC"]]
         }),
         ExamAssignment.findAll({
@@ -35,8 +36,61 @@ async function loadData() {
             include: [{ model: Exam, as: "exam" },
             { model: User, as: "user", attributes: ["id", "name", "email"] }], order: [["createdAt", "DESC"]]
         }),
+        Course.findAll({
+            include: [{ model: User, as: "professor", attributes: ["id", "name", "email"] },
+            { model: Exam, as: "exams", attributes: ["id"] }], order: [["name", "ASC"]]
+        }),
     ]);
-    return { users, exams, assignments, results, roles, pendingReview };
+    return { users, exams, assignments, results, courses, roles, pendingReview };
+}
+
+async function listCourses(req, res) {
+    const courses = await Course.findAll({
+        include: [{ model: User, as: "professor", attributes: ["id", "name", "email"] },
+        { model: Exam, as: "exams", attributes: ["id"] }], order: [["name", "ASC"]],
+    });
+    const professors = await User.findAll({ where: { role: "profesor" }, attributes: ["id", "name", "email"], order: [["name", "ASC"]] });
+    res.render("admin/courses", { title: "Cursos", active: "courses", courses, professors });
+}
+
+async function courseData(body, courseId = null) {
+    const name = String(body.name || "").trim();
+    if (!name || name.length > 200) throw new AdminError("Indica un nombre de curso de hasta 200 caracteres.");
+    let professorId = null;
+    if (body.professorId) {
+        const professor = await findUser(body.professorId);
+        if (professor.role !== "profesor") throw new AdminError("El curso solo puede asignarse a un profesor.");
+        const assigned = await Course.findOne({ where: { professorId: professor.id } });
+        if (assigned && assigned.id !== courseId) throw new AdminError("Este profesor ya tiene un curso asignado.");
+        professorId = professor.id;
+    } else if (!courseId) {
+        throw new AdminError("Selecciona un profesor para el nuevo curso.");
+    }
+    return { name, professorId };
+}
+
+async function createCourse(req, res) {
+    await Course.create(await courseData(req.body));
+    notice(req, res, "/admin/courses", "Curso creado y asignado.");
+}
+
+async function updateCourse(req, res) {
+    const course = await Course.findByPk(req.params.id);
+    if (!course) throw new AdminError("El curso no existe.");
+    const data = await courseData(req.body, course.id);
+    await sequelize.transaction(async (transaction) => {
+        await course.update(data, { transaction });
+        await Exam.update({ creatorId: data.professorId }, { where: { courseId: course.id }, transaction });
+    });
+    notice(req, res, "/admin/courses", "Curso actualizado.");
+}
+
+async function deleteCourse(req, res) {
+    const course = await Course.findByPk(req.params.id);
+    if (!course) throw new AdminError("El curso no existe.");
+    if (await Exam.count({ where: { courseId: course.id } })) throw new AdminError("No puedes eliminar un curso que tiene examenes.");
+    await course.destroy();
+    notice(req, res, "/admin/courses", "Curso eliminado.");
 }
 
 async function dashboard(req, res) {
@@ -62,7 +116,7 @@ async function userDetail(req, res) {
 async function listExams(req, res) {
     const data = await loadData();
     const query = String(req.query.q || "").trim().toLowerCase();
-    const exams = data.exams.filter((exam) => `${exam.title} ${exam.creator?.name || ""}`.toLowerCase().includes(query));
+    const exams = data.exams.filter((exam) => `${exam.title} ${exam.creator?.name || ""} ${exam.course?.name || ""}`.toLowerCase().includes(query));
     res.render("admin/exams", { ...data, exams, title: "Examenes", active: "exams", query });
 }
 
@@ -92,7 +146,10 @@ async function updateUser(req, res) {
     if (req.body.password) account.password = await bcrypt.hash(req.body.password, 10);
     await user.update(account);
     if (account.role !== "estudiante") await ExamAssignment.destroy({ where: { userId: user.id } });
-    if (account.role !== "profesor") await Exam.update({ creatorId: null }, { where: { creatorId: user.id } });
+    if (account.role !== "profesor") {
+        await Course.update({ professorId: null }, { where: { professorId: user.id } });
+        await Exam.update({ creatorId: null }, { where: { creatorId: user.id } });
+    }
     notice(req, res, `/admin/users/${user.id}`, "Cuenta actualizada.");
 }
 
@@ -101,6 +158,7 @@ async function deleteUser(req, res) {
     await protectAdministrator(user, req.session, null);
     await ExamAssignment.destroy({ where: { userId: user.id } });
     await Result.destroy({ where: { userId: user.id } });
+    await Course.update({ professorId: null }, { where: { professorId: user.id } });
     await Exam.update({ creatorId: null }, { where: { creatorId: user.id } });
     await user.destroy();
     notice(req, res, "/admin/users", "Usuario eliminado. Sus examenes creados se conservaron sin autor.");
@@ -127,13 +185,11 @@ async function examData(body) {
     const title = String(body.title || "").trim();
     const instructions = String(body.instructions || "").trim();
     if (!title || title.length > 200 || !instructions) throw new AdminError("Indica un titulo de hasta 200 caracteres y las instrucciones.");
-    let creatorId = null;
-    if (body.creatorId) {
-        const professor = await findUser(body.creatorId);
-        if (professor.role !== "profesor") throw new AdminError("El autor debe ser un profesor.");
-        creatorId = professor.id;
-    }
-    return { title, instructions, creatorId };
+    const course = await Course.findByPk(body.courseId || 0);
+    if (!course || !course.professorId) throw new AdminError("Selecciona un curso con profesor asignado.");
+    const professor = await findUser(course.professorId);
+    if (professor.role !== "profesor") throw new AdminError("El docente del curso debe tener el rol profesor.");
+    return { title, instructions, courseId: course.id, creatorId: professor.id };
 }
 
 async function createExam(req, res) {
@@ -167,5 +223,6 @@ function notice(req, res, path, message) {
 
 module.exports = {
     roles, AdminError, validateAccount, protectAdministrator, dashboard, listUsers, userDetail, listExams,
+    listCourses, createCourse, updateCourse, deleteCourse,
     createUser, updateUser, deleteUser, assignExam, unassignExam, createExam, updateExam, deleteExam
 };

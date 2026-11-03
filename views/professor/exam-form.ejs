@@ -1,58 +1,75 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= title %></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="/css/styles.css" />
-  </head>
-  <body>
-    <main class="container app-shell" style="max-width: 700px;">
-      <div class="theme-toggle-wrapper">
-        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
-          <i class="ti ti-moon" aria-hidden="true"></i>
-        </button>
-      </div>
 
-      <header class="page-header">
-        <a href="/professor/dashboard" class="btn btn-secondary" style="margin-bottom: 1rem; width: fit-content;">
-          <i class="ti ti-arrow-left" aria-hidden="true"></i> Volver
-        </a>
-        <p class="eyebrow"><i class="ti ti-<%= exam ? 'edit' : 'plus' %>" aria-hidden="true"></i> Profesor</p>
-        <h1><%= exam ? 'Editar examen' : 'Nuevo examen' %></h1>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= title %>
+  </title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
 
-      <% if (errors.length > 0) { %>
+<body>
+  <main class="container app-shell" style="max-width: 700px;">
+    <div class="theme-toggle-wrapper">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar modo de color">
+        <i class="ti ti-moon" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <header class="page-header">
+      <a href="/professor/dashboard" class="btn btn-secondary" style="margin-bottom: 1rem; width: fit-content;">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> Volver
+      </a>
+      <p class="eyebrow"><i class="ti ti-<%= exam ? 'edit' : 'plus' %>" aria-hidden="true"></i> Profesor</p>
+      <h1>
+        <%= exam && exam.id ? 'Editar examen' : 'Nuevo examen' %>
+      </h1>
+      <p><i class="ti ti-school" aria-hidden="true"></i>
+        <%= course.name %>
+      </p>
+    </header>
+
+    <% if (errors.length> 0) { %>
       <div class="alert alert-error" role="alert">
         <i class="ti ti-alert-circle alert-icon" aria-hidden="true"></i>
         <div class="alert-content">
           <ul>
-            <% errors.forEach((error) => { %>
-            <li><%= error.msg %></li>
-            <% }) %>
+            <% errors.forEach((error)=> { %>
+              <li>
+                <%= error.msg %>
+              </li>
+              <% }) %>
           </ul>
         </div>
       </div>
       <% } %>
 
-      <form method="POST" action="/professor/exams/<%= exam ? exam.id + '/edit' : 'create' %>" class="panel">
-        <div class="form-group">
-          <label for="title" class="form-label">Título del examen</label>
-          <input type="text" id="title" name="title" class="form-input" value="<%= exam ? exam.title : '' %>" placeholder="Ej: Examen de Introducción a HCI" required />
-        </div>
-        <div class="form-group">
-          <label for="instructions" class="form-label">Instrucciones</label>
-          <textarea id="instructions" name="instructions" class="form-input form-textarea" rows="4" placeholder="Describe las indicaciones para el estudiante..." required><%= exam ? exam.instructions : '' %></textarea>
-        </div>
-        <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-          <button type="submit" class="btn btn-primary">
-            <i class="ti ti-device-floppy" aria-hidden="true"></i> <%= exam ? 'Guardar cambios' : 'Crear examen' %>
-          </button>
-          <a href="/professor/dashboard" class="btn btn-secondary">Cancelar</a>
-        </div>
-      </form>
-    </main>
-    <script src="/js/themeToggle.js"></script>
-  </body>
+        <form method="POST" action="/professor/exams/<%= exam && exam.id ? exam.id + '/edit' : 'create' %>"
+          class="panel">
+          <div class="form-group">
+            <label for="title" class="form-label">Título del examen</label>
+            <input type="text" id="title" name="title" class="form-input" value="<%= exam ? exam.title : '' %>"
+              placeholder="Ej: Examen de Introducción a HCI" required />
+          </div>
+          <div class="form-group">
+            <label for="instructions" class="form-label">Instrucciones</label>
+            <textarea id="instructions" name="instructions" class="form-input form-textarea" rows="4"
+              placeholder="Describe las indicaciones para el estudiante..."
+              required><%= exam ? exam.instructions : '' %></textarea>
+          </div>
+          <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+            <button type="submit" class="btn btn-primary">
+              <i class="ti ti-device-floppy" aria-hidden="true"></i>
+              <%= exam ? 'Guardar cambios' : 'Crear examen' %>
+            </button>
+            <a href="/professor/dashboard" class="btn btn-secondary">Cancelar</a>
+          </div>
+        </form>
+  </main>
+  <script src="/js/themeToggle.js"></script>
+</body>
+
 </html>

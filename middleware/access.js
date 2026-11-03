@@ -1,4 +1,4 @@
-const { User, Exam, Question, ExamAssignment } = require("../models");
+const { User, Exam, Question, ExamAssignment, Course } = require("../models");
 
 function denied(res, message) {
   return res.status(403).render("errors/generic", { title: "Acceso denegado", message });
@@ -26,13 +26,24 @@ async function requireAssignedExam(req, res, next) {
 
 function requireOwnedExam(parameter = "id") {
   return async (req, res, next) => {
-    const exam = await Exam.findOne({ where: { id: req.params[parameter], creatorId: req.session.userId } });
+    const exam = await Exam.findOne({
+      where: { id: req.params[parameter], creatorId: req.session.userId },
+      include: [{ model: Course, as: "course", where: { professorId: req.session.userId }, required: true }],
+    });
     if (!exam) return denied(res, "Solo puedes gestionar los examenes que has creado.");
+    req.course = exam.course;
     if (req.params.qid && !await Question.findOne({ where: { id: req.params.qid, examId: exam.id } })) {
       return denied(res, "La pregunta no pertenece a este examen.");
     }
     next();
   };
+}
+
+async function requireCourse(req, res, next) {
+  const course = await Course.findOne({ where: { professorId: req.session.userId } });
+  if (!course) return denied(res, "Necesitas un curso asignado por el administrador para crear o importar examenes.");
+  req.course = course;
+  next();
 }
 
 async function requireTeachingStudent(req, res, next) {
@@ -44,4 +55,4 @@ async function requireTeachingStudent(req, res, next) {
   next();
 }
 
-module.exports = { requireRole, requireAssignedExam, requireOwnedExam, requireTeachingStudent };
+module.exports = { requireRole, requireAssignedExam, requireOwnedExam, requireTeachingStudent, requireCourse };

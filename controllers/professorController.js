@@ -1,11 +1,12 @@
-const { sequelize, Exam, Question, QuestionContent, User, Result, ExamAssignment } = require("../models");
+const { sequelize, Exam, Question, QuestionContent, User, Result, ExamAssignment, Course } = require("../models");
 const { getQuestionDefinition, legacyQuestionFields, normalizeAnswer, normalizeQuestionInput } = require("../services/questionService");
 const { parseQtiPackage } = require("../services/examImport");
 const MAX_QUESTIONS_PER_EXAM = 100;
 
 async function dashboard(req, res) {
-  const exams = await Exam.findAll({ where: { creatorId: req.session.userId }, order: [["createdAt", "DESC"]] });
-  res.render("professor/dashboard", { title: "Mis exámenes", exams });
+  const course = await Course.findOne({ where: { professorId: req.session.userId } });
+  const exams = course ? await Exam.findAll({ where: { courseId: course.id, creatorId: req.session.userId }, order: [["createdAt", "DESC"]] }) : [];
+  res.render("professor/dashboard", { title: course ? course.name : "Mi curso", exams, course });
 }
 
 function renderImportExamPage(res, errors = [], formData = {}, status = 200) {
@@ -23,7 +24,7 @@ async function importExam(req, res) {
     }
     const examData = await parseQtiPackage(req.file.buffer);
     const exam = await sequelize.transaction(async (transaction) => {
-      const createdExam = await Exam.create({ title: examData.title, instructions: examData.instructions, creatorId: req.session.userId }, { transaction });
+      const createdExam = await Exam.create({ title: examData.title, instructions: examData.instructions, creatorId: req.session.userId, courseId: req.course.id }, { transaction });
       for (const questionData of examData.questions) {
         const question = await Question.create({
           examId: createdExam.id,
@@ -45,7 +46,7 @@ async function importExam(req, res) {
 }
 
 async function renderCreateExam(req, res) {
-  res.render("professor/exam-form", { title: "Crear examen", exam: null, errors: [] });
+  res.render("professor/exam-form", { title: "Crear examen", exam: null, errors: [], course: req.course });
 }
 
 async function createExam(req, res) {
@@ -54,16 +55,16 @@ async function createExam(req, res) {
   if (!title || !title.trim()) errors.push({ msg: "El título es obligatorio." });
   if (!instructions || !instructions.trim()) errors.push({ msg: "Las instrucciones son obligatorias." });
   if (errors.length > 0) {
-    return res.status(400).render("professor/exam-form", { title: "Crear examen", exam: req.body, errors });
+    return res.status(400).render("professor/exam-form", { title: "Crear examen", exam: req.body, errors, course: req.course });
   }
-  await Exam.create({ title: title.trim(), instructions: instructions.trim(), creatorId: req.session.userId });
+  await Exam.create({ title: title.trim(), instructions: instructions.trim(), creatorId: req.session.userId, courseId: req.course.id });
   res.redirect("/professor/dashboard");
 }
 
 async function renderEditExam(req, res) {
   const exam = await Exam.findByPk(req.params.id);
   if (!exam) return res.redirect("/professor/dashboard");
-  res.render("professor/exam-form", { title: "Editar examen", exam, errors: [] });
+  res.render("professor/exam-form", { title: "Editar examen", exam, errors: [], course: req.course });
 }
 
 async function editExam(req, res) {
@@ -74,7 +75,7 @@ async function editExam(req, res) {
   if (!title || !title.trim()) errors.push({ msg: "El título es obligatorio." });
   if (!instructions || !instructions.trim()) errors.push({ msg: "Las instrucciones son obligatorias." });
   if (errors.length > 0) {
-    return res.status(400).render("professor/exam-form", { title: "Editar examen", exam: { ...req.body, id: exam.id }, errors });
+    return res.status(400).render("professor/exam-form", { title: "Editar examen", exam: { ...req.body, id: exam.id }, errors, course: req.course });
   }
   await exam.update({ title: title.trim(), instructions: instructions.trim() });
   res.redirect("/professor/dashboard");

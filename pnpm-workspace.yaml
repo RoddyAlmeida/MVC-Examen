@@ -1,3 +1,4 @@
 allowBuilds:
   electron-winstaller: true
+  sqlite3: true
 minimumReleaseAge: 1440
