@@ -40,6 +40,7 @@ router.post("/courses/:id/invitations", requireOwnedCourse, enrollmentController
 router.post("/courses/:id/members/:enrollmentId/delete", requireOwnedCourse, enrollmentController.removeMember);
 router.get("/exams/:id/access", requireOwnedExam(), examAccessController.accessPage);
 router.get("/exams/:id/activity", requireOwnedExam(), examAccessController.activity);
+router.get("/exams/:id/leaderboard", requireOwnedExam(), examAccessController.leaderboard);
 router.post("/exams/:id/invitations", requireOwnedExam(), enrollmentController.inviteStudentExam);
 router.post("/exams/:id/assignments/delete", requireOwnedExam(), enrollmentController.removeExamAccess);
 router.post("/exams/:id/security", requireOwnedExam(), examAccessController.saveSecurity);

@@ -2,6 +2,27 @@
     max-width: 1100px;
 }
 
+.leaderboard-toolbar {
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.leaderboard-table td:first-child,
+.leaderboard-table td:nth-child(3),
+.leaderboard-table td:nth-child(4) {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.leaderboard-table th[scope="row"] {
+    overflow-wrap: anywhere;
+    font-weight: 500;
+}
+
+.leaderboard-current {
+    background: var(--secondary);
+}
+
 .membership-page h1 {
     font-size: 1.8rem;
     letter-spacing: 0;

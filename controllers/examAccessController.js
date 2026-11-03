@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const { randomBytes } = require("node:crypto");
 const { User, Exam, Question, Course, CourseEnrollment, ExamAssignment, ExamSecurityEvent, ExamAttempt, Result, sequelize } = require("../models");
 const { startAttempt, activityView } = require("../services/examActivity");
+const { getExamLeaderboard } = require("../services/examLeaderboard");
 const { EnrollmentError } = require("../services/enrollmentService");
 const { notice } = require("./enrollmentController");
 
@@ -78,6 +79,23 @@ async function activity(req, res) {
     res.json({ updatedAt: new Date(now).toISOString(), attempts: attempts.map(attempt => activityView(attempt, now)) });
 }
 
+async function leaderboard(req, res) {
+    res.set("Cache-Control", "no-store");
+    if (!req.exam.leaderboardEnabled) {
+        return res.status(403).render("errors/generic", { title: "Ranking no disponible", message: "El profesor ha desactivado el ranking de este examen." });
+    }
+    const rows = await getExamLeaderboard(req.exam);
+    const professor = req.session.role === "profesor";
+    res.render("exams/leaderboard", {
+        title: `Ranking - ${req.exam.title}`,
+        exam: req.exam,
+        rows,
+        currentUserId: req.session.userId,
+        backUrl: professor ? `/professor/dashboard?courseId=${req.exam.courseId}` : "/student/exams",
+        refreshUrl: `${professor ? "/professor" : "/student"}/exams/${req.exam.id}/leaderboard`,
+    });
+}
+
 async function securityEvent(req, res) {
     const grant = req.session.examAccess[req.exam.id];
     if (req.exam.securityMode === "none") return res.sendStatus(204);
@@ -114,4 +132,4 @@ async function readNotification(req, res) {
     res.redirect("/professor/notifications");
 }
 
-module.exports = { accessPage, saveSecurity, generateCode, beginExam, securityEvent, notifications, notificationCount, readNotification, eventTypes, heartbeat, activity };
+module.exports = { accessPage, saveSecurity, generateCode, beginExam, securityEvent, notifications, notificationCount, readNotification, eventTypes, heartbeat, activity, leaderboard };

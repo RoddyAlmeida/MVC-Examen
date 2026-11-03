@@ -76,11 +76,15 @@
       </article>
     </section>
 
-    <div style="display: flex; justify-content: center; margin-top: 2rem;">
-      <a class="btn btn-secondary" href="/student/exams" aria-label="Volver a la lista de exámenes"
-        data-speak="Volver a la lista de exámenes.">
-        <i class="ti ti-arrow-back-up" aria-hidden="true"></i> Volver al inicio
-      </a>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 2rem;">
+      <% if (typeof leaderboardEnabled !=='undefined' && leaderboardEnabled) { %>
+        <a class="btn btn-secondary" href="/student/exams/<%= examId %>/leaderboard"><i class="ti ti-trophy"
+            aria-hidden="true"></i> Ranking</a>
+        <% } %>
+          <a class="btn btn-secondary" href="/student/exams" aria-label="Volver a la lista de exámenes"
+            data-speak="Volver a la lista de exámenes.">
+            <i class="ti ti-arrow-back-up" aria-hidden="true"></i> Volver al inicio
+          </a>
     </div>
   </main>
   <script src="/js/themeToggle.js"></script>

@@ -28,195 +28,227 @@
             <p class="lead" style="margin-bottom: 0;">Página <%= currentPage %> de <%= totalPages %> · <%=
                             totalQuestions %> preguntas</p>
         </header>
-        <section class="panel progress-panel" aria-labelledby="progress-title">
-            <div class="progress-info">
-                <h2 id="progress-title"><i class="ti ti-chart-bar" aria-hidden="true"></i> Progreso</h2>
-                <p class="progress-copy"><span id="answeredCount">0</span> de <%= questions.length %> respondidas en
-                        esta página</p>
-            </div>
-            <div class="progress-track" aria-hidden="true">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-        </section>
-        <section class="panel command-panel" aria-labelledby="commands-title">
-            <h2 id="commands-title"><i class="ti ti-device-keyboard" aria-hidden="true"></i> Controles</h2>
-            <p>Operable con mouse o teclado. <code>Alt+L</code> limpiar, <code>Ctrl+Enter</code> enviar.</p>
-            <div class="command-actions">
-                <button class="btn btn-secondary" type="button" id="toggleReadBtn"
-                    aria-label="Activar o desactivar lectura guiada en español"><i class="ti ti-volume"
-                        aria-hidden="true"></i> Lectura guiada</button>
-                <button class="btn btn-secondary" type="button" id="clearAnswersBtn"
-                    aria-label="Limpiar respuestas seleccionadas"><i class="ti ti-eraser" aria-hidden="true"></i>
-                    Limpiar</button>
-            </div>
-            <p id="commandStatus" class="assistive-status" role="status" aria-live="polite"></p>
-        </section>
-        <% if (errors.length) { %>
-            <div class="alert alert-error" role="alert" aria-live="assertive">
-                <div class="alert-content">
-                    <p>Revisa tu envío:</p>
-                    <ul>
-                        <% errors.forEach((error)=> { %><li>
-                                <%= error.msg %>
-                            </li>
-                            <% }) %>
-                    </ul>
-                </div>
+        <% if (timing) { %>
+            <div class="exam-timer" data-exam-timer data-remaining-ms="<%= timing.remainingMs %>">
+                <i class="ti ti-clock" aria-hidden="true"></i>
+                <span>Tiempo restante</span>
+                <strong role="timer" aria-label="Tiempo restante" aria-live="off" data-timer-clock>
+                    <%= Math.floor(timing.remainingMs / 60000) %>:<%= String(Math.floor(timing.remainingMs / 1000) %
+                            60).padStart(2, '0' ) %>
+                </strong>
+                <span data-timer-status role="status" aria-live="polite"></span>
             </div>
             <% } %>
-                <form action="/student/exams/<%= exam.id %>/take?page=<%= currentPage %>" method="POST" id="examForm">
-                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                    <% questionViews.forEach((view, index)=> {
-                        const question = view.question;
-                        const answerKey = `question_${question.id}`;
-                        const oldValue = oldAnswers[answerKey] || '';
-                        const globalIndex = (currentPage - 1) * 5 + index + 1;
-                        %>
-                        <fieldset class="question-card" data-question-card>
-                            <legend><span class="question-badge"><i class="ti ti-help-circle" aria-hidden="true"></i>
-                                    Pregunta <%= globalIndex %></span><span class="question-text">
-                                    <%= question.prompt %>
-                                </span></legend>
-                            <% if (view.type==='multiple_choice' ) { %>
-                                <% view.configuration.options.forEach((option, optionIndex)=> { const optionText =
-                                    typeof option === 'string' ? option : option.text; %>
-                                    <label class="option-label">
-                                        <input type="radio" name="<%= answerKey %>" value="<%= optionIndex %>"
-                                            data-question-answer="<%= question.id %>"
-                                            aria-label="Pregunta <%= globalIndex %> opción <%= optionIndex + 1 %> <%= optionText %>"
-                                            <%=String(oldValue)===String(optionIndex) ? 'checked' : '' %> required>
-                                        <span class="option-tag" aria-hidden="true">
-                                            <%= optionIndex + 1 %>
-                                        </span>
-                                        <%= optionText %>
-                                    </label>
+                <section class="panel progress-panel" aria-labelledby="progress-title">
+                    <div class="progress-info">
+                        <h2 id="progress-title"><i class="ti ti-chart-bar" aria-hidden="true"></i> Progreso</h2>
+                        <p class="progress-copy"><span id="answeredCount">0</span> de <%= questions.length %>
+                                respondidas en
+                                esta página</p>
+                    </div>
+                    <div class="progress-track" aria-hidden="true">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </section>
+                <section class="panel command-panel" aria-labelledby="commands-title">
+                    <h2 id="commands-title"><i class="ti ti-device-keyboard" aria-hidden="true"></i> Controles</h2>
+                    <p>Operable con mouse o teclado. <code>Alt+L</code> limpiar, <code>Ctrl+Enter</code> enviar.</p>
+                    <div class="command-actions">
+                        <button class="btn btn-secondary" type="button" id="toggleReadBtn"
+                            aria-label="Activar o desactivar lectura guiada en español"><i class="ti ti-volume"
+                                aria-hidden="true"></i> Lectura guiada</button>
+                        <button class="btn btn-secondary" type="button" id="clearAnswersBtn"
+                            aria-label="Limpiar respuestas seleccionadas"><i class="ti ti-eraser"
+                                aria-hidden="true"></i>
+                            Limpiar</button>
+                    </div>
+                    <p id="commandStatus" class="assistive-status" role="status" aria-live="polite"></p>
+                </section>
+                <% if (errors.length) { %>
+                    <div class="alert alert-error" role="alert" aria-live="assertive">
+                        <div class="alert-content">
+                            <p>Revisa tu envío:</p>
+                            <ul>
+                                <% errors.forEach((error)=> { %><li>
+                                        <%= error.msg %>
+                                    </li>
                                     <% }) %>
-                                        <% } else if (view.type==='true_false' ) { %>
-                                            <label class="option-label"><input type="radio" name="<%= answerKey %>"
-                                                    value="true" data-question-answer="<%= question.id %>"
-                                                    <%=String(oldValue)==='true' ? 'checked' : '' %> required>
-                                                Verdadero</label>
-                                            <label class="option-label"><input type="radio" name="<%= answerKey %>"
-                                                    value="false" data-question-answer="<%= question.id %>"
-                                                    <%=String(oldValue)==='false' ? 'checked' : '' %> required>
-                                                Falso</label>
-                                            <% } else if (view.type==='fill_text' || view.type==='concept' ) { %>
-                                                <label class="form-label" for="<%= answerKey %>">
-                                                    <%= view.type==='concept'
-                                                        ? 'Tu respuesta (será revisada por el profesor)'
-                                                        : 'Completa la respuesta' %>
-                                                </label>
-                                                <textarea id="<%= answerKey %>" name="<%= answerKey %>"
-                                                    class="form-input form-textarea"
-                                                    rows="<%= view.type === 'concept' ? 5 : 2 %>"
+                            </ul>
+                        </div>
+                    </div>
+                    <% } %>
+                        <form action="/student/exams/<%= exam.id %>/take?page=<%= currentPage %>" method="POST"
+                            id="examForm">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                            <% questionViews.forEach((view, index)=> {
+                                const question = view.question;
+                                const answerKey = `question_${question.id}`;
+                                const oldValue = oldAnswers[answerKey] || '';
+                                const globalIndex = (currentPage - 1) * 5 + index + 1;
+                                %>
+                                <fieldset class="question-card" data-question-card>
+                                    <legend><span class="question-badge"><i class="ti ti-help-circle"
+                                                aria-hidden="true"></i>
+                                            Pregunta <%= globalIndex %></span><span class="question-text">
+                                            <%= question.prompt %>
+                                        </span></legend>
+                                    <% if (view.type==='multiple_choice' ) { %>
+                                        <% view.configuration.options.forEach((option, optionIndex)=> { const optionText
+                                            =
+                                            typeof option === 'string' ? option : option.text; %>
+                                            <label class="option-label">
+                                                <input type="radio" name="<%= answerKey %>" value="<%= optionIndex %>"
                                                     data-question-answer="<%= question.id %>"
-                                                    required><%= oldValue %></textarea>
-                                                <% } else if (view.type==='fill_drag' ) { %>
-                                                    <p class="fill-template">
-                                                        <%= view.configuration.template.split('{{blank}}')[0] %><strong
-                                                                class="drop-answer"
-                                                                data-drop-answer="<%= question.id %>">
-                                                                <%= oldValue || 'Suelta o selecciona una respuesta' %>
-                                                            </strong>
-                                                            <%= view.configuration.template.split('{{blank}}').slice(1).join('')
-                                                                %>
-                                                    </p>
-                                                    <label class="form-label" for="<%= answerKey %>">Respuesta</label>
-                                                    <select id="<%= answerKey %>" name="<%= answerKey %>"
-                                                        class="form-input drag-answer-select"
-                                                        data-question-answer="<%= question.id %>"
-                                                        data-drag-select="<%= question.id %>" required>
-                                                        <option value="">Seleccionar o arrastrar una opción</option>
-                                                        <% view.configuration.options.forEach((option)=> { %><option
-                                                                value="<%= option %>" <%=oldValue===option ? 'selected'
-                                                                : '' %>><%= option %>
-                                                            </option>
-                                                            <% }) %>
-                                                    </select>
-                                                    <div class="drag-options" aria-label="Opciones para arrastrar">
-                                                        <% view.configuration.options.forEach((option)=> { %><button
-                                                                type="button" class="drag-choice" draggable="true"
-                                                                data-drag-choice="<%= question.id %>"
-                                                                data-choice-value="<%= option %>"><i
-                                                                    class="ti ti-grip-vertical" aria-hidden="true"></i>
-                                                                <%= option %>
-                                                            </button>
-                                                            <% }) %>
-                                                    </div>
-                                                    <% } else if (view.type==='crossword' ) { %>
-                                                        <div class="crossword-layout">
-                                                            <div class="crossword-grid" role="group"
-                                                                aria-label="Cuadrícula del crucigrama">
-                                                                <% view.layout.grid.forEach((row)=> { %><div
-                                                                        class="crossword-row">
-                                                                        <% row.forEach((cell)=> { %>
-                                                                            <% if (cell.active) { const
-                                                                                cellName=`${answerKey}_cell_${cell.row}_${cell.col}`;
-                                                                                %>
-                                                                                <label class="crossword-cell">
-                                                                                    <% if (cell.number) { %><span
-                                                                                            class="crossword-number">
-                                                                                            <%= cell.number %>
-                                                                                        </span>
-                                                                                        <% } %><input type="text"
-                                                                                                inputmode="text"
-                                                                                                maxlength="1"
-                                                                                                autocomplete="off"
-                                                                                                name="<%= cellName %>"
-                                                                                                value="<%= oldAnswers[cellName] || '' %>"
-                                                                                                data-crossword-cell="<%= question.id %>"
-                                                                                                aria-label="Letra fila <%= cell.row + 1 %>, columna <%= cell.col + 1 %>"
-                                                                                                required>
-                                                                                </label>
-                                                                                <% } else { %><span
-                                                                                        class="crossword-cell crossword-cell--blocked"
-                                                                                        aria-hidden="true"></span>
-                                                                                    <% } %>
-                                                                                        <% }) %>
+                                                    aria-label="Pregunta <%= globalIndex %> opción <%= optionIndex + 1 %> <%= optionText %>"
+                                                    <%=String(oldValue)===String(optionIndex) ? 'checked' : '' %>
+                                                required>
+                                                <span class="option-tag" aria-hidden="true">
+                                                    <%= optionIndex + 1 %>
+                                                </span>
+                                                <%= optionText %>
+                                            </label>
+                                            <% }) %>
+                                                <% } else if (view.type==='true_false' ) { %>
+                                                    <label class="option-label"><input type="radio"
+                                                            name="<%= answerKey %>" value="true"
+                                                            data-question-answer="<%= question.id %>"
+                                                            <%=String(oldValue)==='true' ? 'checked' : '' %> required>
+                                                        Verdadero</label>
+                                                    <label class="option-label"><input type="radio"
+                                                            name="<%= answerKey %>" value="false"
+                                                            data-question-answer="<%= question.id %>"
+                                                            <%=String(oldValue)==='false' ? 'checked' : '' %> required>
+                                                        Falso</label>
+                                                    <% } else if (view.type==='fill_text' || view.type==='concept' ) {
+                                                        %>
+                                                        <label class="form-label" for="<%= answerKey %>">
+                                                            <%= view.type==='concept'
+                                                                ? 'Tu respuesta (será revisada por el profesor)'
+                                                                : 'Completa la respuesta' %>
+                                                        </label>
+                                                        <textarea id="<%= answerKey %>" name="<%= answerKey %>"
+                                                            class="form-input form-textarea"
+                                                            rows="<%= view.type === 'concept' ? 5 : 2 %>"
+                                                            data-question-answer="<%= question.id %>"
+                                                            required><%= oldValue %></textarea>
+                                                        <% } else if (view.type==='fill_drag' ) { %>
+                                                            <p class="fill-template">
+                                                                <%= view.configuration.template.split('{{blank}}')[0] %>
+                                                                    <strong class="drop-answer"
+                                                                        data-drop-answer="<%= question.id %>">
+                                                                        <%= oldValue
+                                                                            || 'Suelta o selecciona una respuesta' %>
+                                                                    </strong>
+                                                                    <%= view.configuration.template.split('{{blank}}').slice(1).join('')
+                                                                        %>
+                                                            </p>
+                                                            <label class="form-label"
+                                                                for="<%= answerKey %>">Respuesta</label>
+                                                            <select id="<%= answerKey %>" name="<%= answerKey %>"
+                                                                class="form-input drag-answer-select"
+                                                                data-question-answer="<%= question.id %>"
+                                                                data-drag-select="<%= question.id %>" required>
+                                                                <option value="">Seleccionar o arrastrar una opción
+                                                                </option>
+                                                                <% view.configuration.options.forEach((option)=> { %>
+                                                                    <option value="<%= option %>" <%=oldValue===option
+                                                                        ? 'selected' : '' %>><%= option %>
+                                                                    </option>
+                                                                    <% }) %>
+                                                            </select>
+                                                            <div class="drag-options"
+                                                                aria-label="Opciones para arrastrar">
+                                                                <% view.configuration.options.forEach((option)=> {
+                                                                    %><button type="button" class="drag-choice"
+                                                                        draggable="true"
+                                                                        data-drag-choice="<%= question.id %>"
+                                                                        data-choice-value="<%= option %>"><i
+                                                                            class="ti ti-grip-vertical"
+                                                                            aria-hidden="true"></i>
+                                                                        <%= option %>
+                                                                    </button>
+                                                                    <% }) %>
+                                                            </div>
+                                                            <% } else if (view.type==='crossword' ) { %>
+                                                                <div class="crossword-layout">
+                                                                    <div class="crossword-grid" role="group"
+                                                                        aria-label="Cuadrícula del crucigrama">
+                                                                        <% view.layout.grid.forEach((row)=> { %><div
+                                                                                class="crossword-row">
+                                                                                <% row.forEach((cell)=> { %>
+                                                                                    <% if (cell.active) { const
+                                                                                        cellName=`${answerKey}_cell_${cell.row}_${cell.col}`;
+                                                                                        %>
+                                                                                        <label class="crossword-cell">
+                                                                                            <% if (cell.number) { %>
+                                                                                                <span
+                                                                                                    class="crossword-number">
+                                                                                                    <%= cell.number %>
+                                                                                                </span>
+                                                                                                <% } %><input
+                                                                                                        type="text"
+                                                                                                        inputmode="text"
+                                                                                                        maxlength="1"
+                                                                                                        autocomplete="off"
+                                                                                                        name="<%= cellName %>"
+                                                                                                        value="<%= oldAnswers[cellName] || '' %>"
+                                                                                                        data-crossword-cell="<%= question.id %>"
+                                                                                                        aria-label="Letra fila <%= cell.row + 1 %>, columna <%= cell.col + 1 %>"
+                                                                                                        required>
+                                                                                        </label>
+                                                                                        <% } else { %><span
+                                                                                                class="crossword-cell crossword-cell--blocked"
+                                                                                                aria-hidden="true"></span>
+                                                                                            <% } %>
+                                                                                                <% }) %>
+                                                                            </div>
+                                                                            <% }) %>
                                                                     </div>
-                                                                    <% }) %>
-                                                            </div>
-                                                            <div class="crossword-clues">
-                                                                <% ['horizontal', 'vertical' ].forEach((direction)=> {
-                                                                    %>
-                                                                    <section>
-                                                                        <h3>
-                                                                            <%= direction==='horizontal'
-                                                                                ? 'Horizontales' : 'Verticales' %>
-                                                                        </h3>
-                                                                        <ol>
-                                                                            <% view.layout.words.filter((word)=>
-                                                                                word.direction ===
-                                                                                direction).forEach((word) => { %><li
-                                                                                    value="<%= word.number %>">
-                                                                                    <%= word.clue %>
-                                                                                </li>
-                                                                                <% }) %>
-                                                                        </ol>
-                                                                    </section>
-                                                                    <% }) %>
-                                                            </div>
-                                                        </div>
-                                                        <% } %>
-                        </fieldset>
-                        <% }) %>
-                            <div class="pagination-row">
-                                <% if (currentPage> 1) { %><a
-                                        href="/student/exams/<%= exam.id %>/take?page=<%= currentPage - 1 %>"
-                                        class="btn btn-secondary"><i class="ti ti-arrow-left" aria-hidden="true"></i>
-                                        Anterior</a>
-                                    <% } else { %>
-                                        <div></div>
-                                        <% } %>
-                                            <% if (currentPage < totalPages) { %><button class="btn btn-primary"
-                                                    type="submit">Siguiente <i class="ti ti-arrow-right"
-                                                        aria-hidden="true"></i></button>
-                                                <% } else { %><button class="btn btn-primary" type="submit"><i
-                                                            class="ti ti-send" aria-hidden="true"></i> Enviar
-                                                        respuestas</button>
-                                                    <% } %>
-                            </div>
-                </form>
+                                                                    <div class="crossword-clues">
+                                                                        <% ['horizontal', 'vertical'
+                                                                            ].forEach((direction)=> {
+                                                                            %>
+                                                                            <section>
+                                                                                <h3>
+                                                                                    <%= direction==='horizontal'
+                                                                                        ? 'Horizontales' : 'Verticales'
+                                                                                        %>
+                                                                                </h3>
+                                                                                <ol>
+                                                                                    <% view.layout.words.filter((word)=>
+                                                                                        word.direction ===
+                                                                                        direction).forEach((word) => {
+                                                                                        %><li
+                                                                                            value="<%= word.number %>">
+                                                                                            <%= word.clue %>
+                                                                                        </li>
+                                                                                        <% }) %>
+                                                                                </ol>
+                                                                            </section>
+                                                                            <% }) %>
+                                                                    </div>
+                                                                </div>
+                                                                <% } %>
+                                </fieldset>
+                                <% }) %>
+                                    <div class="pagination-row">
+                                        <% if (currentPage> 1) { %><a
+                                                href="/student/exams/<%= exam.id %>/take?page=<%= currentPage - 1 %>"
+                                                class="btn btn-secondary"><i class="ti ti-arrow-left"
+                                                    aria-hidden="true"></i>
+                                                Anterior</a>
+                                            <% } else { %>
+                                                <div></div>
+                                                <% } %>
+                                                    <% if (currentPage < totalPages) { %><button class="btn btn-primary"
+                                                            type="submit">Siguiente <i class="ti ti-arrow-right"
+                                                                aria-hidden="true"></i></button>
+                                                        <% } else { %><button class="btn btn-primary" type="submit"><i
+                                                                    class="ti ti-send" aria-hidden="true"></i> Enviar
+                                                                respuestas</button>
+                                                            <% } %>
+                                    </div>
+                        </form>
     </main>
     <script src="/js/themeToggle.js"></script>
     <script src="/js/pageNarration.js"></script>
@@ -224,6 +256,7 @@
     <script src="/js/examInteractions.js"></script>
     <script src="/js/examSecurity.js"></script>
     <script src="/js/examPresence.js"></script>
+    <script src="/js/examTimer.js"></script>
 </body>
 
 </html>

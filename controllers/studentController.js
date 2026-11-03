@@ -1,6 +1,7 @@
 const { sequelize, Exam, Question, QuestionContent, Result, ExamAssignment, ExamAttempt, Course, CourseEnrollment } = require("../models");
 const { getQuestionDefinition, gradeQuestion } = require("../services/questionService");
 const { buildCrosswordLayout } = require("../services/crosswordLayout");
+const { examTiming } = require("../services/examActivity");
 
 const MAX_ITEMS_PER_SCREEN = 5;
 
@@ -106,6 +107,8 @@ async function renderExam(req, res) {
     const existing = await Result.findOne({ where: { userId: req.session.userId, examId: exam.id } });
     if (existing) return res.redirect("/student/exams");
 
+    const timing = await examTiming(exam, req.session.userId);
+    if (timing?.expired) return finishExam(req, res, exam);
     const allQuestions = exam.questions;
     const totalQuestions = allQuestions.length;
     const totalPages = Math.ceil(totalQuestions / MAX_ITEMS_PER_SCREEN);
@@ -120,6 +123,7 @@ async function renderExam(req, res) {
         currentPage,
         totalPages,
         totalQuestions,
+        timing,
         errors: [],
         oldAnswers: req.session.examAnswersByExam?.[exam.id] || {},
     });
@@ -137,6 +141,8 @@ async function submitExam(req, res) {
     const existing = await Result.findOne({ where: { userId: req.session.userId, examId: exam.id } });
     if (existing) return res.redirect("/student/exams");
 
+    const timing = await examTiming(exam, req.session.userId);
+    if (timing?.expired) return finishExam(req, res, exam);
     const allQuestions = exam.questions;
     const totalQuestions = allQuestions.length;
     const totalPages = Math.ceil(totalQuestions / MAX_ITEMS_PER_SCREEN);
@@ -144,6 +150,11 @@ async function submitExam(req, res) {
     const offset = (currentPage - 1) * MAX_ITEMS_PER_SCREEN;
     const questions = allQuestions.slice(offset, offset + MAX_ITEMS_PER_SCREEN);
     const errors = [];
+
+    if (timing && req.body._saveAnswers === "on") {
+        savePageAnswers(req, exam, questions);
+        return res.json({ remainingMs: Math.max(0, timing.expiresAt - Date.now()) });
+    }
 
     for (const [index, question] of questions.entries()) {
         const answer = extractAnswer(question, req.body);
@@ -165,24 +176,44 @@ async function submitExam(req, res) {
             currentPage,
             totalPages,
             totalQuestions,
+            timing,
             errors,
             oldAnswers,
         });
     }
 
-    if (!req.session.examAnswersByExam) req.session.examAnswersByExam = {};
-    if (!req.session.examAnswersByExam[exam.id]) req.session.examAnswersByExam[exam.id] = {};
-    const answerFields = Object.fromEntries(Object.entries(req.body).filter(([key]) => key.startsWith("question_")));
-    Object.assign(req.session.examAnswersByExam[exam.id], answerFields);
+    savePageAnswers(req, exam, questions);
     if (currentPage < totalPages) return res.redirect(`/student/exams/${exam.id}/take?page=${currentPage + 1}`);
 
+    return finishExam(req, res, exam);
+}
+
+function savePageAnswers(req, exam, questions) {
+    if (!req.session.examAnswersByExam) req.session.examAnswersByExam = {};
+    if (!req.session.examAnswersByExam[exam.id]) req.session.examAnswersByExam[exam.id] = {};
+    const answers = req.session.examAnswersByExam[exam.id];
+    for (const question of questions) {
+        const key = `question_${question.id}`;
+        for (const field of Object.keys(answers)) {
+            if (field === key || field.startsWith(`${key}_cell_`)) delete answers[field];
+        }
+        for (const [field, value] of Object.entries(req.body)) {
+            if ((field === key || field.startsWith(`${key}_cell_`)) && typeof value === "string") answers[field] = value;
+        }
+    }
+}
+
+async function finishExam(req, res, exam) {
+    const allQuestions = exam.questions;
+    const totalQuestions = allQuestions.length;
+    const savedAnswers = req.session.examAnswersByExam?.[exam.id] || {};
     const submittedAnswers = {};
     const manualQuestionIds = [];
     let objectiveScore = 0;
     for (const question of allQuestions) {
-        const answer = extractAnswer(question, req.session.examAnswersByExam[exam.id]);
+        const answer = extractAnswer(question, savedAnswers);
         submittedAnswers[question.id] = answer;
-        const grade = gradeQuestion(question, answer);
+        const grade = answerIsComplete(question, answer) && answerIsValid(question, answer) ? gradeQuestion(question, answer) : false;
         if (grade === null) manualQuestionIds.push(question.id);
         else if (grade) objectiveScore += 1;
     }
@@ -201,13 +232,15 @@ async function submitExam(req, res) {
             where: { userId: req.session.userId, examId: exam.id }, transaction,
         });
     });
-    delete req.session.examAnswersByExam[exam.id];
-    delete req.session.examAccess[exam.id];
+    if (req.session.examAnswersByExam) delete req.session.examAnswersByExam[exam.id];
+    if (req.session.examAccess) delete req.session.examAccess[exam.id];
+    if (req.body?._saveAnswers === "on") return res.json({ finished: true, redirect: "/student/exams" });
     res.render("exams/result", {
         title: "Resultados",
         score: objectiveScore,
         total: totalQuestions,
         examId: exam.id,
+        leaderboardEnabled: exam.leaderboardEnabled,
         pendingReview: manualQuestionIds.length,
     });
 }

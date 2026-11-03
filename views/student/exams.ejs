@@ -110,15 +110,19 @@
                               <% } %>
                                 <% } %>
                         </div>
-                        <% if (taken) { %>
-                          <span class="btn btn-secondary" style="pointer-events: none; opacity: 0.6;">
-                            <i class="ti ti-lock" aria-hidden="true"></i> No disponible
-                          </span>
-                          <% } else { %>
-                            <a href="/student/exams/<%= exam.id %>/start" class="btn btn-primary">
-                              <i class="ti ti-arrow-right" aria-hidden="true"></i> Comenzar
-                            </a>
-                            <% } %>
+                        <% if (exam.leaderboardEnabled) { %>
+                          <a href="/student/exams/<%= exam.id %>/leaderboard" class="btn btn-secondary"><i
+                              class="ti ti-trophy" aria-hidden="true"></i> Ranking</a>
+                          <% } %>
+                            <% if (taken) { %>
+                              <span class="btn btn-secondary" style="pointer-events: none; opacity: 0.6;">
+                                <i class="ti ti-lock" aria-hidden="true"></i> No disponible
+                              </span>
+                              <% } else { %>
+                                <a href="/student/exams/<%= exam.id %>/start" class="btn btn-primary">
+                                  <i class="ti ti-arrow-right" aria-hidden="true"></i> Comenzar
+                                </a>
+                                <% } %>
                       </article>
                       <% }) %>
                 </div>

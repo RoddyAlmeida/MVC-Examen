@@ -1,5 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+.exam-timer {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--card-bg);
+  border-block: 1px solid var(--border-color);
+}
+
+.exam-timer strong {
+  min-width: 6ch;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.exam-timer.is-urgent {
+  color: var(--danger, #b42318);
+}
+
 .professor-course-page .page-header {
   flex-wrap: wrap;
   gap: 1rem;

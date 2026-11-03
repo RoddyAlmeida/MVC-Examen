@@ -75,16 +75,39 @@
                   placeholder="Describe las indicaciones para el estudiante..."
                   required><%= exam ? exam.instructions : '' %></textarea>
               </div>
-              <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-                <button type="submit" class="btn btn-primary">
-                  <i class="ti ti-device-floppy" aria-hidden="true"></i>
-                  <%= exam && exam.id ? 'Guardar cambios' : 'Crear examen' %>
-                </button>
-                <a href="/professor/dashboard" class="btn btn-secondary">Cancelar</a>
-              </div>
+              <% const timerEnabled=exam && (Object.prototype.hasOwnProperty.call(exam, 'timerEnabled' ) ?
+                exam.timerEnabled==='on' : Boolean(exam.timeLimitMinutes)); %>
+                <div class="form-group">
+                  <label class="form-label" for="timerEnabled">
+                    <input id="timerEnabled" name="timerEnabled" type="checkbox" <%=timerEnabled ? 'checked' : '' %> />
+                    <i class="ti ti-clock" aria-hidden="true"></i> Activar temporizador
+                  </label>
+                  <div id="timerDuration" <%=timerEnabled ? '' : 'hidden' %>>
+                    <label for="timeLimitMinutes" class="form-label">Duracion en minutos</label>
+                    <input id="timeLimitMinutes" name="timeLimitMinutes" type="number" class="form-input" min="5"
+                      max="2147483647" step="1"
+                      value="<%= exam && exam.timeLimitMinutes != null ? exam.timeLimitMinutes : 5 %>" <%=timerEnabled
+                      ? 'required' : 'disabled' %> />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="leaderboardEnabled">
+                    <input id="leaderboardEnabled" name="leaderboardEnabled" type="checkbox" <%=exam &&
+                      (exam.leaderboardEnabled===true || exam.leaderboardEnabled==='on' ) ? 'checked' : '' %> />
+                    <i class="ti ti-trophy" aria-hidden="true"></i> Activar ranking del examen
+                  </label>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="ti ti-device-floppy" aria-hidden="true"></i>
+                    <%= exam && exam.id ? 'Guardar cambios' : 'Crear examen' %>
+                  </button>
+                  <a href="/professor/dashboard" class="btn btn-secondary">Cancelar</a>
+                </div>
         </form>
   </main>
   <script src="/js/themeToggle.js"></script>
+  <script src="/js/examTimer.js"></script>
 </body>
 
 </html>

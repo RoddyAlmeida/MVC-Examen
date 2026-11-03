@@ -52,9 +52,11 @@
         <p class="stat-value">Activo</p>
       </article>
       <article class="stat-card">
-        <i class="ti ti-keyboard stat-icon" aria-hidden="true"></i>
-        <p class="stat-label">Interacción</p>
-        <p class="stat-value">Teclado + mouse</p>
+        <i class="ti ti-clock stat-icon" aria-hidden="true"></i>
+        <p class="stat-label">Tiempo limite</p>
+        <p class="stat-value">
+          <%= exam.timeLimitMinutes ? exam.timeLimitMinutes + ' min' : 'Sin limite' %>
+        </p>
       </article>
     </section>
 

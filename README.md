@@ -114,6 +114,21 @@ La plantilla contiene siete preguntas: opción múltiple con cinco opciones, ver
 - El tiempo es el transcurrido desde el inicio guardado por el servidor; incluye ausencias y no mide pulsaciones ni tiempo efectivo de escritura. Volver a entrar conserva el inicio original. Al enviar las respuestas se cierra el intento; al restablecer un resultado se elimina el registro para empezar otro.
 - No se transmiten respuestas mediante las señales de presencia. Solo el profesor actual del examen puede consultar su actividad, y se excluyen estudiantes sin inscripción o acceso activo. La pérdida de conexión y el control del cliente impiden garantizar presencia exacta.
 
+### Ranking por examen
+
+- En **Crear examen** o **Editar examen**, el profesor puede activar o desactivar **Ranking del examen**. Está desactivado por defecto, también para exámenes existentes e importados.
+- Al activarlo aparece **Ranking** en las listas de exámenes del profesor y del estudiante, y al finalizar una entrega. Muestra posición, nombre, respuestas correctas sobre el total y tiempo empleado. Se ordena por mayor puntaje y, en empate, menor tiempo.
+- Solo se incluyen resultados con corrección finalizada y estudiantes con inscripción y acceso activos. Las respuestas pendientes de revisión manual se incorporan cuando el profesor termina de corregirlas. No se muestran correos ni respuestas.
+- El tiempo procede del inicio y fin del intento registrados por el servidor, incluye ausencias y funciona con o sin temporizador. Los resultados antiguos sin intento terminado muestran **No registrado** y quedan detrás de los tiempos conocidos al empatar en puntaje.
+- Desactivarlo oculta los enlaces y bloquea también la URL directa, sin borrar resultados. Solo el profesor propietario y los estudiantes con acceso activo al examen pueden consultarlo. El botón de actualización carga la clasificación actual.
+
+### Temporizador opcional
+
+- En **Crear examen** o **Editar examen**, el profesor puede activar o desactivar el temporizador. Al activarlo debe indicar al menos **5 minutos**, en minutos enteros; los exámenes existentes e importados quedan sin límite por defecto.
+- El límite corresponde al examen completo y comienza al pulsar **Comenzar examen**. Cambiar de página, recargar o volver a entrar no reinicia el tiempo. Editar la duración aplica el nuevo límite al inicio original; desactivarla elimina el límite.
+- Durante un examen cronometrado se guardan las respuestas de la página en el servidor y se muestra la cuenta regresiva. Al vencer se finaliza con las respuestas guardadas; las preguntas sin responder cuentan como incorrectas. El servidor no acepta cambios tardíos, aunque se manipule el reloj o se desactive JavaScript.
+- Si se cierra la aplicación o se pierde conexión, el tiempo sigue corriendo. El intento vencido se finaliza en la siguiente petición al examen. El guardado usa la sesión actual: perder esa sesión puede perder respuestas aún no entregadas.
+
 ### Seguridad opcional del examen
 
 - **Contraseña:** se almacena con bcrypt, nunca en texto plano. Se verifica en el servidor antes de mostrar preguntas. Cambiar la contraseña o el modo invalida verificaciones anteriores; conocer el código no evita la contraseña.

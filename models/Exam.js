@@ -8,6 +8,8 @@ module.exports = (sequelize) => {
       securityMode: { type: DataTypes.STRING, allowNull: false, defaultValue: "none", validate: { isIn: [["none", "locked", "monitored"]] } },
       securityRevision: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
       joinCode: { type: DataTypes.STRING, allowNull: true },
+      timeLimitMinutes: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null, validate: { isInt: true, min: 5 } },
+      leaderboardEnabled: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
       courseId: {
         type: DataTypes.INTEGER,
         allowNull: true,

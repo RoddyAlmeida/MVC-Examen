@@ -95,24 +95,29 @@
                               </p>
                             </div>
                             <div class="exam-card-actions">
-                              <a href="/professor/exams/<%= exam.id %>/access" class="btn btn-secondary"><i
-                                  class="ti ti-lock-access" aria-hidden="true"></i> Acceso y seguridad</a>
-                              <a href="/professor/exams/<%= exam.id %>/questions" class="btn btn-secondary"
-                                title="Gestionar preguntas">
-                                <i class="ti ti-notes" aria-hidden="true"></i> Preguntas
-                              </a>
-                              <a href="/professor/exams/<%= exam.id %>/edit" class="btn btn-secondary"
-                                title="Editar examen">
-                                <i class="ti ti-edit" aria-hidden="true"></i>
-                              </a>
-                              <form action="/professor/exams/<%= exam.id %>/delete" method="POST"
-                                style="display: inline;"
-                                onsubmit="return confirm('¿Eliminar este examen y todas sus preguntas?')">
-                                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                                <button class="btn btn-secondary" style="color: var(--danger);" title="Eliminar examen">
-                                  <i class="ti ti-trash" aria-hidden="true"></i>
-                                </button>
-                              </form>
+                              <% if (exam.leaderboardEnabled) { %>
+                                <a href="/professor/exams/<%= exam.id %>/leaderboard" class="btn btn-secondary"><i
+                                    class="ti ti-trophy" aria-hidden="true"></i> Ranking</a>
+                                <% } %>
+                                  <a href="/professor/exams/<%= exam.id %>/access" class="btn btn-secondary"><i
+                                      class="ti ti-lock-access" aria-hidden="true"></i> Acceso y seguridad</a>
+                                  <a href="/professor/exams/<%= exam.id %>/questions" class="btn btn-secondary"
+                                    title="Gestionar preguntas">
+                                    <i class="ti ti-notes" aria-hidden="true"></i> Preguntas
+                                  </a>
+                                  <a href="/professor/exams/<%= exam.id %>/edit" class="btn btn-secondary"
+                                    title="Editar examen">
+                                    <i class="ti ti-edit" aria-hidden="true"></i>
+                                  </a>
+                                  <form action="/professor/exams/<%= exam.id %>/delete" method="POST"
+                                    style="display: inline;"
+                                    onsubmit="return confirm('¿Eliminar este examen y todas sus preguntas?')">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                    <button class="btn btn-secondary" style="color: var(--danger);"
+                                      title="Eliminar examen">
+                                      <i class="ti ti-trash" aria-hidden="true"></i>
+                                    </button>
+                                  </form>
                             </div>
                           </article>
                           <% }) %>

@@ -162,7 +162,7 @@ test("schema migration adds missing course and authorship columns without forcin
     context.mock.method(ExamAssignment, "findAll", async () => []);
     await initializeDatabase();
     await initializeDatabase();
-    assert.deepEqual(added, ["creatorId", "courseId", "passwordHash", "securityMode", "securityRevision", "joinCode"]);
+    assert.deepEqual(added, ["creatorId", "courseId", "passwordHash", "securityMode", "securityRevision", "joinCode", "timeLimitMinutes", "leaderboardEnabled"]);
 });
 
 test("template covers all types and repeated seeding does not duplicate questions", async (context) => {
@@ -297,7 +297,7 @@ test("professors without a course cannot create or import exams", async (context
 test("professor exam creation uses a selected own course and rejects foreign courses", async (context) => {
     context.mock.method(Course, "findAll", async () => [{ id: 3 }, { id: 4 }]);
     const create = context.mock.method(Exam, "create", async (values) => {
-        assert.deepEqual(values, { title: "Examen", instructions: "Resolver", creatorId: 7, courseId: 3 });
+        assert.deepEqual(values, { title: "Examen", instructions: "Resolver", timeLimitMinutes: null, leaderboardEnabled: false, creatorId: 7, courseId: 3 });
     });
     const req = { method: "POST", session: { userId: 7 }, body: { title: " Examen ", instructions: " Resolver ", courseId: 99, creatorId: 99 } };
     const rejected = response();

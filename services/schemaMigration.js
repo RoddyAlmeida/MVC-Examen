@@ -42,7 +42,7 @@ async function initializeDatabase() {
                 onDelete: "RESTRICT",
             });
         }
-        for (const field of ["passwordHash", "securityMode", "securityRevision", "joinCode"]) {
+        for (const field of ["passwordHash", "securityMode", "securityRevision", "joinCode", "timeLimitMinutes", "leaderboardEnabled"]) {
             if (!columns[field]) await query.addColumn("exams", field, Exam.rawAttributes[field]);
         }
     }

@@ -28,4 +28,11 @@ function activityView(attempt, now = Date.now()) {
     };
 }
 
-module.exports = { startAttempt, activityView, ACTIVE_WINDOW_MS };
+async function examTiming(exam, userId, now = Date.now()) {
+    if (!exam.timeLimitMinutes) return null;
+    const attempt = await ExamAttempt.findOne({ where: { userId, examId: exam.id, finishedAt: null } });
+    const expiresAt = attempt ? new Date(attempt.startedAt).getTime() + exam.timeLimitMinutes * 60000 : now;
+    return { expiresAt, remainingMs: Math.max(0, expiresAt - now), expired: now >= expiresAt };
+}
+
+module.exports = { startAttempt, activityView, examTiming, ACTIVE_WINDOW_MS };

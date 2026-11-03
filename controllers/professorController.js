@@ -51,15 +51,25 @@ async function renderCreateExam(req, res) {
   res.render("professor/exam-form", { title: "Crear examen", exam: null, errors: [], course: req.course, courses: req.courses });
 }
 
+function examTimeLimit(body, errors) {
+  if (body.timerEnabled !== "on") return null;
+  const minutes = Number(body.timeLimitMinutes);
+  if (!Number.isSafeInteger(minutes) || minutes < 5 || minutes > 2147483647) {
+    errors.push({ msg: "El temporizador debe tener una duracion entera de al menos 5 minutos." });
+  }
+  return minutes;
+}
+
 async function createExam(req, res) {
   const { title, instructions } = req.body;
   const errors = [];
+  const timeLimitMinutes = examTimeLimit(req.body, errors);
   if (!title || !title.trim()) errors.push({ msg: "El título es obligatorio." });
   if (!instructions || !instructions.trim()) errors.push({ msg: "Las instrucciones son obligatorias." });
   if (errors.length > 0) {
     return res.status(400).render("professor/exam-form", { title: "Crear examen", exam: req.body, errors, course: req.course, courses: req.courses });
   }
-  await Exam.create({ title: title.trim(), instructions: instructions.trim(), creatorId: req.session.userId, courseId: req.course.id });
+  await Exam.create({ title: title.trim(), instructions: instructions.trim(), timeLimitMinutes, leaderboardEnabled: req.body.leaderboardEnabled === "on", creatorId: req.session.userId, courseId: req.course.id });
   res.redirect(`/professor/dashboard?courseId=${req.course.id}`);
 }
 
@@ -74,12 +84,13 @@ async function editExam(req, res) {
   if (!exam) return res.redirect("/professor/dashboard");
   const { title, instructions } = req.body;
   const errors = [];
+  const timeLimitMinutes = examTimeLimit(req.body, errors);
   if (!title || !title.trim()) errors.push({ msg: "El título es obligatorio." });
   if (!instructions || !instructions.trim()) errors.push({ msg: "Las instrucciones son obligatorias." });
   if (errors.length > 0) {
     return res.status(400).render("professor/exam-form", { title: "Editar examen", exam: { ...req.body, id: exam.id }, errors, course: req.course });
   }
-  await exam.update({ title: title.trim(), instructions: instructions.trim() });
+  await exam.update({ title: title.trim(), instructions: instructions.trim(), timeLimitMinutes, leaderboardEnabled: req.body.leaderboardEnabled === "on" });
   res.redirect(`/professor/dashboard?courseId=${req.course.id}`);
 }
 
